@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { Buffer } = require('buffer');
+const { execFile } = require('child_process');
 
 // Every disk request from the page passes through here: a write the system
 // refuses (see reportBlockedWrite) is explained to the writer, then the error
@@ -1470,7 +1471,7 @@ ipcMain.handle('email:draft', async (_e, { to, subject, body, html, defaultName,
       activate
     end tell`;
   return new Promise((resolve) => {
-    require('child_process').execFile('osascript', ['-e', script], (err) => {
+    execFile('osascript', ['-e', script], (err) => {
       if (err) {
         // Mail not available — at least reveal the snapshot we saved
         shell.showItemInFolder(file);
