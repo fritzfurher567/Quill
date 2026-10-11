@@ -11440,9 +11440,35 @@ function takeSnapshot(kind, htmlOf = (c) => chapterHTML[c] || '', { ifNoneToday 
   snapChain = p;
   return p;
 }
+// Chapters (and book.json) on disk before a kept or restore snapshot, so the
+// version-history commit that follows matches what was snapshotted.
+async function flushManuscriptToDisk() {
+  if (!book || shelfExport) return;
+  const writes = [];
+  for (const chId of book.chapterOrder) {
+    if (chapterHTML[chId] !== undefined && chapterHTML[chId] !== savedHTML[chId]) {
+      writes.push(persistChapter(chId));
+    }
+  }
+  clearTimeout(saveTimers.meta);
+  if (metaSig(book) !== savedMetaSig) writes.push(saveMeta());
+  await Promise.all(writes);
+}
+
 async function takeSnapshotNow(kind, htmlOf, { ifNoneToday }) {
   if (!book || !snapsCan()) return null;
   const bookId = book.id;
+  // ⌘S and pre-restore: flush first so git sees the same words as the snapshot.
+  // Daily snapshots use savedHTML on purpose (the day as it stood) — no flush.
+  let diskReady = true;
+  if (kind === SNAP_KEPT || kind === 'r') {
+    try {
+      await flushManuscriptToDisk();
+    } catch (err) {
+      diskReady = false;
+      window.neo.logError('snapshot flush: ' + ((err && err.message) || err));
+    }
+  }
   const order = [...book.chapterOrder];
   const titles = { ...(book.chapterTitles || {}) };
   const kinds = { ...(book.chapterKinds || {}) };
@@ -11491,6 +11517,8 @@ async function takeSnapshotNow(kind, htmlOf, { ifNoneToday }) {
     snaps.splice(i, 1);
   }
   renderSnapList();
+  // Version history: a new snapshot is the hook for a git commit of this book.
+  if (diskReady && window.neo.historyCheckpoint) window.neo.historyCheckpoint(bookId, kind);
   return { snap, same: false };
 }
 

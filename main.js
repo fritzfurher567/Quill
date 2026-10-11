@@ -1920,6 +1920,7 @@ async function dailyBackup() {
         // a book's snapshots stay out: the zip stays the size of the books,
         // and the snapshots are already a history of their own
         if (name === 'snapshots' && rel.startsWith('book-') && !rel.includes('/')) continue;
+        if (name === '.git') continue; // a book's history stays out of the zip, the way Backups and Exports do
         if (name === '.DS_Store' || /^\..+\.icloud$/.test(name)) continue; // Finder litter; iCloud's stand-in for a file not downloaded
         const full = path.join(dir, name);
         const relPath = rel ? rel + '/' + name : name;
@@ -2294,14 +2295,17 @@ ipcMain.on('view:state', (e, st) => {
   viewState = next;
   try { buildMenu(); } catch (err) { logError('menu', err); }
 });
-// File → Version History. The tick follows the window. The pass itself
-// reads library.json, so a tick alone never runs git.
+// File → Version History. The tick follows the window. Commits run when a
+// snapshot is taken (one book) or when tracking is turned on (every book).
+// Saves never call git. The pass itself reads library.json, so a tick alone
+// never runs it.
 let versionTrackingState = false;
 let versionTrackingKnown = false;
 let historyRunning = false;
 let historySoon = null;
 
-const HISTORY_IGNORE = ['*.tmp', '*.bak', '.DS_Store'];
+// snapshots/ is NEO's own history; leave it out of the book's git.
+const HISTORY_IGNORE = ['*.tmp', '*.bak', '.DS_Store', 'snapshots'];
 
 function historyHooksPath() {
   // an empty directory, so a hook that arrived with a synced book cannot
@@ -2406,7 +2410,16 @@ function logHistoryEnabled() {
   );
 }
 
-async function commitBookHistory(dir) {
+// Snapshot kinds from the window (k / d / r). A full pass (turn tracking on)
+// has no kind and keeps the plain subject.
+function historyCommitSubject(kind) {
+  if (kind === 'k') return 'Version history: taken by you';
+  if (kind === 'd') return 'Version history: start of the day';
+  if (kind === 'r') return 'Version history: before a restore';
+  return 'Version history';
+}
+
+async function commitBookHistory(dir, kind) {
   if (!fs.existsSync(path.join(dir, '.git'))) await runGit(dir, ['init']);
   if (!ensureHistoryGitignore(dir)) return;
   const status = await runGit(dir, ['status', '--porcelain']);
@@ -2415,12 +2428,13 @@ async function commitBookHistory(dir) {
   // Author from the writer's git config, the way an agent commit does.
   // NEO only appears as Co-authored-by, with the app version.
   // useConfigOnly: no guessed gord@host author when the writer has no git identity.
+  const subject = historyCommitSubject(kind);
   await runGit(dir, [
     '-c', 'user.useConfigOnly=true',
     '-c', 'commit.gpgsign=false',
     '-c', 'core.hooksPath=' + historyHooksPath(),
     'commit',
-    '-m', 'Version history',
+    '-m', subject,
     '-m', 'Co-authored-by: NEO ' + app.getVersion() + ' <neo@localhost>'
   ]);
   let commit = '';
@@ -2438,12 +2452,13 @@ async function commitBookHistory(dir) {
     'checkpoint saved' +
     ' book=' + path.basename(dir) +
     (title ? ' title=' + JSON.stringify(title) : '') +
+    (kind ? ' kind=' + kind : '') +
     (commit ? ' commit=' + commit : '')
   );
 }
 
-// One pass. A second call while this is still walking books does nothing.
-// Saves do not call it: they return when the file is durable.
+// One pass over every book. A second call while this is still walking does
+// nothing. Used when tracking is turned on; snapshots call checkpointBook.
 async function commitHistories() {
   if (historyRunning) return;
   historyRunning = true;
@@ -2486,11 +2501,37 @@ function runHistoryPass() {
   commitHistories().catch((err) => logError('history', err));
 }
 
+// After a new snapshot: commit that book only. If a pass is already running,
+// fold into a full pass so the book is not skipped (kind is lost in that rare case).
+async function checkpointBook(bookId, kind) {
+  if (historyRunning) {
+    scheduleHistorySoon();
+    return;
+  }
+  historyRunning = true;
+  try {
+    const lib = readJSON(LIBRARY_FILE, {});
+    if (!lib || lib.versionTracking !== true) return;
+    let dir;
+    try { dir = bookDir(bookId); } catch { return; }
+    if (!fs.existsSync(path.join(dir, 'book.json'))) return;
+    try {
+      await commitBookHistory(dir, kind);
+    } catch (err) {
+      if (err && err.code === 'ENOENT') {
+        logError('history', err);
+        return;
+      }
+      logError('history', new Error(String(bookId) + ': ' + (err && err.stack ? err.stack : err)));
+    }
+  } finally {
+    historyRunning = false;
+  }
+}
+
 function startHistorySchedule() {
+  // identity once at launch; commits wait for a snapshot (or turning tracking on)
   logGitIdentity().catch((err) => logError('history', err));
-  // after the first paint, then at most once an hour
-  setTimeout(runHistoryPass, 60 * 1000);
-  setInterval(runHistoryPass, 60 * 60 * 1000);
 }
 
 function scheduleHistorySoon() {
@@ -2517,6 +2558,11 @@ ipcMain.on('versionTracking:state', (_e, on) => {
     else logHistory('version control disabled');
   } catch (err) { logError('history', err); }
   if (turnedOn) scheduleHistorySoon();
+});
+
+// From the window after a snapshot that wrote something new.
+ipcMain.on('history:checkpoint', (_e, bookId, kind) => {
+  checkpointBook(bookId, kind).catch((err) => logError('history', err));
 });
 
 // File → New Books Open To: the pantser/plotter choice, kept in library.json

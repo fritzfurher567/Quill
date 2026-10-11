@@ -72,6 +72,13 @@ function histories() {
   return vm.runInContext('commitHistories()', main.context);
 }
 
+function checkpoint(bookId, kind) {
+  return vm.runInContext(
+    'checkpointBook(' + JSON.stringify(bookId) + ', ' + JSON.stringify(kind) + ')',
+    main.context
+  );
+}
+
 function setTracking(on) {
   const lib = main.call('library:read');
   lib.versionTracking = on;
@@ -98,9 +105,9 @@ function logIdentity() {
   return vm.runInContext('logGitIdentity()', main.context);
 }
 
-function assertHistoryCommit(folder) {
+function assertHistoryCommit(folder, subject = 'Version history') {
   const version = localRequire('./package.json').version;
-  assert.equal(gitOut(folder, ['log', '-1', '--format=%s']), 'Version history');
+  assert.equal(gitOut(folder, ['log', '-1', '--format=%s']), subject);
   assert.equal(gitOut(folder, ['log', '-1', '--format=%an']), gitUserName());
   assert.match(
     gitOut(folder, ['log', '-1', '--format=%b']),
@@ -171,7 +178,9 @@ describe('version history', { concurrency: 1 }, () => {
       assert.equal(commitCount(folder), 1);
       assertHistoryCommit(folder);
       const ignore = fs.readFileSync(path.join(folder, '.gitignore'), 'utf8');
-      for (const line of ['*.tmp', '*.bak', '.DS_Store']) assert.equal(ignore.includes(line), true);
+      for (const line of ['*.tmp', '*.bak', '.DS_Store', 'snapshots']) {
+        assert.equal(ignore.split(/\r?\n/).includes(line), true);
+      }
       const hash = gitOut(folder, ['rev-parse', '--short', 'HEAD']);
       assert.equal(lines.filter((l) => l.includes('checkpoint saved')).length, 1);
       assert.match(lines.join('\n'), new RegExp(
@@ -395,6 +404,128 @@ describe('version history', { concurrency: 1 }, () => {
         else process.env[key] = value;
       }
       fs.rmSync(home, { recursive: true, force: true });
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('a snapshot checkpoint commits only that book', async () => {
+    const dir = tempLibrary();
+    try {
+      const one = main.call('book:create', { title: 'One', author: 'Ada' });
+      const two = main.call('book:create', { title: 'Two', author: 'Ada' });
+      const folderOne = path.join(dir, one.id);
+      const folderTwo = path.join(dir, two.id);
+      setTracking(true);
+      await withHistoryConsole(async () => { await histories(); });
+      const beforeOne = commitCount(folderOne);
+      const beforeTwo = commitCount(folderTwo);
+
+      main.call('chapter:write', one.id, 'c1', '<p>Only the first book.</p>');
+      const lines = await withHistoryConsole(async () => { await checkpoint(one.id, 'k'); });
+      assert.equal(commitCount(folderOne), beforeOne + 1);
+      assert.equal(commitCount(folderTwo), beforeTwo);
+      assertHistoryCommit(folderOne, 'Version history: taken by you');
+      assert.equal(lines.filter((l) => l.includes('checkpoint saved')).length, 1);
+      assert.match(lines.join('\n'), new RegExp(
+        'book=' + one.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '.* kind=k'
+      ));
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('snapshot kinds name the commit subject', async () => {
+    const dir = tempLibrary();
+    try {
+      const book = main.call('book:create', { title: 'Hello', author: 'Ada' });
+      const folder = path.join(dir, book.id);
+      setTracking(true);
+      await withHistoryConsole(async () => { await histories(); });
+      assertHistoryCommit(folder, 'Version history'); // turn-on / full pass: no kind
+
+      main.call('chapter:write', book.id, 'c1', '<p>Morning.</p>');
+      await withHistoryConsole(async () => { await checkpoint(book.id, 'd'); });
+      assertHistoryCommit(folder, 'Version history: start of the day');
+
+      main.call('chapter:write', book.id, 'c1', '<p>Morning. Afternoon.</p>');
+      await withHistoryConsole(async () => { await checkpoint(book.id, 'k'); });
+      assertHistoryCommit(folder, 'Version history: taken by you');
+
+      main.call('chapter:write', book.id, 'c1', '<p>Before restore.</p>');
+      await withHistoryConsole(async () => { await checkpoint(book.id, 'r'); });
+      assertHistoryCommit(folder, 'Version history: before a restore');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  // Snapshot can still ask for a checkpoint when the work tree is already
+  // clean (e.g. nothing new on disk since the last commit). Expect silence.
+  test('a snapshot checkpoint with no git changes does not commit', async () => {
+    const dir = tempLibrary();
+    try {
+      const book = main.call('book:create', { title: 'Hello', author: 'Ada' });
+      const folder = path.join(dir, book.id);
+      setTracking(true);
+      await withHistoryConsole(async () => { await histories(); });
+      const before = commitCount(folder);
+
+      const lines = await withHistoryConsole(async () => { await checkpoint(book.id, 'k'); });
+      assert.equal(commitCount(folder), before);
+      assert.equal(lines.filter((l) => l.includes('checkpoint saved')).length, 0);
+      assert.equal(gitOut(folder, ['status', '--porcelain']), '');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('snapshots stay out of the book\'s git', async () => {
+    const dir = tempLibrary();
+    try {
+      const book = main.call('book:create', { title: 'Hello', author: 'Ada' });
+      const folder = path.join(dir, book.id);
+      setTracking(true);
+      await withHistoryConsole(async () => { await histories(); });
+
+      const snapDir = path.join(folder, 'snapshots', '20260101T120000Z-k-1-3-abcd');
+      fs.mkdirSync(snapDir, { recursive: true });
+      fs.writeFileSync(path.join(snapDir, 'snapshot.json'), '{"v":1}\n');
+      main.call('chapter:write', book.id, 'c1', '<p>After a snapshot folder appeared.</p>');
+
+      await withHistoryConsole(async () => { await checkpoint(book.id, 'k'); });
+      const tracked = gitOut(folder, ['ls-files']);
+      assert.equal(tracked.split('\n').some((f) => f.startsWith('snapshots/')), false);
+      const ignore = fs.readFileSync(path.join(folder, '.gitignore'), 'utf8');
+      assert.equal(ignore.split(/\r?\n/).includes('snapshots'), true);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('an existing gitignore gains the snapshots line', async () => {
+    const dir = tempLibrary();
+    try {
+      const book = main.call('book:create', { title: 'Hello', author: 'Ada' });
+      const folder = path.join(dir, book.id);
+      fs.writeFileSync(path.join(folder, '.gitignore'), '*.tmp\n*.bak\n.DS_Store\n');
+      setTracking(true);
+      await withHistoryConsole(async () => { await histories(); });
+      const ignore = fs.readFileSync(path.join(folder, '.gitignore'), 'utf8');
+      assert.equal(ignore.split(/\r?\n/).includes('snapshots'), true);
+      assert.match(ignore, /\*\.tmp\n\*\.bak\n\.DS_Store\nsnapshots\n/);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('checkpoint with tracking off does nothing', async () => {
+    const dir = tempLibrary();
+    try {
+      const book = main.call('book:create', { title: 'Hello', author: 'Ada' });
+      setTracking(false);
+      await checkpoint(book.id);
+      assert.equal(fs.existsSync(path.join(dir, book.id, '.git')), false);
+    } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
   });
