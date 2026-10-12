@@ -104,8 +104,8 @@
     const why = isIOS()
       ? '<p style="line-height:1.6;margin-top:16px">' + esc(t('Pocket couldn\'t open its NEO Library folder. Force-quit and reopen the app; if it keeps happening, check that iCloud Drive is signed in (Settings → your name → iCloud), or turn it off so Pocket keeps books on the iPad itself.')) + '</p>'
       : '<p style="line-height:1.6;margin-top:16px">' + esc(t('Pocket can see the NEO Library folder but Android is blocking it from reading files that other apps (like Syncthing) created.')) + '</p>' +
-        '<p style="line-height:1.6;color:#999;margin-top:12px">' + esc(t('The switch is not on the app\'s own Permissions page. Open Android Settings, search for {setting} (or Apps → Special app access → {setting}), turn it on for NEO Pocket, then come back here.')).split('{setting}').join('<b>' + esc(t('All files access')) + '</b>') + '</p>';
-    bd.innerHTML = '<div style="max-width:420px"><h2 style="letter-spacing:5px">NEO POCKET</h2>' + why +
+        '<p style="line-height:1.6;color:#999;margin-top:12px">' + esc(t('The switch is not on the app\'s own Permissions page. Open Android Settings, search for {setting} (or Apps → Special app access → {setting}), turn it on for Quill Pocket, then come back here.')).split('{setting}').join('<b>' + esc(t('All files access')) + '</b>') + '</p>';
+    bd.innerHTML = '<div style="max-width:420px"><h2 style="letter-spacing:5px">QUILL POCKET</h2>' + why +
       '<p style="font:12px/1.5 monospace;color:#777;margin-top:20px;word-break:break-word">' + String(err && err.message || err || '') + '</p></div>';
     document.body.appendChild(bd);
   }

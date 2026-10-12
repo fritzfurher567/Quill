@@ -164,7 +164,7 @@ async function chooseLibraryFolder() {
   const ask = await dialog.showMessageBox(win, {
     type: 'question',
     message: t('Library folder'),
-    detail: t('Your books live in:\n{dir}\n\nChoose another folder and NEO restarts there. Existing books stay where they are — move the files yourself if you want them along.', { dir: LIBRARY_DIR }),
+    detail: t('Your books live in:\n{dir}\n\nChoose another folder and Quill restarts there. Existing books stay where they are — move the files yourself if you want them along.', { dir: LIBRARY_DIR }),
     buttons: custom ? [t('Choose Folder…'), t('Use Default Folder'), t('Cancel')] : [t('Choose Folder…'), t('Cancel')],
     defaultId: 0,
     cancelId: custom ? 2 : 1
@@ -172,7 +172,7 @@ async function chooseLibraryFolder() {
   let next = null;
   if (ask.response === 0) {
     const r = await dialog.showOpenDialog(win, {
-      title: t('Choose a folder for your NEO library'),
+      title: t('Choose a folder for your Quill library'),
       defaultPath: LIBRARY_DIR,
       properties: ['openDirectory', 'createDirectory']
     });
@@ -217,8 +217,8 @@ function blockedDetail(dir, err) {
   return t('Your books can\'t be saved in:\n{dir}', { dir }) + '\n\n' + (isMissingFolder(err)
     ? t('The folder isn\'t there, or can\'t be reached. A OneDrive folder on a computer where OneDrive isn\'t set up does this. Choose another folder to keep your library in.')
     : process.platform === 'win32'
-      ? t('This is usually Windows Security\'s Controlled folder access (Virus & threat protection → Ransomware protection). Allow NEO there, or keep your library in another folder.')
-      : t('Check that the folder exists and that NEO may write to it, or keep your library in another folder.'));
+      ? t('This is usually Windows Security\'s Controlled folder access (Virus & threat protection → Ransomware protection). Allow Quill there, or keep your library in another folder.')
+      : t('Check that the folder exists and that Quill may write to it, or keep your library in another folder.'));
 }
 
 // Where a first library goes when Documents itself can't hold one. Beside
@@ -253,7 +253,7 @@ function awaitChosenLibrary(chosen) {
   while (!isDir(chosen)) {
     const r = dialog.showMessageBoxSync({
       type: 'warning',
-      message: t('NEO can\'t save in your library folder'),
+      message: t('Quill can\'t save in your library folder'),
       detail: blockedDetail(chosen, { code: 'ENOENT' }),
       buttons: [t('Try Again'), t('Choose Folder…'), t('Continue')],
       defaultId: 0,
@@ -262,7 +262,7 @@ function awaitChosenLibrary(chosen) {
     if (r === 2) return fallback;
     if (r === 1) {
       const picked = dialog.showOpenDialogSync({
-        title: t('Choose a folder for your NEO library'),
+        title: t('Choose a folder for your Quill library'),
         defaultPath: os.homedir(),
         properties: ['openDirectory', 'createDirectory']
       });
@@ -279,7 +279,7 @@ function announceLibraryFallback() {
   libraryFallback = null;
   dialog.showMessageBox({
     type: 'info',
-    message: t('NEO is keeping your books in another folder'),
+    message: t('Quill is keeping your books in another folder'),
     detail: t('Your Documents folder can\'t be written to, so your books will live in:\n{dir}\n\nFile → Library Folder… changes it.', { dir: to }),
     buttons: [t('OK')]
   }).catch(() => {});
@@ -315,7 +315,7 @@ function checkLibraryWritable() {
     if (r === 2) return;
     if (r === 0) {
       const picked = dialog.showOpenDialogSync({
-        title: t('Choose a folder for your NEO library'),
+        title: t('Choose a folder for your Quill library'),
         defaultPath: os.homedir(),
         properties: ['openDirectory', 'createDirectory']
       });
@@ -337,7 +337,7 @@ function reportBlockedWrite(err) {
   const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
   const opts = {
     type: 'warning',
-    message: t('NEO can\'t save in your library folder'),
+    message: t('Quill can\'t save in your library folder'),
     detail: blockedDetail(LIBRARY_DIR, err) + '\n\n' + t('Your words stay on the page until it can.'),
     buttons: [t('OK')]
   };
@@ -399,7 +399,7 @@ function writeCatalog() {
       } catch { /* not a valid book folder */ }
     }
     lines.sort((a, b) => a.localeCompare(b));
-    const text = t('NEO LIBRARY CATALOG — which folder is which book') + '\n' +
+    const text = t('Quill LIBRARY CATALOG — which folder is which book') + '\n' +
       t('(regenerated automatically; edits here do nothing)') + '\n\n' +
       lines.join('\n') + '\n';
     const file = path.join(LIBRARY_DIR, '_catalog.txt');
@@ -814,7 +814,7 @@ ipcMain.handle('book:delete', async (_e, bookId, title) => {
       logError('trash', err);
       shell.showItemInFolder(bookDir(bookId));
       dialog.showMessageBox(win, {
-        message: t('NEO couldn’t move that folder to the Trash.'),
+        message: t('Quill couldn’t move that folder to the Trash.'),
         detail: t('The book is untouched. Its folder is highlighted so you can deal with it yourself.')
       });
       return false;
@@ -2617,12 +2617,12 @@ function buildMenu() {
       label: t('Help'),
       submenu: [
         {
-          label: t('NEO Shortcuts'),
+          label: t('Quill Shortcuts'),
           click: () => sendToWindow({ type: 'help' })
         },
         { type: 'separator' },
         {
-          label: t('About NEO'),
+          label: t('About Quill'),
           click: () => sendToWindow({ type: 'about' })
         },
         {
@@ -2962,7 +2962,7 @@ app.whenReady().then(() => {
     if (process.platform === 'darwin' && fs.existsSync(devIcon)) {
       if (app.dock) app.dock.setIcon(devIcon);
       app.setAboutPanelOptions({
-        applicationName: 'NEO',
+        applicationName: 'Quill',
         applicationVersion: app.getVersion(),
         iconPath: devIcon
       });
@@ -3020,7 +3020,7 @@ app.whenReady().then(() => {
     // catastrophic: tell the human instead of dying in silence
     logError('startup', err);
     try {
-      dialog.showErrorBox(t('NEO failed to start'),
+      dialog.showErrorBox(t('Quill failed to start'),
         t('Please report this at github.com/hughhowey/neo/issues:') + '\n\n' + String((err && err.stack) || err));
     } catch { /* nothing left to try */ }
   }

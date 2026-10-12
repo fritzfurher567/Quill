@@ -2203,12 +2203,12 @@ async function refreshCover(meta, el) {
   const hasKey = meta.kind !== 'cover' && await window.neo.hasSecret(coverProvider());
   const options = [];
   if (meta.coverImage && mode !== 'image') options.push({ label: t('Show your cover art'), desc: t('The image you gave this book.'), value: 'image' });
-  if (hasPainting(meta) && mode !== 'painted') options.push({ label: t('Show NEO’s painting'), desc: t('The cover painted from the text.'), value: 'painted' });
+  if (hasPainting(meta) && mode !== 'painted') options.push({ label: t('Show Quill’s painting'), desc: t('The cover painted from the text.'), value: 'painted' });
   if (mode !== 'abstract') options.push({ label: t('Show the abstract'), desc: t('The seeded cover every book starts with.'), value: 'abstract' });
   options.push({ label: t('New type & colours'), desc: mode === 'abstract' ? t('A fresh abstract and a different title style.') : t('Re-sets the title in a different style over the same art.'), value: 'reroll' });
   if (hasKey) {
     options.push(enough
-      ? { label: hasPainting(meta) ? t('Paint it again') : t('Paint a cover from the text'), desc: t('NEO reads the manuscript and paints a new cover. About a minute; a few cents.'), value: 'paint' }
+      ? { label: hasPainting(meta) ? t('Paint it again') : t('Paint a cover from the text'), desc: t('Quill reads the manuscript and paints a new cover. About a minute; a few cents.'), value: 'paint' }
       : { label: t('Paint a cover from the text'), desc: t('Once the story passes {n} words.', { n: PAINT_AT }), value: 'nope' });
   }
   // a plain abstract with nothing else to offer just re-rolls
@@ -6493,7 +6493,7 @@ async function deleteSceneToDarlings(cell, quiet = false) {
       await writeSidecar(book.id, 'darlings', darlings);
     } catch {
       darlings.shift();
-      toast(t('NEO couldn’t save to Darlings, so the scene stays where it was'));
+      toast(t('Quill couldn’t save to Darlings, so the scene stays where it was'));
       return;
     }
     renderDarlings();
@@ -7765,7 +7765,7 @@ async function moveSelectionToDarlings(html, text) {
   } catch {
     delete sidecarPending[bookId + '/darlings'];
     if (book && book.id === bookId) await structuralUndo();
-    toast(t('NEO couldn’t save to Darlings, so the passage stays where it was'));
+    toast(t('Quill couldn’t save to Darlings, so the passage stays where it was'));
     return;
   }
   if (chId && book && book.id === bookId) scheduleChapterSave(chId);
@@ -7919,7 +7919,7 @@ function switchTab(name) {
     }, (err) => {
       if (load !== auxLoad) return;
       window.neo.logError('notes read: ' + (err && err.message || err));
-      toast(t('NEO couldn’t read this page from disk'));
+      toast(t('Quill couldn’t read this page from disk'));
     });
   }
 }
@@ -9348,7 +9348,7 @@ async function deleteSectionToDarlings(chId, segIdx, quiet = false) {
       await writeSidecar(book.id, 'darlings', darlings);
     } catch {
       darlings.shift();
-      toast(t('NEO couldn’t save to Darlings, so the section stays where it was'));
+      toast(t('Quill couldn’t save to Darlings, so the section stays where it was'));
       return;
     }
     renderDarlings();
@@ -9542,7 +9542,7 @@ async function writtenSectionToLoose(chId, seg) {
   try { stamp = await writeBookMeta(book.id, book); } catch (err) { window.neo.logError('section to loose: ' + (err && err.message || err)); }
   if (typeof stamp !== 'string') {
     book.looseCards = book.looseCards.filter((c) => c !== card);
-    toast(t('NEO couldn’t save the card, so the section stays where it was'));
+    toast(t('Quill couldn’t save the card, so the section stays where it was'));
     return;
   }
   book.modified = stamp;
@@ -10332,7 +10332,7 @@ async function removeLooseCard(id, quiet = false) {
       await writeSidecar(book.id, 'darlings', darlings);
     } catch {
       darlings.shift();
-      toast(t('NEO couldn’t save to Darlings, so the card stays'));
+      toast(t('Quill couldn’t save to Darlings, so the card stays'));
       return;
     }
     renderDarlings();
@@ -10360,7 +10360,7 @@ async function saveHeldCard(card) {
   try { stamp = await writeBookMeta(book.id, book); } catch (err) { window.neo.logError('loose card: ' + (err && err.message || err)); }
   if (typeof stamp !== 'string') {
     book.looseCards = (book.looseCards || []).filter((c) => c !== card);
-    toast(t('NEO couldn’t save the card, so the writing stays where it was'));
+    toast(t('Quill couldn’t save the card, so the writing stays where it was'));
     return false;
   }
   book.modified = stamp;
@@ -10868,7 +10868,7 @@ async function savedBeforeLettingGo(chId) {
     await persistChapter(chId);
     return true;
   } catch {
-    toast(t('NEO couldn’t save the chapter, so the passage stays in Darlings too'));
+    toast(t('Quill couldn’t save the chapter, so the passage stays in Darlings too'));
     return false;
   }
 }
@@ -11517,7 +11517,7 @@ async function snapshotNow() {
       : t('Snapshot taken, {time}: {n} chapters changed. It’s on the Darlings tab.', { time, n: r.snap.changed }), 4000);
   } catch (err) {
     logSnap(err);
-    toast(t('NEO couldn’t take a snapshot. Your book itself is saved as usual.'), 6000);
+    toast(t('Quill couldn’t take a snapshot. Your book itself is saved as usual.'), 6000);
   }
 }
 
@@ -11697,7 +11697,7 @@ async function showSnapshot(name) {
   const bookId = book.id;
   const got = await snapshotBook(bookId, name).catch((err) => { logSnap(err); return null; });
   if (!book || book.id !== bookId || currentTab !== 'darlings') return;
-  if (!got) { toast(t('NEO couldn’t read that snapshot.')); return; }
+  if (!got) { toast(t('Quill couldn’t read that snapshot.')); return; }
   const { snap, meta, chapters } = got;
   const shape = { ...book, chapterOrder: meta.chapterOrder, chapterTitles: meta.chapterTitles || {}, chapterKinds: meta.chapterKinds || {} };
   const label = (chId) => chapterHeading(chId, shape) || chapterName(chId, shape);
@@ -11814,7 +11814,7 @@ async function restoreSnapshot(chId) {
     await takeSnapshot('r');
   } catch (err) {
     logSnap(err); // never replace words that couldn't be kept
-    toast(t('NEO couldn’t snapshot the book as it is now, so nothing was changed.'), 6000);
+    toast(t('Quill couldn’t snapshot the book as it is now, so nothing was changed.'), 6000);
     return;
   }
   const { meta, chapters, snap } = shown;
@@ -13612,7 +13612,7 @@ function openCoverArt() {
   bd.innerHTML = `
     <div class="modal" style="width:540px">
       <h2 style="font-size:17px">${t('Cover art')}</h2>
-      <p>${t('Every book gets a cover on the shelf: an abstract with the title set in type. With an OpenAI key, NEO can also read a story once it passes {n} words and paint a cover from the text. Paintings stay on your shelf — exports never include them.', { n: PAINT_AT })}</p>
+      <p>${t('Every book gets a cover on the shelf: an abstract with the title set in type. With an OpenAI key, Quill can also read a story once it passes {n} words and paint a cover from the text. Paintings stay on your shelf — exports never include them.', { n: PAINT_AT })}</p>
       <div class="stats-row">
         <select id="ca-provider" hidden>${provOptions}</select>
         <label class="st-check"><input id="ca-auto" type="checkbox"${cs.auto === false ? '' : ' checked'}/> ${t('paint at {n} words', { n: PAINT_AT })}</label>
@@ -13632,7 +13632,7 @@ function openCoverArt() {
             </select>
           </label>
         </div>
-        <p class="soft" style="font-size:12px;margin:0 0 6px">${t('Leave blank for NEO’s defaults. Names drift; if a provider retires one, NEO tries its own list before giving up.')}</p>
+        <p class="soft" style="font-size:12px;margin:0 0 6px">${t('Leave blank for Quill’s defaults. Names drift; if a provider retires one, Quill tries its own list before giving up.')}</p>
       </details>
       <div style="text-align:right;margin-top:14px">
         <button class="m-cancel btn-quiet" style="margin-right:10px">${t('Cancel')}</button>
@@ -13850,7 +13850,7 @@ async function pickLocalFont() {
       .filter((n) => n && !n.startsWith('.'))
       .sort((a, b) => a.localeCompare(b));
   } catch {}
-  if (!families.length) { toast(t('NEO couldn’t read the fonts on this computer')); return null; }
+  if (!families.length) { toast(t('Quill couldn’t read the fonts on this computer')); return null; }
   return new Promise((resolve) => {
     const bd = document.createElement('div');
     bd.className = 'modal-backdrop font-picker';
@@ -14067,7 +14067,7 @@ function bookShortcutSections() {
     ] },
     { title: tk('App & files'), rows: [
       [KHELP, tk('Keyboard shortcuts')],
-      [K('⌘S', 'Ctrl+S'), tk('Take a snapshot of the book'), tk('NEO saves as you type; a snapshot keeps the book as it stands now. They’re on the Darlings tab.')],
+      [K('⌘S', 'Ctrl+S'), tk('Take a snapshot of the book'), tk('Quill saves as you type; a snapshot keeps the book as it stands now. They’re on the Darlings tab.')],
       [K('⌘,', 'Ctrl+,'), tk('Goals and writing sprints')],
       [K('⌘⇧I', 'Ctrl+Shift+I'), tk('Import manuscripts')],
       [K('⌘E', 'Ctrl+E'), tk('Email a draft to yourself')]
@@ -14082,7 +14082,7 @@ function bookShortcutSections() {
       [K('⌥⌘←', 'Ctrl+Alt+←'), tk('Go to the previous tab')],
       [['F6', K('⌃Tab', 'Ctrl+Tab')], tk('Move between the page, the chapters, the notes and the bottom bar'), tk('Add Shift to go back. Esc returns to the page. On the shelf: the books, then the header.')],
       ...(IS_MAC ? [
-        ['⌘H', tk('Hide NEO')],
+        ['⌘H', tk('Hide Quill')],
         ['⌘⌥H', tk('Hide other apps')]
       ] : [])
     ] },
@@ -15768,11 +15768,11 @@ function chooseEmailMethod() {
     bd.className = 'modal-backdrop';
     bd.innerHTML = `
       <div class="modal" style="width:440px">
-        <h2 style="font-size:16px">${t('How should NEO email your drafts?')}</h2>
+        <h2 style="font-size:16px">${t('How should Quill email your drafts?')}</h2>
         <div class="fr-choices" style="margin-top:14px">
           <button class="fr-choice" data-m="gmail">
             <strong>Gmail</strong>
-            <span>${t('Opens a pre-filled compose window in your browser. NEO shows you the PDF to drag into it.')}</span>
+            <span>${t('Opens a pre-filled compose window in your browser. Quill shows you the PDF to drag into it.')}</span>
           </button>
           <button class="fr-choice" data-m="mail">
             <strong>Apple Mail</strong>
@@ -15812,13 +15812,13 @@ async function doEmailDraft() {
     if (!ok) return;
   }
   const total = bookWordCount();
-  const subject = t('NEO draft — {title} — {n} words — {date}', { title: shownTitle(book.title), n: total, date: fmtDate(new Date()) });
+  const subject = t('Quill draft — {title} — {n} words — {date}', { title: shownTitle(book.title), n: total, date: fmtDate(new Date()) });
   const hash = await manuscriptHash();
   const body = t('Draft snapshot of “{title}” — {n} words.', { title: shownTitle(book.title), n: total }) + '\n'
-    + t('Sent from NEO on {date}.', { date: new Date().toLocaleString(NeoI18n.getLocale()) }) + '\n\n'
+    + t('Sent from Quill on {date}.', { date: new Date().toLocaleString(NeoI18n.getLocale()) }) + '\n\n'
     + t('SHA-256 fingerprint of the manuscript text:') + `\n${hash}\n\n`
     + (library.emailMethod === 'gmail'
-      ? t('The PDF snapshot is in the Finder window NEO just opened — drag it into this email before sending.')
+      ? t('The PDF snapshot is in the Finder window Quill just opened — drag it into this email before sending.')
       : t('PDF snapshot attached.'));
   toast(t('Preparing your draft…'));
   const script = isScript();
@@ -15846,7 +15846,7 @@ function updateDialogBox(res) {
   bd.className = 'modal-backdrop';
   bd.innerHTML = `
     <div class="modal" style="width:400px">
-      <h2 style="font-size:16px">${t('NEO {version} is available', { version: res.latestVersion })}</h2>
+      <h2 style="font-size:16px">${t('Quill {version} is available', { version: res.latestVersion })}</h2>
       <p class="up-text">${t('You have {version}.', { version: res.currentVersion })}</p>
       <div class="up-bar" hidden><div class="up-fill"></div></div>
       <div style="text-align:right;margin-top:14px">
@@ -15887,7 +15887,7 @@ function updateDialogShow(state, info = {}) {
     fill.style.width = pct.toFixed(1) + '%';
     ok.hidden = true;
   } else if (state === 'ready') {
-    text.textContent = t('Downloaded. NEO will save your work and restart.');
+    text.textContent = t('Downloaded. Quill will save your work and restart.');
     ok.textContent = t('Restart to update');
     ok.onclick = () => { flushAllSaves(); setTimeout(() => window.neo.installUpdate(), 300); };
     ok.focus();
@@ -15909,7 +15909,7 @@ async function checkForUpdate() {
   // the answer comes in a window, like an update does: a line at the foot
   // of the screen was too easy to miss
   if (res.error) { updateNotice(t('Couldn’t check for updates — try again later')); return; }
-  if (!res.hasUpdate) { updateNotice(t('NEO is up to date'), t('You have {version}.', { version: res.currentVersion })); return; }
+  if (!res.hasUpdate) { updateNotice(t('Quill is up to date'), t('You have {version}.', { version: res.currentVersion })); return; }
   // NEO has been fetching it in the background since it was found: show
   // where that download is — usually done, with "Restart to update"
   updateDialog = updateDialogBox(res);
@@ -15955,7 +15955,7 @@ async function showAbout() {
   bd.className = 'modal-backdrop';
   bd.innerHTML = `
     <div class="modal" style="width:340px;text-align:center">
-      <h2 style="font-size:22px;letter-spacing:6px">NEO</h2>
+      <h2 style="font-size:22px;letter-spacing:6px">Quill</h2>
       <p class="about-version">${t('Version {version}', { version: v })}</p>
       <p class="about-line">${t('A word processor for authors.')}</p>
       <div style="margin-top:16px">

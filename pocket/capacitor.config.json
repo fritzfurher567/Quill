@@ -1,6 +1,6 @@
 {
   "appId": "com.hughhowey.neopocket",
-  "appName": "NEO Pocket",
+  "appName": "Quill Pocket",
   "webDir": "www",
   "android": {
     "allowMixedContent": false
