@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld('neo', {
   removeCover: (bookId) => ipcRenderer.invoke('cover:remove', bookId),
   readCover: (bookId, fname) => ipcRenderer.invoke('cover:read', bookId, fname),
   paintCover: (bookId, text, options) => ipcRenderer.invoke('cover:paint', bookId, text, options),
+  ollamaChat: (messages) => ipcRenderer.invoke('ollama:chat', messages),
   setSecret: (name, value) => ipcRenderer.invoke('secret:set', name, value),
   hasSecret: (name) => ipcRenderer.invoke('secret:has', name),
   importFiles: (paths) => ipcRenderer.invoke('import:files', paths),

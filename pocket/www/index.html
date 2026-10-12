@@ -91,6 +91,30 @@
       </div>
       <div id="sticky-list"></div>
     </aside>
+    <aside id="ollama-pane" hidden data-i18n-label="Local Swift 1.2 chat" aria-hidden="true">
+      <div id="ollama-head">
+        <span data-i18n>Swift 1.2 · local</span>
+        <div>
+          <button id="ollama-clear" data-i18n-title title="Clear chat" data-i18n>Clear</button>
+          <button id="ollama-close" data-i18n-title title="Close chat" data-i18n-label="Close chat">&#10005;</button>
+        </div>
+      </div>
+      <div id="ollama-messages" role="log" aria-live="polite">
+        <p class="ollama-welcome" data-i18n>Experimental local chat with Swift 1.2. Your manuscript is only shared when you choose to include the open chapter.</p>
+      </div>
+      <div id="ollama-status" role="status" aria-live="polite"></div>
+      <div id="ollama-options">
+        <label><input id="ollama-context" type="checkbox" /> <span data-i18n>Include open chapter in chat</span></label>
+        <label><input id="ollama-auto" type="checkbox" /> <span data-i18n>Replace open chapter with every reply (no confirmation)</span></label>
+      </div>
+      <form id="ollama-form">
+        <textarea id="ollama-input" data-i18n-placeholder placeholder="Message Swift 1.2…" data-i18n-label="Message Swift 1.2" rows="3"></textarea>
+        <div class="ollama-form-actions">
+          <button id="ollama-mic" type="button" data-i18n-title title="Dictate a message" data-i18n-label="Dictate a message" aria-pressed="false">&#127908;</button>
+          <button id="ollama-send" class="btn-gold" data-i18n>Send</button>
+        </div>
+      </form>
+    </aside>
 
     <!-- The manuscript -->
     <main id="paper-scroll">
@@ -127,6 +151,7 @@
         <span id="word-counter" data-i18n-title title="Click to cycle book / chapter word count"></span>
         <span id="zoom-control" hidden><button id="zoom-out">&#8722;</button><span id="zoom-level">100%</span><button id="zoom-in">+</button></span>
       </div>
+      <button id="ollama-open" data-i18n data-i18n-title title="Open local Swift 1.2 chat" data-i18n-label="Open local Swift 1.2 chat" hidden>Swift 1.2</button>
       <button id="pocket-more" data-i18n-title title="Format, focus, goals" data-i18n-label="Format, focus, goals">&#8943;</button>
     </footer>
 

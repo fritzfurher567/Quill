@@ -17,6 +17,12 @@ NEO currently speaks:
 | `ro` | Română | complete, machine-assisted: native review welcome |
 | `ru` | Русский | complete, reviewed by a native speaker |
 | `hu` | Magyar | complete, reviewed by a native speaker |
+| `bn` | Bangla | complete, reviewed by a native speaker |
+| `mn` | Mandarin | complete, machine-assisted: native review welcome |
+| `hd` | Hindi (india)|complete, machine-assisted: native review welcome |
+| `arb` | Modern Arabic | complete, machine-assisted: native review welcome |
+| `rus` | Russian | complete, machine-assisted: native review welcome |
+| `urd` | Urdu (india) | complete, reviewed by a native speaker |
 
 Spellchecking (Edit → Spellcheck Language) covers English, French, Spanish, German, Dutch, Polish, Brazilian Portuguese, Romanian, Russian, Hungarian and Swedish. The engine is Hunspell itself, compiled to WebAssembly, so every dictionary loads in well under a second. Italian is left out because the only Hunspell dictionary on npm is GPL-3.0-only, which does not sit well in an MIT app. The Brazilian Portuguese interface starts with the Brazilian dictionary; the European Portuguese interface leaves the choice to the writer, since spellings differ.
 

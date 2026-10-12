@@ -532,7 +532,7 @@ document.addEventListener('mousedown', (e) => {
 if (IS_MAC && !IS_POCKET) document.body.classList.add('mac-bar');
 function showWindowTitle() {
   const title = book ? (book.title || t('Untitled')) : '';
-  document.title = title ? title + ' — NEO' : 'NEO';
+  document.title = title ? title + ' — Quill' : 'Quill';
   const strip = IS_MAC && !IS_POCKET && document.querySelector('#dragstrip'); // the desktop's page only
   if (strip) strip.textContent = title;
 }
@@ -15987,6 +15987,270 @@ async function setEditorFontSize(value) {
   await writeLibrary(library);
   keepReadingPlace(applyFonts);
 }
+
+function setupOllamaChat() {
+  const button = $('#ollama-open');
+  const pane = $('#ollama-pane');
+  if (IS_POCKET || typeof window.neo.ollamaChat !== 'function') return;
+
+  const close = $('#ollama-close');
+  const clear = $('#ollama-clear');
+  const form = $('#ollama-form');
+  const input = $('#ollama-input');
+  const send = $('#ollama-send');
+  const mic = $('#ollama-mic');
+  const contextToggle = $('#ollama-context');
+  const autoToggle = $('#ollama-auto');
+  const messagesEl = $('#ollama-messages');
+  const status = $('#ollama-status');
+  const messages = [];
+  let pending = false;
+  let recognition = null;
+
+  button.hidden = false;
+  pane.hidden = false;
+
+  function addMessage(role, text, thinking = '') {
+    const message = document.createElement('div');
+    message.className = 'ollama-message ' + role;
+    const label = document.createElement('div');
+    label.className = 'ollama-role';
+    label.textContent = role === 'user' ? t('You') : t('Swift 1.2');
+    message.appendChild(label);
+    if (role === 'assistant' && thinking) {
+      const disclosure = document.createElement('details');
+      disclosure.className = 'ollama-thinking';
+      const summary = document.createElement('summary');
+      summary.textContent = t('Thinking');
+      const thought = document.createElement('div');
+      thought.className = 'ollama-thought';
+      thought.textContent = thinking;
+      disclosure.append(summary, thought);
+      message.appendChild(disclosure);
+    }
+    const content = document.createElement('div');
+    content.className = 'ollama-text';
+    content.textContent = text;
+    message.appendChild(content);
+    messagesEl.appendChild(message);
+    scrollMessages();
+    return message;
+  }
+
+  function addApplyButton(message, chapter) {
+    const apply = document.createElement('button');
+    apply.className = 'ollama-apply';
+    apply.type = 'button';
+    apply.textContent = t('Replace open chapter with this reply');
+    apply.onclick = () => {
+      try {
+        replaceChapter(chapter, message.querySelector('.ollama-text').textContent);
+        apply.disabled = true;
+        apply.textContent = t('Chapter replaced');
+        setStatus(t('The open chapter was replaced.'));
+      } catch (err) {
+        setStatus(t('Could not replace the chapter: {error}', { error: String(err && err.message || err) }), true);
+      }
+    };
+    message.appendChild(apply);
+  }
+
+  function currentChapter() {
+    if (!book || $('#editor-view').hidden || currentTab !== 'manuscript' || !currentChapterId ||
+        !Array.isArray(book.chapterOrder) || !book.chapterOrder.includes(currentChapterId)) return null;
+    if (isScript()) return null;
+    const body = document.querySelector(`.chapter[data-id="${currentChapterId}"] .chapter-body`);
+    if (!body || !body.isContentEditable) return null;
+    return { bookId: book.id, chapterId: currentChapterId, text: body.innerText || body.textContent || '' };
+  }
+
+  function replaceChapter(chapter, text) {
+    if (!chapter || !book || book.id !== chapter.bookId || $('#editor-view').hidden || isScript()) {
+      throw new Error(t('The chapter is no longer open.'));
+    }
+    if (currentTab !== 'manuscript') switchTab('manuscript');
+    const body = document.querySelector(`.chapter[data-id="${chapter.chapterId}"] .chapter-body`);
+    if (!body || !body.isContentEditable || !Array.isArray(book.chapterOrder) || !book.chapterOrder.includes(chapter.chapterId)) {
+      throw new Error(t('The chapter is no longer available.'));
+    }
+    const html = text.trim().split(/\n{2,}/).map((paragraph) =>
+      '<p>' + paragraph.split('\n').map(escHtml).join('<br>') + '</p>'
+    ).join('');
+    focusChapter(chapter.chapterId);
+    const range = document.createRange();
+    range.selectNodeContents(body);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    if (!document.execCommand('insertHTML', false, html)) {
+      throw new Error(t('The editor could not apply the replacement.'));
+    }
+    syncChapter(body, chapter.chapterId);
+    updateCounters();
+    scheduleChapterSave(chapter.chapterId);
+    flushAllSaves();
+  }
+
+  function chapterPrompt(content, chapter) {
+    if (!chapter) return content;
+    return `${content}\n\nOpen chapter to use as context:\n--- BEGIN OPEN CHAPTER ---\n${chapter.text}\n--- END OPEN CHAPTER ---`;
+  }
+
+  function handleSpeechResult(event) {
+    const transcript = Array.from(event.results || [])
+      .slice(event.resultIndex || 0)
+      .filter((result) => result.isFinal)
+      .map((result) => result[0].transcript.trim())
+      .filter(Boolean)
+      .join(' ');
+    if (transcript) {
+      input.value = [input.value.trimEnd(), transcript].filter(Boolean).join(' ');
+      input.focus();
+    }
+  }
+
+  function startDictation() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setStatus(t('Speech recognition is not available in this version of the app.'), true);
+      return;
+    }
+    if (recognition) {
+      recognition.stop();
+      return;
+    }
+    recognition = new SpeechRecognition();
+    recognition.lang = document.documentElement.lang || 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onresult = handleSpeechResult;
+    recognition.onerror = (event) => {
+      setStatus(t('Speech recognition failed: {error}', { error: event.error || t('unknown error') }), true);
+    };
+    recognition.onend = () => {
+      recognition = null;
+      mic.classList.remove('recording');
+      mic.setAttribute('aria-pressed', 'false');
+      if (status.textContent === t('Listening… Speech recognition may use an online service.')) setStatus('');
+    };
+    try {
+      recognition.start();
+      mic.classList.add('recording');
+      mic.setAttribute('aria-pressed', 'true');
+      setStatus(t('Listening… Speech recognition may use an online service.'));
+    } catch (err) {
+      recognition = null;
+      setStatus(t('Could not start speech recognition: {error}', { error: String(err && err.message || err) }), true);
+    }
+  }
+
+  function scrollMessages() {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function setStatus(text, error = false) {
+    status.textContent = text;
+    status.classList.toggle('error', error);
+  }
+
+  function open() {
+    $('#side-pane').classList.remove('open');
+    $('#side-pane').dataset.autoOpened = '0';
+    pane.classList.add('open');
+    pane.setAttribute('aria-hidden', 'false');
+    button.setAttribute('aria-expanded', 'true');
+    input.focus();
+  }
+
+  function dismiss() {
+    if (recognition) recognition.stop();
+    pane.classList.remove('open');
+    pane.setAttribute('aria-hidden', 'true');
+    button.setAttribute('aria-expanded', 'false');
+    button.focus();
+  }
+
+  button.setAttribute('aria-controls', 'ollama-pane');
+  button.setAttribute('aria-expanded', 'false');
+  button.onclick = () => pane.classList.contains('open') ? dismiss() : open();
+  close.onclick = dismiss;
+  mic.onclick = startDictation;
+  autoToggle.addEventListener('change', () => {
+    contextToggle.disabled = autoToggle.checked;
+    if (autoToggle.checked) contextToggle.checked = true;
+  });
+  clear.onclick = () => {
+    if (pending) return;
+    messages.length = 0;
+    messagesEl.innerHTML = '';
+    const welcome = document.createElement('p');
+    welcome.className = 'ollama-welcome';
+    welcome.textContent = t('Experimental local chat with Swift 1.2. Your manuscript is only shared when you choose to include the open chapter.');
+    messagesEl.appendChild(welcome);
+    setStatus('');
+    input.focus();
+  };
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const content = input.value.trim();
+    if (pending || !content) return;
+    const autoReplace = autoToggle.checked;
+    const chapter = (contextToggle.checked || autoReplace) ? currentChapter() : null;
+    if ((contextToggle.checked || autoReplace) && !chapter) {
+      setStatus(t('Open a prose chapter before sharing or replacing it. Screenplays are not supported.'), true);
+      return;
+    }
+
+    input.value = '';
+    messagesEl.querySelector('.ollama-welcome')?.remove();
+    addMessage('user', content);
+    const request = [...messages, { role: 'user', content: chapter ? chapterPrompt(content, chapter) : content }];
+    pending = true;
+    send.disabled = true;
+    clear.disabled = true;
+    setStatus(t('Waiting for Ollama…'));
+    try {
+      const response = await window.neo.ollamaChat(request);
+      messages.push({ role: 'user', content }, { role: 'assistant', content: response.content });
+      const assistantMessage = addMessage('assistant', response.content, response.thinking);
+      if (chapter && autoReplace) {
+        try {
+          replaceChapter(chapter, response.content);
+          setStatus(t('The open chapter was replaced automatically.'));
+        } catch (err) {
+          setStatus(t('Could not replace the chapter: {error}', { error: String(err && err.message || err) }), true);
+          addApplyButton(assistantMessage, chapter);
+        }
+      } else if (chapter) {
+        addApplyButton(assistantMessage, chapter);
+      }
+      scrollMessages();
+      if (!autoReplace || !chapter) setStatus('');
+    } catch (err) {
+      setStatus(t('Ollama error: {error}', { error: String(err && err.message || err) }), true);
+    } finally {
+      pending = false;
+      send.disabled = false;
+      clear.disabled = false;
+    }
+  });
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !pane.classList.contains('open')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    dismiss();
+  }, true);
+}
+setupOllamaChat();
 
 window.neo.onMenu(async (msg) => {
   // full screen and focus mode together hide the bottom bar until hovered

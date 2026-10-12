@@ -2,7 +2,7 @@
 // Owns the window and all file-system access. The renderer talks to this
 // through the IPC handlers below (see preload.js for the exposed API).
 
-const { app, BrowserWindow, ipcMain, dialog, Menu, MenuItem, utilityProcess, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu, MenuItem, utilityProcess, screen, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
@@ -154,6 +154,38 @@ ipcMain.handle('i18n:reload', (e) => {
   e.sender.reload();
   return true;
 });
+
+let micPermissionGranted = false;
+function setupMicrophonePermission() {
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    const requestsAudio = permission === 'media' && details && Array.isArray(details.mediaTypes) &&
+      details.mediaTypes.includes('audio');
+    if (!requestsAudio) {
+      callback(permission !== 'media');
+      return;
+    }
+    if (micPermissionGranted) {
+      callback(true);
+      return;
+    }
+    const win = BrowserWindow.fromWebContents(webContents);
+    const options = {
+      type: 'question',
+      message: t('Allow microphone access for speech dictation in the chat?'),
+      detail: t('Speech recognition may use an online service.'),
+      buttons: [t('Allow'), t('Not now')],
+      defaultId: 1,
+      cancelId: 1
+    };
+    (win ? dialog.showMessageBox(win, options) : dialog.showMessageBox(options)).then(({ response }) => {
+      micPermissionGranted = response === 0;
+      callback(micPermissionGranted);
+    }).catch((err) => {
+      logError('microphone permission', err);
+      callback(false);
+    });
+  });
+}
 
 // File → Library Folder…: point NEO at any folder, or back at the default.
 // The library is plain files, so the writer moves them; NEO only follows.
@@ -967,6 +999,69 @@ ipcMain.handle('cover:paint', (_e, bookId, text, options) => {
   paintJobs.set(bookId, job);
   job.finally(() => paintJobs.delete(bookId));
   return job;
+});
+
+// Experimental local chat. The renderer cannot choose a host or model: this
+// always talks to Ollama on this computer and uses Swift 1.2's local Qwen base.
+ipcMain.handle('ollama:chat', async (_e, messages) => {
+  if (!Array.isArray(messages) || messages.length < 1 || messages.length > 40) {
+    throw new Error('Ollama chat expects 1 to 40 messages.');
+  }
+  let total = 0;
+  const safeMessages = messages.map((message) => {
+    if (!message || !['user', 'assistant'].includes(message.role) ||
+        typeof message.content !== 'string' || !message.content.trim() || message.content.length > 48000) {
+      throw new Error('Ollama chat received an invalid message.');
+    }
+    total += message.content.length;
+    return { role: message.role, content: message.content };
+  });
+  if (total > 96000) throw new Error('Ollama chat history is too long. Clear the chat and try again.');
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120000);
+  let response;
+  let text;
+  try {
+    response = await fetch('http://127.0.0.1:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'qwen3:0.6b',
+        messages: safeMessages,
+        stream: false,
+        think: true,
+        options: { num_predict: 4096 },
+        keep_alive: '5m'
+      }),
+      signal: controller.signal
+    });
+    text = await response.text();
+  } catch (err) {
+    if (controller.signal.aborted) {
+      throw new Error('Ollama did not respond within two minutes.');
+    }
+    throw new Error(`Could not reach Ollama at 127.0.0.1:11434. Make sure Ollama is running and the qwen3:0.6b model used by Swift 1.2 is available. ${String(err && err.message || err)}`);
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (!response.ok) throw new Error(`Ollama returned HTTP ${response.status}: ${text.slice(0, 1000)}`);
+  let result;
+  try {
+    result = JSON.parse(text);
+  } catch {
+    throw new Error('Ollama returned an invalid response.');
+  }
+  if (result.error) throw new Error(`Ollama: ${result.error}`);
+  if (result.done_reason === 'length') throw new Error('Swift 1.2 reached its response limit. The chapter was not changed; ask for a shorter revision.');
+  if (!result.message || typeof result.message.content !== 'string' || !result.message.content.trim()) {
+    throw new Error('Ollama returned no chat response.');
+  }
+  return {
+    content: result.message.content,
+    thinking: typeof result.message.thinking === 'string' ? result.message.thinking : ''
+  };
 });
 
 // ---------------------------------------------------------------------------
@@ -2956,6 +3051,7 @@ function checkForUpdates() {
 }
 
 app.whenReady().then(() => {
+  try { setupMicrophonePermission(); } catch (err) { logError('microphone permission setup', err); }
   // Packaged builds get name/icon from electron-builder; this covers `npm start`.
   try {
     const devIcon = path.join(__dirname, 'build', 'icon.png');

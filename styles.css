@@ -1253,6 +1253,72 @@ body.focus-mode .walk-note { opacity: 0.6; }
   background: none; border: none; color: #555; font-size: 15px;
 }
 #side-pin.pinned { color: var(--accent); }
+
+/* --- Experimental local Ollama chat --- */
+#ollama-pane {
+  position: fixed; right: 0; top: 0; bottom: 40px;
+  width: min(360px, calc(100vw - 24px));
+  background: #080808; border-left: 1px solid #383838;
+  transform: translateX(100%); transition: transform 0.18s ease;
+  z-index: 81; display: flex; flex-direction: column;
+  padding-top: 36px; box-shadow: -8px 0 28px rgba(0,0,0,0.22);
+}
+#ollama-pane.open { transform: translateX(0); }
+#ollama-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 0 14px 12px; color: #ddd; font-size: 11px;
+  letter-spacing: 1.5px; text-transform: uppercase;
+}
+#ollama-head > div { display: flex; gap: 8px; }
+#ollama-head button, #ollama-open {
+  background: #080808; border: 1px solid #555; border-radius: 5px;
+  color: #eee; font-size: 11px; padding: 4px 8px;
+}
+#ollama-head button:hover, #ollama-open:hover { color: #fff; border-color: #fff; }
+#ollama-messages {
+  flex: 1; min-height: 0; overflow-y: auto; padding: 4px 14px 12px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ollama-welcome { color: #aaa; font-size: 12px; line-height: 1.55; padding: 8px 2px; }
+.ollama-message { border-radius: 7px; background: #141414; padding: 9px 11px; }
+.ollama-message.user { border-left: 2px solid #aaa; }
+.ollama-message .ollama-role {
+  color: #aaa; font-size: 10px; letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 5px;
+}
+.ollama-thinking { margin: 0 0 8px; color: #aaa; font-size: 12px; line-height: 1.45; }
+.ollama-thinking summary { cursor: pointer; color: #aaa; }
+.ollama-thinking summary:hover { color: #fff; }
+.ollama-thought { margin-top: 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ollama-message .ollama-text { color: #eee; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+#ollama-status { min-height: 0; padding: 0 14px; color: #aaa; font-size: 11px; line-height: 1.4; }
+#ollama-status:not(:empty) { padding-top: 6px; padding-bottom: 4px; }
+#ollama-status.error { color: #fff; }
+#ollama-options { display: flex; flex-direction: column; gap: 7px; padding: 6px 14px; color: #ccc; font-size: 11px; line-height: 1.4; }
+#ollama-options label { display: flex; align-items: flex-start; gap: 7px; cursor: pointer; }
+#ollama-options input { accent-color: #eee; margin: 1px 0 0; flex: none; }
+#ollama-form { padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+#ollama-input {
+  width: 100%; resize: vertical; min-height: 58px; max-height: 180px;
+  border: 1px solid #555; border-radius: 6px; background: #050505;
+  color: #fff; font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  padding: 9px 10px; outline: none;
+}
+#ollama-input:focus { border-color: #fff; }
+.ollama-form-actions { display: flex; justify-content: space-between; align-items: center; }
+#ollama-form #ollama-mic, #ollama-form #ollama-send, .ollama-apply {
+  border: 1px solid #555; border-radius: 5px; background: #111;
+  color: #eee; cursor: pointer; font-size: 12px; padding: 6px 11px;
+}
+#ollama-form #ollama-send { background: #eee; color: #111; border-color: #eee; }
+#ollama-form #ollama-mic:hover, #ollama-apply:hover { border-color: #fff; color: #fff; }
+#ollama-form #ollama-send:hover { background: #fff; }
+#ollama-form #ollama-mic.recording { background: #eee; color: #111; }
+#ollama-form #ollama-mic:disabled, #ollama-form #ollama-send:disabled, #ollama-head button:disabled, .ollama-apply:disabled { opacity: 0.5; cursor: default; }
+.ollama-apply { margin-top: 8px; }
+#ollama-open { flex: none; }
+body.light #ollama-pane { border-left-color: #383838; }
+
 .sticky {
   margin: 0 12px 12px; background: #2a2a26; border-radius: 6px;
   padding: 10px 12px; font-size: 13px; line-height: 1.45; color: #ccc;
@@ -1551,7 +1617,7 @@ body.bright .pop-menu button:disabled { color: #8a8a8a; }
    dialogs grow together; the page keeps its own size and zoom. Lengths
    that meet the page or the window are corrected for the zoom. */
 :root { --ui-zoom: 1; }
-#bookshelf-view, #nav-pane, #side-pane, #bottombar, #searchbar, #hint, .modal { zoom: var(--ui-zoom); }
+#bookshelf-view, #nav-pane, #side-pane, #ollama-pane, #bottombar, #searchbar, #hint, .modal { zoom: var(--ui-zoom); }
 #paper-scroll, #nav-hotzone, #side-hotzone { bottom: calc(40px * var(--ui-zoom)); }
 #editor-view.side-pinned #paper-scroll { left: calc(50% - 125px * var(--ui-zoom)); }
 #editor-view.nav-pinned #paper-scroll { left: calc(50% + 124px * var(--ui-zoom)); }

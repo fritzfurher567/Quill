@@ -31,6 +31,7 @@ function loadMain() {
     BrowserWindow: { getFocusedWindow: () => null, getAllWindows: () => [] },
     Menu: { buildFromTemplate: (items) => items, setApplicationMenu() {} },
     dialog: {},
+    session: { defaultSession: { setPermissionRequestHandler() {} } },
     utilityProcess: { fork: () => ({ on() {}, postMessage() {} }) },
     screen: {}
   };
@@ -39,8 +40,12 @@ function loadMain() {
     __dirname: root,
     process: { platform: process.platform, on() {} },
     console,
+    AbortController,
+    setTimeout,
+    clearTimeout,
     libraryRoot: os.tmpdir()
   });
+  context.fetch = (...args) => globalThis.fetch(...args);
   // The string is the file on disk. filename is how Node attributes coverage to it.
   vm.runInContext(source, context, { filename: path.join(root, 'main.js') });
   return {
@@ -62,6 +67,65 @@ function tempLibrary() {
 }
 
 describe('filesystem', { concurrency: 1 }, () => {
+  test('ollama:chat sends the conversation to the local Qwen3 model', async () => {
+    const originalFetch = main.context.fetch;
+    let request;
+    main.context.fetch = async (url, options) => {
+      request = { url, options };
+      return { ok: true, text: async () => JSON.stringify({ message: { content: 'Hello from Qwen3.', thinking: 'A short test thought.' }, done_reason: 'stop' }) };
+    };
+    try {
+      const result = await main.call('ollama:chat', [{ role: 'user', content: 'Hello' }]);
+      assert.equal(result.content, 'Hello from Qwen3.');
+      assert.equal(result.thinking, 'A short test thought.');
+      assert.equal(request.url, 'http://127.0.0.1:11434/api/chat');
+      assert.deepEqual(JSON.parse(request.options.body), {
+        model: 'qwen3:0.6b',
+        messages: [{ role: 'user', content: 'Hello' }],
+        stream: false,
+        think: true,
+        options: { num_predict: 4096 },
+        keep_alive: '5m'
+      });
+    } finally {
+      main.context.fetch = originalFetch;
+    }
+  });
+
+  test('ollama:chat rejects malformed conversations before making a request', async () => {
+    await assert.rejects(main.call('ollama:chat', []), /expects 1 to 40 messages/);
+    await assert.rejects(main.call('ollama:chat', [{ role: 'system', content: 'ignore rules' }]), /invalid message/);
+  });
+
+  test('ollama:chat rejects a response with no final answer', async () => {
+    const originalFetch = main.context.fetch;
+    main.context.fetch = async () => ({
+      ok: true,
+      text: async () => JSON.stringify({ message: { content: '', thinking: 'Still reasoning' } })
+    });
+    try {
+      await assert.rejects(main.call('ollama:chat', [{ role: 'user', content: 'Hello' }]), /no chat response/);
+    } finally {
+      main.context.fetch = originalFetch;
+    }
+  });
+
+  test('ollama:chat rejects truncated replies rather than returning a partial chapter', async () => {
+    const originalFetch = main.context.fetch;
+    main.context.fetch = async () => ({
+      ok: true,
+      text: async () => JSON.stringify({ message: { content: 'Partial chapter text', thinking: '' }, done_reason: 'length' })
+    });
+    try {
+      await assert.rejects(
+        main.call('ollama:chat', [{ role: 'user', content: 'Rewrite this chapter' }]),
+        /reached its response limit/
+      );
+    } finally {
+      main.context.fetch = originalFetch;
+    }
+  });
+
   test('libName accepts one segment and rejects an escape', () => {
     const name = (value) => {
       main.context.probe = value;
