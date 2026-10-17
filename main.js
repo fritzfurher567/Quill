@@ -1001,8 +1001,107 @@ ipcMain.handle('cover:paint', (_e, bookId, text, options) => {
   return job;
 });
 
-// Experimental local chat. The renderer cannot choose a host or model: this
-// always talks to Ollama on this computer and uses Swift 1.2's local Qwen base.
+// Swift chat. The renderer cannot choose a host or model: this talks to Ollama on
+// this computer (Swift 1.2's local Qwen base) unless the writer saved their own
+// API key, in which case it talks to that provider (swiftCloudConfig below).
+// To try a bigger model, change SWIFT_MODEL (and `ollama pull` it): a 4B or 8B
+// Qwen3 follows a long manuscript and an editing request far better than 0.6B.
+const SWIFT_MODEL = 'qwen3:0.6b';
+const SWIFT_MAX_CONTEXT = 32768; // the window Qwen3 0.6B has; raise it with a model that has more
+const SWIFT_LONG_REPLY = 8192;   // tokens (thinking included): room to rewrite a long chapter
+const SWIFT_SHORT_REPLY = 4096;
+
+// A rough token count, used to size the model's window. Text in a wide script
+// (Cyrillic, Greek, CJK…) takes about twice the tokens per letter.
+function swiftTokens(text) {
+  const s = String(text || '');
+  if (!s) return 0;
+  let wide = 0;
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) > 0x24f) wide++;
+  return Math.ceil(s.length / (wide / s.length > 0.3 ? 1.8 : 3.2));
+}
+
+// Writers whose computer can't run Ollama bring their own key (Swift settings in
+// the chat). The page only says "use the hosted model": the provider, the model
+// and the key are read here from the encrypted secret store, so the page can
+// never point this at another host or read the key.
+const SWIFT_CLOUD = {
+  openai: { name: 'OpenAI', url: 'https://api.openai.com/v1/chat/completions', model: 'gpt-5-mini', style: 'openai', limit: 'max_completion_tokens' },
+  anthropic: { name: 'Anthropic', url: 'https://api.anthropic.com/v1/messages', model: 'claude-haiku-5-5', style: 'anthropic' },
+  openrouter: { name: 'OpenRouter', url: 'https://openrouter.ai/api/v1/chat/completions', model: 'openai/gpt-5-mini', style: 'openai', limit: 'max_tokens' }
+};
+const SWIFT_CLOUD_REPLY = 16000;
+
+function swiftCloudConfig() {
+  try {
+    const cfg = JSON.parse(readSecret('swift-config') || 'null');
+    if (!cfg || cfg.mode !== 'cloud') return null;
+    const provider = SWIFT_CLOUD[cfg.provider];
+    if (!provider) return null;
+    const key = readSecret('swift-key-' + cfg.provider);
+    if (!key) return null;
+    const model = typeof cfg.model === 'string' && /^[\w.:\/-]{1,100}$/.test(cfg.model) ? cfg.model : provider.model;
+    return { id: cfg.provider, provider, key, model };
+  } catch {
+    return null;
+  }
+}
+
+async function swiftCloudChat(cfg, systemPrompt, messages) {
+  const { provider, key, model } = cfg;
+  const scrub = (text) => String(text).split(key).join('…');
+  const headers = { 'Content-Type': 'application/json' };
+  let body;
+  if (provider.style === 'anthropic') {
+    headers['x-api-key'] = key;
+    headers['anthropic-version'] = '2023-06-01';
+    body = { model, max_tokens: SWIFT_CLOUD_REPLY, system: systemPrompt, messages };
+  } else {
+    headers.Authorization = 'Bearer ' + key;
+    if (cfg.id === 'openrouter') headers['X-Title'] = 'Quill';
+    body = { model, messages: [{ role: 'system', content: systemPrompt }, ...messages], [provider.limit]: SWIFT_CLOUD_REPLY };
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 300000);
+  let response;
+  let text;
+  try {
+    response = await fetch(provider.url, { method: 'POST', headers, body: JSON.stringify(body), signal: controller.signal });
+    text = await response.text();
+  } catch (err) {
+    if (controller.signal.aborted) throw new Error(`${provider.name} did not respond within five minutes.`);
+    throw new Error(`Could not reach ${provider.name}. Check your internet connection. ${scrub(err && err.message || err)}`);
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  let result = null;
+  try { result = JSON.parse(text); } catch { /* handled below */ }
+  if (!response.ok) {
+    const detail = scrub((result && result.error && (result.error.message || result.error)) || text.slice(0, 300));
+    if (response.status === 401 || response.status === 403) throw new Error(`${provider.name} refused the API key. Check it in Swift settings (the gear in the chat header).`);
+    if (response.status === 429) throw new Error(`${provider.name} says the key is out of credit or sending too fast. ${detail}`);
+    if (response.status === 404 || (response.status === 400 && /model/i.test(detail))) throw new Error(`${provider.name} did not accept the model “${model}”. Change it in Swift settings. ${detail}`);
+    throw new Error(`${provider.name} returned HTTP ${response.status}: ${detail}`);
+  }
+  if (!result) throw new Error(`${provider.name} returned an invalid response.`);
+
+  let content = '';
+  let cut = false;
+  if (provider.style === 'anthropic') {
+    content = (Array.isArray(result.content) ? result.content : []).filter((b) => b && b.type === 'text').map((b) => b.text).join('');
+    cut = result.stop_reason === 'max_tokens';
+  } else {
+    const choice = result.choices && result.choices[0];
+    content = choice && choice.message && typeof choice.message.content === 'string' ? choice.message.content : '';
+    cut = !!choice && choice.finish_reason === 'length';
+  }
+  if (cut) throw new Error('Swift reached its response limit. The chapter was not changed; ask for a shorter revision.');
+  if (!content.trim()) throw new Error(`${provider.name} returned no chat response.`);
+  return { content, thinking: '' };
+}
+
 ipcMain.handle('ollama:chat', async (_e, messages) => {
   if (!Array.isArray(messages) || messages.length < 1 || messages.length > 40) {
     throw new Error('Ollama chat expects 1 to 40 messages.');
@@ -1010,16 +1109,36 @@ ipcMain.handle('ollama:chat', async (_e, messages) => {
   let total = 0;
   const safeMessages = messages.map((message) => {
     if (!message || !['user', 'assistant'].includes(message.role) ||
-        typeof message.content !== 'string' || !message.content.trim() || message.content.length > 48000) {
+        typeof message.content !== 'string' || !message.content.trim() || message.content.length > 120000) {
       throw new Error('Ollama chat received an invalid message.');
     }
     total += message.content.length;
     return { role: message.role, content: message.content };
   });
-  if (total > 96000) throw new Error('Ollama chat history is too long. Clear the chat and try again.');
+  if (total > 150000) throw new Error('Ollama chat history is too long. Clear the chat and try again.');
+
+  // Qwen is multilingual and a 0.6B model drifts into Chinese easily, so the
+  // reply language is pinned here, in the main process, where the page can't
+  // change it. It follows the language the writer is using, English by default.
+  const systemPrompt = 'You are Swift 1.2, a writing assistant inside Quill, a book-writing app. ' +
+    'Think and reply in the same language as the user\'s most recent message. ' +
+    'If that is unclear, use English. Never use Chinese unless the user writes in Chinese. ' +
+    'When a manuscript is included it uses <i>, <b> and <u> tags for emphasis; keep them.';
+  const cloud = swiftCloudConfig();
+  if (cloud) return swiftCloudChat(cloud, systemPrompt, safeMessages);
+  const chatMessages = [{ role: 'system', content: systemPrompt }, ...safeMessages];
+
+  // Size the window to the request: a short chat stays quick, a whole book gets room.
+  const promptTokens = chatMessages.reduce((n, m) => n + swiftTokens(m.content) + 8, 0);
+  const replyTokens = promptTokens > 3000 ? SWIFT_LONG_REPLY : SWIFT_SHORT_REPLY;
+  const needed = promptTokens + replyTokens + 256;
+  if (needed > SWIFT_MAX_CONTEXT) {
+    throw new Error('That is more text than Swift 1.2 can read at once. Choose a smaller part of the book, or clear the chat.');
+  }
+  const numCtx = [4096, 8192, 12288, 16384, 24576, SWIFT_MAX_CONTEXT].find((n) => n >= needed);
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 120000);
+  const timeout = setTimeout(() => controller.abort(), 300000);
   let response;
   let text;
   try {
@@ -1027,11 +1146,11 @@ ipcMain.handle('ollama:chat', async (_e, messages) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'qwen3:0.6b',
-        messages: safeMessages,
+        model: SWIFT_MODEL,
+        messages: chatMessages,
         stream: false,
         think: true,
-        options: { num_predict: 4096 },
+        options: { num_predict: replyTokens, num_ctx: numCtx },
         keep_alive: '5m'
       }),
       signal: controller.signal
@@ -1039,9 +1158,9 @@ ipcMain.handle('ollama:chat', async (_e, messages) => {
     text = await response.text();
   } catch (err) {
     if (controller.signal.aborted) {
-      throw new Error('Ollama did not respond within two minutes.');
+      throw new Error('Ollama did not respond within five minutes.');
     }
-    throw new Error(`Could not reach Ollama at 127.0.0.1:11434. Make sure Ollama is running and the qwen3:0.6b model used by Swift 1.2 is available. ${String(err && err.message || err)}`);
+    throw new Error(`Could not reach Ollama at 127.0.0.1:11434. Make sure Ollama is running and the ${SWIFT_MODEL} model used by Swift 1.2 is available. ${String(err && err.message || err)}`);
   } finally {
     clearTimeout(timeout);
   }
@@ -2457,6 +2576,7 @@ function buildMenu() {
         // same in Pocket with a keyboard and never fires twice
         { label: t('Take Snapshot'), accelerator: 'CmdOrCtrl+S', registerAccelerator: false, click: () => sendToWindow({ type: 'snapshot' }) },
         { type: 'separator' },
+        { label: t('Settings…'), accelerator: 'CmdOrCtrl+Shift+,', click: () => sendToWindow({ type: 'settings' }) },
         { label: t('Cover Art…'), click: () => sendToWindow({ type: 'coverArt' }) },
         {
           label: t('Goals…'),

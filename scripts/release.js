@@ -85,7 +85,7 @@ gitLoud('push', 'origin', tag);
 
 console.log(`
 ✅ ${next} is building. In about 15 minutes:
-   1. Open https://github.com/hughhowey/neo/releases
-   2. Open the ${tag} draft, check the Windows file is NEO-Setup-${next}.exe
-   3. Press Publish. Everyone's NEO updates itself from there.
+   1. Open https://github.com/fritzfurher567/Quill/releases
+   2. Open the ${tag} draft, check the Windows file is Quill-Setup-${next}.exe
+   3. Press Publish. Everyone's Quill updates itself from there.
 ${notes ? `\nWhat's in it (a start for the release notes):\n${notes}\n` : ''}`);

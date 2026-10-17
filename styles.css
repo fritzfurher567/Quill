@@ -6,7 +6,7 @@
   --bg-soft: #222;
   --paper: #fbfaf7;
   --ink: #1c1c1c;
-  --accent: #c9a86a;
+  --accent: #d2d4c8;
   --muted: #8a8a8a;
   --pane: #202020;
   --red: #c0392b;
@@ -1255,69 +1255,185 @@ body.focus-mode .walk-note { opacity: 0.6; }
 #side-pin.pinned { color: var(--accent); }
 
 /* --- Experimental local Ollama chat --- */
+/* --- Experimental local Ollama chat (Swift 1.2) ---
+   Built on Quill's own tokens (--pane, --bg, --accent, --muted, --red) so it
+   reads as part of the app and follows Light mode on its own. The accent is
+   spent in only a few places: focus, checked boxes, the Send button, the
+   recording mic and the user's bubble. Class and id names are unchanged, so
+   no JS or HTML edits are needed. */
+
 #ollama-pane {
+  --oc-text: #e4e1da;
+  --oc-dim: #9a968c;
+  --oc-faint: #6f6b63;
+  --oc-line: rgba(255, 255, 255, 0.09);
+  --oc-line-strong: rgba(255, 255, 255, 0.17);
+  --oc-surface: rgba(255, 255, 255, 0.045);
+  --oc-tint: color-mix(in srgb, var(--accent) 13%, transparent);
+
   position: fixed; right: 0; top: 0; bottom: 40px;
   width: min(360px, calc(100vw - 24px));
-  background: #080808; border-left: 1px solid #383838;
+  background: var(--pane); color: var(--oc-text);
+  border-left: 1px solid var(--oc-line);
+  box-shadow: -14px 0 36px rgba(0, 0, 0, 0.28);
   transform: translateX(100%); transition: transform 0.18s ease;
   z-index: 81; display: flex; flex-direction: column;
-  padding-top: 36px; box-shadow: -8px 0 28px rgba(0,0,0,0.22);
+  padding-top: 36px;
 }
 #ollama-pane.open { transform: translateX(0); }
+body.light #ollama-pane {
+  --oc-text: #2b2926;
+  --oc-dim: #6a665e;
+  --oc-faint: #8f8a80;
+  --oc-line: rgba(0, 0, 0, 0.09);
+  --oc-line-strong: rgba(0, 0, 0, 0.2);
+  --oc-surface: rgba(0, 0, 0, 0.04);
+  box-shadow: -14px 0 36px rgba(0, 0, 0, 0.1);
+}
+
+/* header: same voice as the Chapters / Notes headers */
 #ollama-head {
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  padding: 0 14px 12px; color: #ddd; font-size: 11px;
-  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 0 14px 12px 18px; margin-bottom: 4px;
+  border-bottom: 1px solid var(--oc-line);
+  color: var(--muted); font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
 }
-#ollama-head > div { display: flex; gap: 8px; }
-#ollama-head button, #ollama-open {
-  background: #080808; border: 1px solid #555; border-radius: 5px;
-  color: #eee; font-size: 11px; padding: 4px 8px;
+#ollama-head > div { display: flex; align-items: center; gap: 4px; }
+#ollama-head button {
+  background: none; border: 1px solid transparent; border-radius: 6px;
+  color: var(--oc-dim); font-size: 12px; letter-spacing: 0; text-transform: none;
+  padding: 4px 9px; line-height: 1.3;
 }
-#ollama-head button:hover, #ollama-open:hover { color: #fff; border-color: #fff; }
+#ollama-head button:hover:not(:disabled) { color: var(--oc-text); background: var(--oc-surface); }
+
+/* conversation */
 #ollama-messages {
-  flex: 1; min-height: 0; overflow-y: auto; padding: 4px 14px 12px;
-  display: flex; flex-direction: column; gap: 10px;
+  flex: 1; min-height: 0; overflow-y: auto; padding: 14px 16px 12px;
+  display: flex; flex-direction: column; gap: 12px;
 }
-.ollama-welcome { color: #aaa; font-size: 12px; line-height: 1.55; padding: 8px 2px; }
-.ollama-message { border-radius: 7px; background: #141414; padding: 9px 11px; }
-.ollama-message.user { border-left: 2px solid #aaa; }
+.ollama-welcome { color: var(--oc-dim); font-size: 12.5px; line-height: 1.6; padding: 2px 0 6px; }
+.ollama-message { border-radius: 10px; background: var(--oc-surface); padding: 10px 12px; }
+.ollama-message.user { background: var(--oc-tint); }
 .ollama-message .ollama-role {
-  color: #aaa; font-size: 10px; letter-spacing: 1px;
+  color: var(--oc-faint); font-size: 10.5px; letter-spacing: 1.5px;
   text-transform: uppercase; margin-bottom: 5px;
 }
-.ollama-thinking { margin: 0 0 8px; color: #aaa; font-size: 12px; line-height: 1.45; }
-.ollama-thinking summary { cursor: pointer; color: #aaa; }
-.ollama-thinking summary:hover { color: #fff; }
-.ollama-thought { margin-top: 6px; white-space: pre-wrap; overflow-wrap: anywhere; }
-.ollama-message .ollama-text { color: #eee; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
-#ollama-status { min-height: 0; padding: 0 14px; color: #aaa; font-size: 11px; line-height: 1.4; }
+.ollama-message.user .ollama-role { color: var(--accent); }
+.ollama-message .ollama-text {
+  color: var(--oc-text); font-family: var(--body-font); font-size: 14px; line-height: 1.6;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.ollama-message.user .ollama-text {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: 13px; line-height: 1.5;
+}
+
+/* the collapsed "Thinking" disclosure */
+.ollama-thinking { margin: 0 0 8px; color: var(--oc-dim); font-size: 12px; line-height: 1.5; }
+.ollama-thinking summary {
+  cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px;
+  color: var(--oc-dim); font-style: italic; user-select: none;
+}
+.ollama-thinking summary::-webkit-details-marker { display: none; }
+.ollama-thinking summary::before {
+  content: ''; width: 5px; height: 5px; flex: none;
+  border: solid currentColor; border-width: 0 1.5px 1.5px 0;
+  transform: rotate(-45deg); transition: transform 0.12s ease;
+}
+.ollama-thinking[open] summary::before { transform: rotate(45deg); }
+.ollama-thinking summary:hover { color: var(--oc-text); }
+.ollama-thought {
+  margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--oc-line-strong);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+
+#ollama-status { min-height: 0; padding: 0 16px; color: var(--oc-dim); font-size: 12px; line-height: 1.4; }
 #ollama-status:not(:empty) { padding-top: 6px; padding-bottom: 4px; }
-#ollama-status.error { color: #fff; }
-#ollama-options { display: flex; flex-direction: column; gap: 7px; padding: 6px 14px; color: #ccc; font-size: 11px; line-height: 1.4; }
-#ollama-options label { display: flex; align-items: flex-start; gap: 7px; cursor: pointer; }
-#ollama-options input { accent-color: #eee; margin: 1px 0 0; flex: none; }
-#ollama-form { padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+#ollama-status.error { color: var(--red); }
+
+/* the two options, with real checkboxes instead of the browser's */
+#ollama-options {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 16px 4px; border-top: 1px solid var(--oc-line);
+  color: var(--oc-dim); font-size: 12px; line-height: 1.4;
+}
+#ollama-options label { display: flex; align-items: flex-start; gap: 9px; cursor: pointer; }
+#ollama-options label:hover { color: var(--oc-text); }
+#ollama-options input {
+  appearance: none; -webkit-appearance: none;
+  flex: none; width: 15px; height: 15px; margin: 1px 0 0;
+  display: grid; place-content: center; cursor: pointer;
+  background: transparent; border: 1px solid var(--oc-line-strong); border-radius: 4px;
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+#ollama-options input:hover { border-color: var(--accent); }
+#ollama-options input:checked { background: var(--accent); border-color: var(--accent); }
+#ollama-options input:checked::after {
+  content: ''; width: 7px; height: 4px;
+  border: solid var(--bg); border-width: 0 0 2px 2px;
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+/* composer */
+#ollama-form { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
 #ollama-input {
-  width: 100%; resize: vertical; min-height: 58px; max-height: 180px;
-  border: 1px solid #555; border-radius: 6px; background: #050505;
-  color: #fff; font: 13px/1.45 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-  padding: 9px 10px; outline: none;
+  width: 100%; resize: vertical; min-height: 64px; max-height: 180px;
+  background: var(--oc-surface); color: var(--oc-text);
+  border: 1px solid var(--oc-line); border-radius: 10px; outline: none;
+  font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  padding: 10px 12px; transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
-#ollama-input:focus { border-color: #fff; }
+#ollama-input::placeholder { color: var(--oc-faint); }
+#ollama-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
 .ollama-form-actions { display: flex; justify-content: space-between; align-items: center; }
-#ollama-form #ollama-mic, #ollama-form #ollama-send, .ollama-apply {
-  border: 1px solid #555; border-radius: 5px; background: #111;
-  color: #eee; cursor: pointer; font-size: 12px; padding: 6px 11px;
+
+/* mic: a quiet outline icon (an inline SVG in index.html, drawn in the text
+   colour). It turns accent-filled and pulses while listening. */
+#ollama-form #ollama-mic {
+  width: 34px; height: 34px; padding: 0; display: grid; place-content: center;
+  background: none; border: 1px solid var(--oc-line); border-radius: 8px;
+  color: var(--oc-dim); cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
-#ollama-form #ollama-send { background: #eee; color: #111; border-color: #eee; }
-#ollama-form #ollama-mic:hover, #ollama-apply:hover { border-color: #fff; color: #fff; }
-#ollama-form #ollama-send:hover { background: #fff; }
-#ollama-form #ollama-mic.recording { background: #eee; color: #111; }
-#ollama-form #ollama-mic:disabled, #ollama-form #ollama-send:disabled, #ollama-head button:disabled, .ollama-apply:disabled { opacity: 0.5; cursor: default; }
-.ollama-apply { margin-top: 8px; }
-#ollama-open { flex: none; }
-body.light #ollama-pane { border-left-color: #383838; }
+#ollama-form #ollama-mic:hover:not(:disabled) { border-color: var(--accent); background: var(--oc-tint); color: var(--accent); }
+#ollama-form #ollama-mic.recording {
+  background: var(--accent); border-color: var(--accent); color: var(--bg);
+  animation: ollama-pulse 1.4s ease-out infinite;
+}
+@keyframes ollama-pulse {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 50%, transparent); }
+  to { box-shadow: 0 0 0 9px transparent; }
+}
+
+#ollama-form #ollama-send {
+  background: var(--accent); color: var(--bg); border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 500; padding: 8px 18px; cursor: pointer;
+}
+#ollama-form #ollama-send:hover:not(:disabled) { filter: brightness(1.1); }
+#ollama-form #ollama-send:active:not(:disabled) { filter: brightness(0.94); }
+
+/* "Replace open chapter" under a reply */
+.ollama-apply {
+  margin-top: 10px; background: none; color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 7px;
+  font-size: 12px; padding: 5px 12px; cursor: pointer;
+}
+.ollama-apply:hover:not(:disabled) { background: var(--oc-tint); border-color: var(--accent); }
+
+#ollama-head button:disabled, #ollama-form #ollama-mic:disabled,
+#ollama-form #ollama-send:disabled, .ollama-apply:disabled { opacity: 0.45; cursor: default; }
+
+/* the "Swift 1.2" button in the bottom bar: a quiet pill, like the tabs */
+#ollama-open {
+  flex: none; background: none; color: var(--muted);
+  border: 1px solid var(--oc-line, rgba(255, 255, 255, 0.12)); border-radius: 999px;
+  font-size: 12px; padding: 4px 12px; line-height: 1.3; cursor: pointer;
+}
+#ollama-open:hover { color: var(--accent); border-color: var(--accent); }
+body.light #ollama-open { border-color: rgba(0, 0, 0, 0.16); }
+body.light #ollama-open:hover { border-color: var(--accent); }
 
 .sticky {
   margin: 0 12px 12px; background: #2a2a26; border-radius: 6px;
@@ -2163,3 +2279,456 @@ body.light .side-card { background: #fbf5e3; border-color: #e6dfcc; }
 body.light .side-card-head { color: #5f5a50; }
 body.light .side-card textarea { color: #2b2926; }
 body.light .side-card textarea::placeholder { color: #a39d90; }
+/* ====================================================================== */
+/*  QUILL: cream theme + the Swift 1.2 chat                                */
+/*  Paste this at the very bottom of styles.css. It overrides what is      */
+/*  above it, so the old gold accent and the old chat styles can stay.     */
+/* ====================================================================== */
+
+/* ---------------------------------------------------------------------- */
+/* 1. THEME: the gold accent becomes a soft cream white                    */
+/*                                                                         */
+/*  --accent-ui   the accent on the app's dark (or, in Light, light) room  */
+/*  --accent-ink  the accent ON the page itself: cream on cream would      */
+/*                vanish, so the page gets ink (and cream again at night)  */
+/* ---------------------------------------------------------------------- */
+:root { --accent-ui: #ece6d6; --accent-ink: #3b3832; --accent: var(--accent-ui); }
+body.light { --accent-ui: #3b3832; --accent: var(--accent-ui); }
+body.night { --accent-ink: #ece6d6; }
+.sheet, #aux-paper, .ps-paper { --accent: var(--accent-ink); }
+/* the Outline's board sits in the room, not on a page */
+#editor-view.board-on #aux-paper { --accent: var(--accent-ui); }
+
+/* buttons that were a fixed gold in Light */
+body.light .btn-gold, body.light .stats-row button { background: #2b2926; color: #f4f1e8; }
+
+/* glows and washes that were hard-coded gold */
+.shelf-drop-ind, .drop-indicator, .nav-drop-ind { box-shadow: 0 0 10px color-mix(in srgb, var(--accent-ui) 70%, transparent); }
+.shelf-books.drag-over, body.light .shelf-books.drag-over { background: color-mix(in srgb, var(--accent-ui) 6%, transparent); }
+
+/* what the writer sees ON the page: selection, find matches, read-aloud */
+.sheet ::selection, #aux-paper ::selection { background: rgba(80, 92, 120, 0.26); }
+body.night .sheet ::selection, body.night #aux-paper ::selection { background: rgba(190, 205, 235, 0.3); }
+::highlight(neo-search) { background: rgba(80, 92, 120, 0.26); }
+::highlight(neo-search-current) { background: #2c3446; color: #f4f1e8; }
+::highlight(neo-speak) { background: rgba(80, 92, 120, 0.2); }
+body.night ::highlight(neo-search) { background: rgba(190, 205, 235, 0.28); }
+body.night ::highlight(neo-search-current) { background: #e7e2d4; color: #1c1c1c; }
+body.night ::highlight(neo-speak) { background: rgba(190, 205, 235, 0.2); }
+
+/* the Outline's cards and the progress chart */
+#outline-board { --card-mark: #6b6558; }
+#stats-chart { color: var(--accent); }
+body.light #stats-chart path, body.light #stats-chart line { stroke: currentColor; }
+
+/* ---------------------------------------------------------------------- */
+/* 2. SWIFT 1.2 CHAT                                                       */
+/* Built on the app's own tokens, so Light mode follows by itself. Every   */
+/* rule starts with #ollama-pane, so it wins over the old chat styles.     */
+/* ---------------------------------------------------------------------- */
+#ollama-pane {
+  --oc-text: #ece8df;
+  --oc-dim: #a09b90;
+  --oc-faint: #736f66;
+  --oc-line: rgba(255, 255, 255, 0.08);
+  --oc-line-strong: rgba(255, 255, 255, 0.17);
+  --oc-surface: rgba(255, 255, 255, 0.045);
+  --oc-surface-2: rgba(255, 255, 255, 0.08);
+  --oc-tint: color-mix(in srgb, var(--accent) 12%, transparent);
+  --oc-warn: #d97b6c;
+
+  position: fixed; right: 0; top: 0; bottom: 40px;
+  width: min(390px, calc(100vw - 24px));
+  background: var(--pane); color: var(--oc-text);
+  border-left: 1px solid var(--oc-line);
+  box-shadow: -18px 0 40px rgba(0, 0, 0, 0.3);
+  transform: translateX(100%); transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 81; display: flex; flex-direction: column;
+  padding-top: 36px;
+}
+#ollama-pane.open { transform: translateX(0); }
+body.light #ollama-pane {
+  --oc-text: #2b2926;
+  --oc-dim: #6a665e;
+  --oc-faint: #8f8a80;
+  --oc-line: rgba(0, 0, 0, 0.09);
+  --oc-line-strong: rgba(0, 0, 0, 0.2);
+  --oc-surface: rgba(0, 0, 0, 0.035);
+  --oc-surface-2: rgba(0, 0, 0, 0.06);
+  --oc-warn: #a8412f;
+  border-left-color: var(--oc-line);
+  box-shadow: -18px 0 40px rgba(0, 0, 0, 0.1);
+}
+
+/* header */
+#ollama-pane #ollama-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 0 14px 10px 20px; margin: 0;
+  color: var(--oc-dim); font-size: 11.5px; letter-spacing: 2px; text-transform: uppercase;
+}
+#ollama-pane #ollama-head > div { display: flex; align-items: center; gap: 4px; }
+#ollama-pane #ollama-head button {
+  background: none; border: 1px solid transparent; border-radius: 999px;
+  color: var(--oc-dim); font-size: 12px; letter-spacing: 0; text-transform: none;
+  padding: 4px 11px; line-height: 1.3; cursor: pointer; display: inline-flex; align-items: center;
+}
+#ollama-pane #ollama-head button:hover:not(:disabled) { color: var(--oc-text); background: var(--oc-surface-2); }
+#ollama-pane #ollama-head button:disabled { opacity: 0.45; cursor: default; }
+
+/* conversation: your messages are bubbles on the right; Swift's replies sit
+   straight on the pane, set in the manuscript's own typeface */
+#ollama-pane #ollama-messages {
+  flex: 1; min-height: 0; overflow-y: auto; padding: 10px 18px 14px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+#ollama-pane #ollama-messages:has(> .ollama-welcome:only-child) { justify-content: center; text-align: center; padding: 0 34px 40px; }
+#ollama-pane .ollama-welcome { color: var(--oc-faint); font-size: 13px; line-height: 1.65; padding: 0; margin: 0; }
+#ollama-pane .ollama-message { background: none; border: 0; border-radius: 0; padding: 0; }
+#ollama-pane .ollama-message.user {
+  align-self: flex-end; max-width: 88%;
+  background: var(--oc-surface-2); border-radius: 16px 16px 4px 16px; padding: 9px 14px;
+}
+/* the "You" label stays for screen readers, hidden to the eye */
+#ollama-pane .ollama-message.user .ollama-role {
+  position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+#ollama-pane .ollama-message .ollama-role {
+  color: var(--oc-faint); font-size: 10.5px; letter-spacing: 1.6px; text-transform: uppercase; margin-bottom: 6px;
+}
+#ollama-pane .ollama-message .ollama-text {
+  color: var(--oc-text); font-family: var(--body-font); font-size: 14.5px; line-height: 1.65;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+#ollama-pane .ollama-message.user .ollama-text {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; font-size: 13.5px; line-height: 1.5;
+}
+
+/* the collapsed "Thinking" chip */
+#ollama-pane .ollama-thinking { margin: 0 0 10px; color: var(--oc-dim); font-size: 12px; line-height: 1.5; }
+#ollama-pane .ollama-thinking summary {
+  cursor: pointer; list-style: none; user-select: none;
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--oc-surface); border: 1px solid var(--oc-line); border-radius: 999px;
+  padding: 3px 11px 3px 10px; color: var(--oc-dim); font-size: 11.5px;
+}
+#ollama-pane .ollama-thinking summary::-webkit-details-marker { display: none; }
+#ollama-pane .ollama-thinking summary::before {
+  content: ''; width: 5px; height: 5px; flex: none;
+  border: solid currentColor; border-width: 0 1.5px 1.5px 0;
+  transform: rotate(-45deg); transition: transform 0.12s ease;
+}
+#ollama-pane .ollama-thinking[open] summary::before { transform: rotate(45deg); }
+#ollama-pane .ollama-thinking summary:hover { color: var(--oc-text); border-color: var(--oc-line-strong); }
+#ollama-pane .ollama-thought {
+  margin-top: 8px; padding-left: 11px; border-left: 2px solid var(--oc-line-strong);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+
+/* chapter edits Swift proposes: one card per chapter, buttons on the card */
+#ollama-pane .ollama-edits { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+#ollama-pane .ollama-edit {
+  padding: 12px; display: flex; flex-direction: column; gap: 10px;
+  background: var(--oc-surface); border: 1px solid var(--oc-line); border-radius: 14px;
+  transition: opacity 0.15s ease, border-color 0.15s ease;
+}
+#ollama-pane .ollama-edit.applied { opacity: 0.62; border-color: color-mix(in srgb, var(--accent) 35%, var(--oc-line)); }
+#ollama-pane .ollama-edit-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+#ollama-pane .oc-icon {
+  flex: none; width: 30px; height: 30px; display: grid; place-content: center; border-radius: 9px;
+  background: var(--oc-tint); color: var(--accent);
+}
+#ollama-pane .oc-card-title { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+#ollama-pane .ollama-edit-head .oe-name { color: var(--oc-text); font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+#ollama-pane .ollama-edit-head .oe-meta { color: var(--oc-dim); font-size: 11.5px; }
+#ollama-pane .ollama-edit-warn { display: flex; flex-direction: column; gap: 4px; font-size: 12px; line-height: 1.4; }
+#ollama-pane .ollama-edit-warn .oe-warn, #ollama-pane .ollama-edit-warn .oe-error {
+  color: var(--oc-warn); background: color-mix(in srgb, var(--oc-warn) 10%, transparent);
+  border-radius: 8px; padding: 5px 9px;
+}
+#ollama-pane .ollama-edit-text {
+  max-height: 240px; overflow-y: auto; padding: 10px 12px;
+  background: var(--oc-surface); border-radius: 10px;
+  font-family: var(--body-font); font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+
+/* the buttons: one filled pill says "do this", quiet outlined pills say the rest */
+#ollama-pane .oc-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+#ollama-pane .oc-reply-actions { margin-top: 10px; }
+#ollama-pane .oc-btn, #ollama-pane .ollama-apply {
+  margin: 0; align-self: auto; cursor: pointer; line-height: 1.2;
+  font-size: 12px; font-weight: 500; padding: 6px 13px; border-radius: 999px;
+  background: none; color: var(--oc-text); border: 1px solid var(--oc-line-strong);
+  transition: background 0.12s ease, border-color 0.12s ease, filter 0.12s ease;
+}
+#ollama-pane .oc-btn:hover:not(:disabled) { background: var(--oc-tint); }
+#ollama-pane .ollama-apply { background: var(--accent); color: var(--bg); border-color: transparent; font-weight: 600; }
+#ollama-pane .ollama-apply:hover:not(:disabled) { filter: brightness(1.08); }
+#ollama-pane .ollama-apply.ollama-apply-all { background: none; color: var(--oc-text); border-color: var(--oc-line-strong); align-self: flex-start; }
+#ollama-pane .ollama-apply.ollama-apply-all:hover:not(:disabled) { background: var(--oc-tint); filter: none; }
+#ollama-pane .oc-btn:disabled, #ollama-pane .ollama-apply:disabled { opacity: 0.45; cursor: default; }
+#ollama-pane .oc-status-btn { margin-left: 4px; padding: 3px 11px; }
+
+#ollama-pane #ollama-status { min-height: 0; padding: 0 20px; color: var(--oc-dim); font-size: 12px; line-height: 1.45; }
+#ollama-pane #ollama-status:not(:empty) { padding-top: 6px; padding-bottom: 6px; }
+#ollama-pane #ollama-status.error { color: var(--oc-warn); }
+#ollama-pane #ollama-status .oc-btn { color: var(--oc-text); }
+
+/* the form: what Swift can read, then the composer card */
+#ollama-pane #ollama-form { margin: 0; padding: 4px 14px 14px; gap: 0; display: flex; flex-direction: column; }
+#ollama-pane #ollama-scope {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 3px;
+  background: var(--oc-surface); border: 1px solid var(--oc-line); border-radius: 999px;
+}
+#ollama-pane #ollama-scope button {
+  background: none; border: 0; border-radius: 999px; padding: 5px 6px;
+  color: var(--oc-dim); font-size: 12px; cursor: pointer; transition: background 0.12s ease, color 0.12s ease;
+}
+#ollama-pane #ollama-scope button:hover { color: var(--oc-text); }
+#ollama-pane #ollama-scope button[aria-checked="true"] {
+  background: var(--oc-surface-2); color: var(--oc-text); box-shadow: inset 0 0 0 1px var(--oc-line-strong);
+}
+/* what Swift is reading, as a small file chip */
+#ollama-pane #ollama-scope-info {
+  margin: 8px 2px 0; padding: 5px 11px 5px 9px; align-self: flex-start; max-width: 100%;
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--oc-surface); border: 1px solid var(--oc-line); border-radius: 999px;
+  color: var(--oc-dim); font-size: 11.5px; line-height: 1.35; overflow-wrap: anywhere;
+}
+#ollama-pane #ollama-scope-info::before {
+  content: ''; flex: none; width: 12px; height: 14px; background: currentColor; opacity: 0.8;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3h7l5 5v13H7z'/%3E%3Cpath d='M14 3v5h5'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 3h7l5 5v13H7z'/%3E%3Cpath d='M14 3v5h5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+#ollama-pane #ollama-composer {
+  margin-top: 10px; display: flex; flex-direction: column;
+  background: var(--oc-surface-2); border: 1px solid var(--oc-line); border-radius: 20px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+#ollama-pane #ollama-composer:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+#ollama-pane #ollama-input {
+  width: 100%; min-height: 52px; max-height: 176px; resize: none; display: block;
+  background: transparent; color: var(--oc-text);
+  border: none; border-radius: 20px 20px 0 0; outline: none; box-shadow: none;
+  font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  padding: 14px 16px 6px;
+}
+#ollama-pane #ollama-input::placeholder { color: var(--oc-faint); }
+#ollama-pane .ollama-form-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 8px 8px 8px; }
+#ollama-pane .ollama-tools { display: flex; align-items: center; gap: 4px; min-width: 0; flex-wrap: wrap; }
+
+/* mic: a quiet icon; accent-filled and pulsing while it listens */
+#ollama-pane #ollama-mic {
+  width: 32px; height: 32px; padding: 0; display: grid; place-content: center; flex: none;
+  background: none; border: none; border-radius: 50%;
+  color: var(--oc-dim); cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+#ollama-pane #ollama-mic:hover:not(:disabled) { background: var(--oc-surface-2); color: var(--oc-text); }
+#ollama-pane #ollama-mic.recording {
+  background: var(--accent); color: var(--bg);
+  animation: ollama-pulse 1.4s ease-out infinite;
+}
+@keyframes ollama-pulse {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 50%, transparent); }
+  to { box-shadow: 0 0 0 9px transparent; }
+}
+#ollama-pane #ollama-mic:disabled { opacity: 0.45; cursor: default; }
+
+/* Edit / Auto-apply: small toggle pills (the checkbox inside is hidden but
+   stays keyboard- and screen-reader-reachable) */
+#ollama-pane .ollama-chip {
+  position: relative; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none;
+  padding: 5px 11px; border-radius: 999px; border: 1px solid var(--oc-line);
+  color: var(--oc-dim); font-size: 12px; line-height: 1.2;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+#ollama-pane .ollama-chip input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+#ollama-pane .ollama-chip:hover { color: var(--oc-text); border-color: var(--oc-line-strong); }
+#ollama-pane .ollama-chip:has(input:checked) {
+  background: var(--oc-tint); color: var(--oc-text);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+#ollama-pane .ollama-chip:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+#ollama-pane .ollama-chip:has(input:disabled) { opacity: 0.45; cursor: default; }
+
+
+/* Ask / Edit: a two-button switch */
+#ollama-pane #ollama-mode {
+  display: inline-grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px;
+  background: var(--oc-surface); border: 1px solid var(--oc-line); border-radius: 999px;
+}
+#ollama-pane #ollama-mode button {
+  background: none; border: 0; border-radius: 999px; padding: 4px 13px; cursor: pointer;
+  color: var(--oc-dim); font-size: 12px; line-height: 1.2; transition: background 0.12s ease, color 0.12s ease;
+}
+#ollama-pane #ollama-mode button:hover:not(:disabled) { color: var(--oc-text); }
+#ollama-pane #ollama-mode button[aria-checked="true"] { background: var(--accent); color: var(--bg); font-weight: 600; }
+#ollama-pane #ollama-mode button:disabled { opacity: 0.4; cursor: default; }
+#ollama-pane #ollama-mode button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* keep everything inside the pane, whatever Interface Size is set to */
+#ollama-pane { box-sizing: border-box; max-width: 100vw; overflow: hidden; }
+#ollama-pane > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
+#ollama-pane #ollama-form > * { min-width: 0; max-width: 100%; }
+#ollama-pane #ollama-composer, #ollama-pane #ollama-scope { width: 100%; }
+#ollama-pane #ollama-input { min-width: 0; }
+
+/* Send: a round arrow */
+#ollama-pane #ollama-send {
+  width: 34px; height: 34px; padding: 0; flex: none; display: grid; place-content: center;
+  background: var(--accent); color: var(--bg); border: none; border-radius: 50%; cursor: pointer;
+  transition: filter 0.12s ease, transform 0.12s ease;
+}
+#ollama-pane #ollama-send:hover:not(:disabled) { filter: brightness(1.08); }
+#ollama-pane #ollama-send:active:not(:disabled) { transform: scale(0.94); }
+#ollama-pane #ollama-send:disabled { opacity: 0.4; cursor: default; }
+
+/* the "Swift 1.2" button in the bottom bar: a quiet pill, like the tabs */
+#ollama-open {
+  flex: none; background: none; color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 999px;
+  font-size: 12px; padding: 4px 12px; line-height: 1.3; cursor: pointer;
+}
+#ollama-open:hover { color: var(--accent); border-color: var(--accent); }
+body.light #ollama-open { border-color: rgba(0, 0, 0, 0.16); }
+body.light #ollama-open:hover { border-color: var(--accent); }
+
+/* ---------------------------------------------------------------------- */
+/* 3. SWIFT SETTINGS (where Swift runs, and the writer's own API key)      */
+/* ---------------------------------------------------------------------- */
+.swift-modal { width: 480px; max-width: 100%; }
+.swift-modal .soft { color: var(--muted); }
+.sw-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; margin: 12px 0 14px;
+  background: rgba(128, 128, 128, 0.12); border-radius: 999px; }
+.sw-seg button { background: none; border: 0; border-radius: 999px; padding: 7px 10px; color: var(--muted); font-size: 13px; cursor: pointer; }
+.sw-seg button[aria-checked="true"] { background: var(--accent-ui); color: var(--bg); font-weight: 600; }
+.sw-panel { display: flex; flex-direction: column; gap: 10px; }
+.sw-panel[hidden] { display: none; }
+.sw-field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; }
+.sw-field input, .sw-field select { width: 100%; }
+.sw-note { margin: -4px 0 0; font-size: 12px; line-height: 1.5; }
+.sw-warn { margin: 2px 0 0; font-size: 12px; line-height: 1.5; padding: 8px 11px; border-radius: 10px; background: rgba(128, 128, 128, 0.12); }
+.sw-msg { margin: 12px 0 0; font-size: 12.5px; line-height: 1.45; }
+.sw-msg.bad { color: #d97b6c; }
+body.light .sw-msg.bad { color: #a8412f; }
+.sw-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 18px; }
+.sw-foot-right { display: inline-flex; gap: 10px; align-items: center; }
+
+/* ---------------------------------------------------------------------- */
+/* 4. ACCENT COLOUR PICKER (first run, and Swift settings)                 */
+/* ---------------------------------------------------------------------- */
+.fr-colour { display: flex; gap: 22px; align-items: center; margin: 14px 0 12px; flex-wrap: wrap; }
+.fc-wheel-wrap { position: relative; width: 180px; height: 180px; flex: none; }
+.fc-wheel { width: 180px; height: 180px; display: block; border-radius: 50%; cursor: crosshair; touch-action: none;
+  box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25); }
+.fc-dot { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; pointer-events: none;
+  border: 3px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.4); }
+.fc-side { flex: 1; min-width: 190px; display: flex; flex-direction: column; gap: 12px; }
+.fc-field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; }
+.fc-field input[type="range"] { width: 100%; accent-color: var(--pick, var(--accent-ui)); }
+.fc-hex { width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: 1px; text-transform: uppercase; }
+.fc-hex.bad { outline: 2px solid #d97b6c; }
+.fc-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.fc-sw { width: 24px; height: 24px; padding: 0; border-radius: 50%; border: 2px solid transparent; cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.45); }
+.fc-sw.sel { border-color: var(--bg, #191919); box-shadow: 0 0 0 2px var(--pick, #fff); }
+.fc-preview { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: 12px; background: rgba(128, 128, 128, 0.1); }
+.fc-chip { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--pick); border: 1px solid var(--pick); border-radius: 999px; padding: 3px 11px; }
+.fc-btn { font-size: 12.5px; font-weight: 600; background: var(--pick); color: var(--pick-ink, #191919); border-radius: 999px; padding: 6px 14px; }
+.fc-line { font-size: 13px; color: var(--pick); font-family: var(--body-font); }
+.fc-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; }
+
+/* theme + background chooser (first run, Appearance) */
+.lk-label { margin: 14px 0 8px; font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); }
+.lk-themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.lk-card { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; padding: 8px; border-radius: 12px;
+  background: rgba(128, 128, 128, 0.08); border: 2px solid transparent; color: inherit; cursor: pointer; font-size: 13px; }
+.lk-card:hover { background: rgba(128, 128, 128, 0.14); }
+.lk-card[aria-checked="true"] { border-color: var(--accent-ui); }
+.lk-card .lk-hint { font-size: 11px; opacity: 0.7; line-height: 1.3; }
+.lk-prev { width: 100%; height: 62px; border-radius: 8px; display: block; position: relative; background: var(--room, #191919); box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.3); }
+.lk-prev i { position: absolute; left: 22%; right: 22%; top: 12%; bottom: 0; border-radius: 3px 3px 0 0; background: var(--page, #232221);
+  background-image: repeating-linear-gradient(to bottom, transparent 0 7px, rgba(128, 128, 128, 0.35) 7px 8px); background-size: 100% 100%; background-origin: content-box; padding: 8px 8px 0; background-clip: border-box; }
+.lk-card[data-theme="night"] .lk-prev { --room: var(--lk-dark, #191919); --page: #232221; }
+.lk-card[data-theme="paper"] .lk-prev { --room: var(--lk-dark, #191919); --page: #fbfaf7; }
+.lk-card[data-theme="light"] .lk-prev { --room: var(--lk-light, #efede8); --page: #fbfaf7; }
+.lk-bgs { display: flex; gap: 10px; flex-wrap: wrap; }
+.lk-bg { position: relative; width: 64px; height: 44px; border-radius: 10px; border: 2px solid transparent; cursor: pointer; padding: 0;
+  box-shadow: 0 0 0 1px rgba(128, 128, 128, 0.45); color: #fff; font-size: 10.5px; }
+.lk-bg span { position: absolute; left: 0; right: 0; bottom: -20px; color: var(--muted); text-align: center; }
+.lk-bg[aria-checked="true"] { box-shadow: 0 0 0 2px var(--accent-ui); }
+.lk-bgs { margin-bottom: 24px; }
+
+/* ---------------------------------------------------------------------- */
+/* 5. SETTINGS WINDOW                                                      */
+/* ---------------------------------------------------------------------- */
+.settings-modal {
+  width: min(840px, calc(100vw / var(--ui-zoom, 1) - 48px)); height: min(640px, calc(100vh / var(--ui-zoom, 1) - 64px));
+  max-width: none; max-height: none; padding: 0; overflow: hidden; border-radius: 16px;
+  display: grid; grid-template-columns: 210px minmax(0, 1fr);
+}
+.st-nav { padding: 22px 12px; display: flex; flex-direction: column; gap: 4px; background: rgba(128, 128, 128, 0.08); border-right: 1px solid rgba(128, 128, 128, 0.18); }
+.st-nav h2 { font-size: 15px; font-weight: 600; padding: 0 10px 14px; margin: 0; }
+.st-tab { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; background: none; border: 0; color: var(--muted); font-size: 13.5px; cursor: pointer; text-align: left; }
+.st-tab:hover { color: inherit; background: rgba(128, 128, 128, 0.1); }
+.st-tab[aria-current="true"] { background: rgba(128, 128, 128, 0.2); color: inherit; font-weight: 600; }
+.st-main { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.st-body { flex: 1; min-height: 0; overflow-y: auto; padding: 26px 32px 32px; }
+.st-h { margin: 0 0 6px; font-size: 20px; font-weight: 600; }
+.st-close { position: absolute; top: 14px; right: 14px; width: 30px; height: 30px; border-radius: 50%; border: 0; background: none; color: var(--muted); cursor: pointer; display: grid; place-content: center; z-index: 1; }
+.st-close:hover { background: rgba(128, 128, 128, 0.18); color: inherit; }
+.st-link { padding: 6px 0; font-size: 12.5px; color: var(--accent-ui); text-decoration: underline; text-underline-offset: 3px; }
+.st-foot { margin-top: 22px; }
+
+/* modern fields: no more white native boxes */
+.settings-modal input[type="text"], .settings-modal input[type="password"], .settings-modal select, .settings-modal textarea {
+  width: 100%; padding: 10px 12px; border-radius: 10px; font: inherit; color: inherit; outline: none; color-scheme: dark;
+  background: rgba(128, 128, 128, 0.1); border: 1px solid rgba(128, 128, 128, 0.32);
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+body.light .settings-modal input[type="text"], body.light .settings-modal input[type="password"] { color-scheme: light; }
+.settings-modal input[type="text"]:focus, .settings-modal input[type="password"]:focus {
+  border-color: var(--accent-ui); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-ui) 22%, transparent);
+}
+.st-field, .sw-field { display: flex; flex-direction: column; gap: 6px; margin: 14px 0 6px; font-size: 13px; }
+.st-field .soft, .sw-field .soft { font-weight: 400; }
+
+/* choices: cards and pills */
+.st-choices, .sw-provs { display: grid; gap: 10px; }
+.st-choices { grid-template-columns: 1fr 1fr; }
+.sw-provs { grid-template-columns: repeat(3, 1fr); }
+.st-choice, .sw-prov {
+  display: flex; flex-direction: column; gap: 4px; align-items: flex-start; text-align: left; padding: 12px 14px; border-radius: 12px;
+  background: rgba(128, 128, 128, 0.08); border: 2px solid transparent; color: inherit; cursor: pointer; font-size: 13px; line-height: 1.4;
+}
+.st-choice span, .sw-prov span { font-size: 11.5px; opacity: 0.7; overflow-wrap: anywhere; }
+.st-choice:hover, .sw-prov:hover { background: rgba(128, 128, 128, 0.14); }
+.st-choice[aria-checked="true"], .sw-prov[aria-checked="true"] { border-color: var(--accent-ui); }
+.st-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.st-chip { padding: 7px 14px; border-radius: 999px; background: rgba(128, 128, 128, 0.08); border: 1px solid rgba(128, 128, 128, 0.3); color: inherit; font-size: 13.5px; cursor: pointer; }
+.st-chip:hover { background: rgba(128, 128, 128, 0.16); }
+.st-chip[aria-checked="true"] { background: var(--accent-ui); color: var(--bg); border-color: transparent; }
+.st-sample { margin: 18px 0 0; padding: 16px 18px; border-radius: 12px; background: rgba(128, 128, 128, 0.08); font-family: var(--body-font); font-size: 15px; line-height: 1.7; }
+.st-sample::first-letter { font-family: var(--dropcap-font); float: left; font-size: 3.2em; line-height: 0.85; padding: 4px 8px 0 0; }
+body.no-dropcap .st-sample::first-letter { float: none; font-size: inherit; line-height: inherit; padding: 0; font-family: inherit; }
+.sw-actions { display: flex; justify-content: flex-end; gap: 10px; align-items: center; margin-top: 18px; }
+.sw-seg { max-width: 420px; }
+
+/* the shelf and bottom-bar gear */
+.settings-open { display: inline-grid; place-content: center; flex: none; width: 30px; height: 30px; padding: 0; border-radius: 50%; background: none; color: var(--muted); border: 1px solid transparent; cursor: pointer; }
+.settings-open:hover { color: var(--accent); background: rgba(128, 128, 128, 0.14); }
+#settings-btn-bar { margin-left: auto; margin-right: 4px; width: 28px; height: 28px; }
+#settings-btn-bar + #ollama-open { margin-left: 0; }
+
+/* first run: one welcome card */
+.fr-welcome { max-width: 440px; text-align: center; padding: 38px 36px 32px; }
+.fr-mark { width: 56px; height: 56px; margin: 0 auto 18px; display: grid; place-content: center; border-radius: 16px; font-size: 28px; font-family: var(--dropcap-font, Georgia, serif);
+  background: color-mix(in srgb, var(--accent-ui) 18%, transparent); color: var(--accent-ui); }
+.fr-welcome h2 { margin: 0 0 10px; font-size: 22px; }
+.fr-welcome p { color: var(--muted); line-height: 1.6; margin: 0 0 6px; }
+.fr-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 24px; align-items: center; }
+.fr-actions .btn-gold { min-width: 200px; padding: 10px 18px; border-radius: 999px; }

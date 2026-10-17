@@ -226,7 +226,7 @@ function writeLibrary(lib = library) {
 // library's copy is the last device's, so a device opening the library for
 // the first time starts out the way the writer last had it, and from then on
 // keeps its own.
-const DEVICE_LOOK = ['pageTheme', 'uiBright', 'uiBrightAside', 'uiZoom', 'editorFontSize', 'typewriter', 'focus', 'posMode', 'outlineView', 'vimKeys'];
+const DEVICE_LOOK = ['pageTheme', 'background', 'uiBright', 'uiBrightAside', 'uiZoom', 'editorFontSize', 'typewriter', 'focus', 'posMode', 'outlineView', 'vimKeys'];
 const DEVICE_LOOK_KEY = 'neo-device-look';
 function deviceLookOf(lib) {
   const out = {};
@@ -747,71 +747,15 @@ async function loadLibrary() {
 function showFirstRun() {
   const fr = $('#firstrun');
   fr.hidden = false;
-  let picked = { body: Object.keys(BODY_FONTS)[0] || 'Georgia', dropcap: 'literary' };
 
-  // Step 1: who are you, and how do you write?
-  $$('.fr-choice').forEach((btn) => {
-    btn.onclick = () => {
-      library.authorName = $('#fr-name').value.trim();
-      const pen = $('#fr-pen').value.trim();
-      library.penNames = pen ? [pen] : [];
-      library.writingStyle = btn.dataset.style;
-      if (window.neo.writingStyleState) window.neo.writingStyleState(library.writingStyle);
-      $('#fr-step1').hidden = true;
-      $('#fr-step2').hidden = false;
-      buildFontStep();
-    };
-  });
-
-  // Step 2: fonts, with a WYSIWYG sample
-  function preview() {
-    document.documentElement.style.setProperty('--body-font', BODY_FONTS[picked.body]);
-    document.documentElement.style.setProperty('--dropcap-font', DROPCAP_FONTS[picked.dropcap]);
-  }
-  function buildFontStep() {
-    const bodyRow = $('#fr-bodyfonts');
-    bodyRow.innerHTML = '';
-    for (const name of BODY_FONT_CHOICES) {
-      const b = document.createElement('button');
-      b.className = 'fr-font' + (picked.body === name ? ' sel' : '');
-      b.textContent = name;
-      b.style.fontFamily = BODY_FONTS[name];
-      b.onmouseenter = () => { document.documentElement.style.setProperty('--body-font', BODY_FONTS[name]); };
-      b.onmouseleave = preview;
-      b.onclick = () => {
-        picked.body = name;
-        buildFontStep();
-        preview();
-      };
-      bodyRow.appendChild(b);
-    }
-    const capRow = $('#fr-dropcaps');
-    capRow.innerHTML = '';
-    const caps = { literary: t('Literary'), fantasy: t('Fantasy'), scifi: t('Sci-Fi') };
-    // an A of the alphabet the sample is written in, so each button shows
-    // the drop cap the writer will get (Cyrillic letters come from other faces)
-    const capA = /\p{Script=Cyrillic}/u.test($('#fr-sample-text').textContent) ? 'А' : 'A';
-    for (const key of Object.keys(caps)) {
-      const b = document.createElement('button');
-      b.className = 'fr-font' + (picked.dropcap === key ? ' sel' : '');
-      b.innerHTML = `<span class="fr-cap" style="font-family:${DROPCAP_FONTS[key].replace(/"/g, '&quot;')}">${capA}</span>${caps[key]}`;
-      b.onmouseenter = () => { document.documentElement.style.setProperty('--dropcap-font', DROPCAP_FONTS[key]); };
-      b.onmouseleave = preview;
-      b.onclick = () => {
-        picked.dropcap = key;
-        buildFontStep();
-        preview();
-      };
-      capRow.appendChild(b);
-    }
-    preview();
-  }
-
-  $('#fr-done').onclick = async () => {
-    library.fonts = { body: picked.body, dropcap: picked.dropcap };
+  // Everything the old questions asked now lives in Settings (Profile, Appearance,
+  // Swift); first run only picks sensible defaults and gets out of the way.
+  const finish = async (thenSettings) => {
+    library.writingStyle = library.writingStyle || 'pantser';
+    if (window.neo.writingStyleState) window.neo.writingStyleState(library.writingStyle);
+    library.fonts = library.fonts || { body: Object.keys(BODY_FONTS)[0] || 'Georgia', dropcap: 'literary' };
+    library.penNames = library.penNames || [];
     library.firstRunDone = true;
-    // the shelf was drawn (and the author record seeded as Anonymous) before
-    // the name was typed — carry the name across
     currentAuthor().name = library.authorName || (library.penNames || [])[0] || t('Anonymous');
     // a library that can't be written must not leave the writer at a button
     // that does nothing: say so, and keep the page ready for another try
@@ -829,7 +773,10 @@ function showFirstRun() {
     applyFonts();
     fr.hidden = true;
     renderShelves();
+    if (thenSettings) openSettings('profile');
   };
+  $('#fr-done').onclick = () => finish(false);
+  $('#fr-customize').onclick = () => finish(true);
 }
 
 // Pen names: each author owns a set of shelves. Books all live in the one
@@ -13570,11 +13517,11 @@ function statsChartSvg() {
     return (i === 0 ? 'M' : 'L') + x + ',' + y;
   }).join(' ');
   const goalLine = goal
-    ? `<line x1="${PAD}" x2="${W - PAD}" y1="${(H - PAD - (goal / maxC) * (H - PAD * 2 - 20)).toFixed(1)}" y2="${(H - PAD - (goal / maxC) * (H - PAD * 2 - 20)).toFixed(1)}" stroke="#c9a86a" stroke-dasharray="5,4" stroke-width="1" opacity="0.7"/>`
+    ? `<line x1="${PAD}" x2="${W - PAD}" y1="${(H - PAD - (goal / maxC) * (H - PAD * 2 - 20)).toFixed(1)}" y2="${(H - PAD - (goal / maxC) * (H - PAD * 2 - 20)).toFixed(1)}" stroke="currentColor" stroke-dasharray="5,4" stroke-width="1" opacity="0.7"/>`
     : '';
   return `<svg id="stats-chart" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${escHtml(t('Words written over the last 30 days')).replace(/"/g, '&quot;')}">
     ${bars}
-    <path d="${line}" fill="none" stroke="#c9a86a" stroke-width="2"/>
+    <path d="${line}" fill="none" stroke="currentColor" stroke-width="2"/>
     ${goalLine}
   </svg>
   <div class="stats-legend">
@@ -13806,6 +13753,343 @@ const BODY_FONT_CHOICES = IS_MAC
   ? ['Georgia', 'Palatino', 'Baskerville', 'Hoefler Text', 'Iowan Old Style', 'Jost', 'iA Writer Quattro']
   : ['Georgia', 'Palatino', 'Baskerville', 'Cambria', 'Constantia', 'Jost', 'iA Writer Quattro'];
 
+/* ================================================================== */
+/*  ACCENT COLOUR: chosen at first run, changeable in Swift settings   */
+/* ================================================================== */
+
+const ACCENT_DEFAULT = '#ece6d6';
+const ACCENT_SWATCHES = [
+  [tk('Cream'), '#ece6d6'], [tk('Sand'), '#d8c3a5'], [tk('Gold'), '#c9a86a'], [tk('Sage'), '#b7c4a8'],
+  [tk('Sky'), '#afc4d8'], [tk('Rose'), '#d9b3b0'], [tk('Lavender'), '#c4b8dc'], [tk('Silver'), '#cfcfcf']
+];
+
+const hexOk = (h) => /^#?[0-9a-f]{6}$/i.test(String(h || '').trim());
+const normHex = (h) => '#' + String(h).trim().replace('#', '').toLowerCase();
+function hexToRgb(h) { const n = parseInt(normHex(h).slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function rgbToHex([r, g, b]) { return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join(''); }
+function rgbToHsl([r, g, b]) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+  if (!d) return [0, 0, l];
+  const sat = d / (1 - Math.abs(2 * l - 1));
+  const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [(h * 60 + 360) % 360, sat, l];
+}
+function hslToRgb([h, sat, l]) {
+  const c = (1 - Math.abs(2 * l - 1)) * sat, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = l - c / 2;
+  const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return [(r + m) * 255, (g + m) * 255, (b + m) * 255];
+}
+function lum([r, g, b]) {
+  const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+}
+const contrastOf = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+
+// The writer's colour, nudged only as far as it needs to be readable on the
+// surface it will sit on: lighter on a dark room, darker on a light one.
+function accentOn(hex, bgHex, min = 4.5) {
+  const bg = hexToRgb(bgHex);
+  let [h, sat, l] = rgbToHsl(hexToRgb(hex));
+  const darker = lum(bg) > 0.4;
+  for (let i = 0; i < 80 && contrastOf(hslToRgb([h, sat, l]), bg) < min; i++) l += darker ? -0.01 : 0.01;
+  return rgbToHex(hslToRgb([h, sat, Math.max(0, Math.min(1, l))]));
+}
+
+// One style block after the stylesheet: the rest of the app already reads --accent-ui / --accent-ink
+function applyAccent(hex) {
+  let tag = document.getElementById('accent-style');
+  if (!hexOk(hex) || normHex(hex) === ACCENT_DEFAULT) { if (tag) tag.remove(); return; }
+  if (!tag) { tag = document.createElement('style'); tag.id = 'accent-style'; document.head.appendChild(tag); }
+  const h = normHex(hex);
+  const bgs = backgroundSet(library && library.background);
+  const room = accentOn(h, bgs.dark.bg), lightRoom = accentOn(h, bgs.light.bg), paper = accentOn(h, '#fbfaf7'), night = accentOn(h, '#232221');
+  tag.textContent = `:root { --accent-ui: ${room}; --accent-ink: ${paper}; --accent: var(--accent-ui); }
+body.light { --accent-ui: ${lightRoom}; --accent: var(--accent-ui); }
+body.night { --accent-ink: ${night}; }
+body.light .btn-gold, body.light .stats-row button { background: ${lightRoom}; color: #f4f1e8; }
+.sheet, #aux-paper, .ps-paper { --accent: var(--accent-ink); }`;
+}
+
+/* ---------------- theme and background ---------------- */
+
+// The room around the page. Each tone has a dark and a light version, so it
+// follows the theme: Night and Paper use the dark one, Light the light one.
+const BACKGROUNDS = {
+  classic: { name: tk('Classic'), dark: { bg: '#191919', soft: '#222222', pane: '#202020' }, light: { bg: '#efede8', soft: '#fbfaf8', pane: '#f5f3ef' } },
+  warm: { name: tk('Warm'), dark: { bg: '#1c1916', soft: '#26221e', pane: '#221e1a' }, light: { bg: '#ebe5d8', soft: '#f6f1e6', pane: '#f1ebdf' } },
+  cool: { name: tk('Cool'), dark: { bg: '#171a1f', soft: '#20242a', pane: '#1d2026' }, light: { bg: '#e6eaee', soft: '#f4f6f8', pane: '#eef1f4' } },
+  deep: { name: tk('Deep'), dark: { bg: '#0e0e0e', soft: '#171717', pane: '#141414' }, light: { bg: '#f6f6f4', soft: '#ffffff', pane: '#fafaf8' } }
+};
+const PAGE_THEMES = [
+  ['night', tk('Night'), tk('Dark room, dark page')],
+  ['paper', tk('Paper'), tk('Dark room, white page')],
+  ['light', tk('Light'), tk('Light room, white page')]
+];
+const backgroundSet = (id) => BACKGROUNDS[id] || BACKGROUNDS.classic;
+
+// One style block after the stylesheet, like the accent: the app already reads --bg, --bg-soft and --pane
+function applyBackground(id) {
+  let tag = document.getElementById('background-style');
+  if (!BACKGROUNDS[id] || id === 'classic') { if (tag) tag.remove(); return; }
+  if (!tag) { tag = document.createElement('style'); tag.id = 'background-style'; document.head.appendChild(tag); }
+  const b = BACKGROUNDS[id];
+  tag.textContent = `:root { --bg: ${b.dark.bg}; --bg-soft: ${b.dark.soft}; --pane: ${b.dark.pane}; }
+body.light { --bg: ${b.light.bg}; --bg-soft: ${b.light.soft}; --pane: ${b.light.pane}; }`;
+}
+
+function lookPickerHtml() {
+  const themes = PAGE_THEMES.map(([id, name, hint]) =>
+    `<button type="button" class="lk-card" role="radio" data-theme="${id}"><span class="lk-prev"><i></i></span><strong>${t(name)}</strong><span class="lk-hint">${t(hint)}</span></button>`).join('');
+  const bgs = Object.entries(BACKGROUNDS).map(([id, b]) =>
+    `<button type="button" class="lk-bg" role="radio" data-bg="${id}" title="${escHtml(t(b.name)).replace(/"/g, '&quot;')}" aria-label="${escHtml(t(b.name)).replace(/"/g, '&quot;')}" style="background:linear-gradient(135deg, ${b.dark.bg} 50%, ${b.light.bg} 50%)"><span>${t(b.name)}</span></button>`).join('');
+  return `<p class="lk-label">${t('Theme')}</p>
+    <div class="lk-themes" role="radiogroup" aria-label="${escHtml(t('Theme')).replace(/"/g, '&quot;')}">${themes}</div>
+    <p class="lk-label">${t('Background')}</p>
+    <div class="lk-bgs" role="radiogroup" aria-label="${escHtml(t('Background')).replace(/"/g, '&quot;')}">${bgs}</div>`;
+}
+
+// Theme and background, live as they are picked (library holds the choice; Save or Continue keeps it)
+function mountLookPicker(root, onChange) {
+  root.innerHTML = lookPickerHtml();
+  const paint = () => {
+    const theme = library.pageTheme || 'night';
+    const bg = BACKGROUNDS[library.background] ? library.background : 'classic';
+    const set = backgroundSet(bg);
+    root.style.setProperty('--lk-dark', set.dark.bg);
+    root.style.setProperty('--lk-light', set.light.bg);
+    for (const b of root.querySelectorAll('.lk-card')) b.setAttribute('aria-checked', String(b.dataset.theme === theme));
+    for (const b of root.querySelectorAll('.lk-bg')) b.setAttribute('aria-checked', String(b.dataset.bg === bg));
+  };
+  for (const b of root.querySelectorAll('.lk-card')) b.onclick = () => { library.pageTheme = b.dataset.theme; applyFonts(); paint(); if (onChange) onChange(); };
+  for (const b of root.querySelectorAll('.lk-bg')) b.onclick = () => { library.background = b.dataset.bg === 'classic' ? undefined : b.dataset.bg; applyFonts(); paint(); if (onChange) onChange(); };
+  paint();
+}
+
+function accentPickerHtml() {
+  return `<div class="fr-colour">
+    <div class="fc-wheel-wrap">
+      <canvas class="fc-wheel" width="360" height="360" role="img" aria-label="${escHtml(t('Colour wheel')).replace(/"/g, '&quot;')}"></canvas>
+      <span class="fc-dot" aria-hidden="true"></span>
+    </div>
+    <div class="fc-side">
+      <label class="fc-field"><span>${t('Intensity')}</span>
+        <input class="fc-light" type="range" min="12" max="92" value="88" />
+      </label>
+      <label class="fc-field"><span>${t('Hex code')}</span>
+        <input class="fc-hex" type="text" maxlength="7" spellcheck="false" autocomplete="off" />
+      </label>
+      <div class="fc-swatches"></div>
+    </div>
+  </div>
+  <div class="fc-preview">
+    <span class="fc-chip">Quill</span>
+    <span class="fc-btn">${t('Start writing')}</span>
+    <span class="fc-line">${t('Your words, your colour.')}</span>
+  </div>`;
+}
+
+// Wires one picker inside `root`; every change applies live and is reported.
+function mountAccentPicker(root, startHex, onChange) {
+  root.innerHTML = accentPickerHtml();
+  const q = (c) => root.querySelector(c);
+  const canvas = q('.fc-wheel'), dot = q('.fc-dot'), light = q('.fc-light'), hexIn = q('.fc-hex'), sw = q('.fc-swatches');
+  const ctx = canvas.getContext('2d');
+  let [h, sat, l] = rgbToHsl(hexToRgb(hexOk(startHex) ? startHex : ACCENT_DEFAULT));
+  const R = canvas.width / 2;
+
+  const drawWheel = () => {
+    const img = ctx.createImageData(canvas.width, canvas.height);
+    for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
+      const dx = x - R + 0.5, dy = y - R + 0.5, r = Math.hypot(dx, dy);
+      const i = (y * canvas.width + x) * 4;
+      if (r > R) continue;
+      const [rr, gg, bb] = hslToRgb([(Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360, Math.min(1, r / (R - 1)), l]);
+      img.data[i] = rr; img.data[i + 1] = gg; img.data[i + 2] = bb; img.data[i + 3] = r > R - 1.2 ? Math.max(0, (R - r) * 200) : 255;
+    }
+    ctx.putImageData(img, 0, 0);
+  };
+  const current = () => rgbToHex(hslToRgb([h, sat, l]));
+  const paint = (fromHex) => {
+    const hex = current();
+    const a = h * Math.PI / 180;
+    dot.style.left = (50 + 50 * sat * Math.cos(a)) + '%';
+    dot.style.top = (50 + 50 * sat * Math.sin(a)) + '%';
+    dot.style.background = hex;
+    light.value = Math.round(l * 100);
+    if (!fromHex) hexIn.value = hex.toUpperCase();
+    for (const b of sw.children) b.classList.toggle('sel', b.dataset.hex === hex);
+    root.style.setProperty('--pick', hex);
+    root.style.setProperty('--pick-ink', lum(hexToRgb(hex)) > 0.4 ? '#191919' : '#ffffff');
+    applyAccent(hex);
+    onChange(hex);
+  };
+  const fromPointer = (e) => {
+    const r = canvas.getBoundingClientRect();
+    const dx = (e.clientX - r.left) / r.width * 2 - 1, dy = (e.clientY - r.top) / r.height * 2 - 1;
+    h = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+    sat = Math.min(1, Math.hypot(dx, dy));
+    paint();
+  };
+  let drag = false;
+  canvas.addEventListener('pointerdown', (e) => { drag = true; canvas.setPointerCapture(e.pointerId); fromPointer(e); });
+  canvas.addEventListener('pointermove', (e) => { if (drag) fromPointer(e); });
+  canvas.addEventListener('pointerup', () => { drag = false; });
+  light.addEventListener('input', () => { l = Number(light.value) / 100; drawWheel(); paint(); });
+  hexIn.addEventListener('input', () => {
+    const v = hexIn.value.trim();
+    hexIn.classList.toggle('bad', !!v && !hexOk(v));
+    if (!hexOk(v)) return;
+    [h, sat, l] = rgbToHsl(hexToRgb(v));
+    drawWheel(); paint(true);
+  });
+  hexIn.addEventListener('blur', () => { hexIn.classList.remove('bad'); hexIn.value = current().toUpperCase(); });
+  for (const [name, hex] of ACCENT_SWATCHES) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'fc-sw'; b.dataset.hex = hex; b.style.background = hex;
+    b.title = t(name); b.setAttribute('aria-label', t(name));
+    b.onclick = () => { [h, sat, l] = rgbToHsl(hexToRgb(hex)); drawWheel(); paint(); };
+    sw.appendChild(b);
+  }
+  drawWheel();
+  paint();
+  return { value: current };
+}
+
+/* ================================================================== */
+/*  SETTINGS: one window, a sidebar of sections, saved as you go        */
+/* ================================================================== */
+
+const SETTINGS_SECTIONS = [
+  ['profile', tk('Profile'), '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'],
+  ['appearance', tk('Appearance'), '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/>'],
+  ['swift', tk('Swift'), '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>']
+];
+
+function renderProfileSection(host, ctx) {
+  const cur = currentAuthor();
+  const style = library.writingStyle === 'plotter' ? 'plotter' : 'pantser';
+  host.innerHTML = `<h3 class="st-h">${t('Profile')}</h3>
+    <label class="st-field"><span>${t('Author name')} <span class="soft">${t('(appears as the author on every document)')}</span></span>
+      <input id="st-name" type="text" autocomplete="off" spellcheck="false" placeholder="${escHtml(t('Anonymous')).replace(/"/g, '&quot;')}" />
+    </label>
+    <button type="button" class="btn-quiet st-link" id="st-pens">${t('Manage pen names…')}</button>
+    <p class="lk-label">${t('New books open to')}</p>
+    <div class="st-choices" role="radiogroup" aria-label="${escHtml(t('New books open to')).replace(/"/g, '&quot;')}">
+      <button type="button" class="st-choice" role="radio" data-style="pantser"><strong>${t('Blank page')}</strong><span>${t('I write by the seat of my pants. New books open on a blank page.')}</span></button>
+      <button type="button" class="st-choice" role="radio" data-style="plotter"><strong>${t('Outline first')}</strong><span>${t('I outline first. New books open in the Outline tab.')}</span></button>
+    </div>`;
+  const name = host.querySelector('#st-name');
+  name.value = cur.name === t('Anonymous') ? '' : cur.name;
+  name.addEventListener('input', () => {
+    const a = currentAuthor();
+    a.name = name.value.trim() || t('Anonymous');
+    if (a === library.authors[0]) library.authorName = name.value.trim();
+    $('#author-chip').textContent = displayAuthor();
+    ctx.saveSoon();
+  });
+  host.querySelector('#st-pens').onclick = () => { ctx.close(); $('#author-chip').click(); };
+  const paint = () => { for (const b of host.querySelectorAll('.st-choice')) b.setAttribute('aria-checked', String(b.dataset.style === style0())); };
+  let current = style;
+  const style0 = () => current;
+  for (const b of host.querySelectorAll('.st-choice')) b.onclick = () => {
+    current = b.dataset.style;
+    library.writingStyle = current;
+    if (window.neo.writingStyleState) window.neo.writingStyleState(current);
+    paint();
+    ctx.saveSoon();
+  };
+  paint();
+}
+
+function renderAppearanceSection(host, ctx) {
+  const fonts = () => library.fonts || {};
+  const bodyNow = () => fonts().body || Object.keys(BODY_FONTS)[0] || 'Georgia';
+  const capNow = () => fonts().dropcap || 'literary';
+  const caps = [['literary', t('Literary')], ['fantasy', t('Fantasy')], ['scifi', t('Sci-Fi')], ['none', t('None')]];
+  host.innerHTML = `<h3 class="st-h">${t('Appearance')}</h3>
+    <div class="lk-mount"></div>
+    <p class="lk-label">${t('Accent colour')}</p>
+    <div class="fc-mount"></div>
+    <p class="lk-label">${t('Typeface')}</p>
+    <div class="st-chips st-fonts"></div>
+    <p class="lk-label">${t('Drop cap')}</p>
+    <div class="st-chips st-caps"></div>
+    <p class="st-sample">${t('It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief…')}</p>
+    <div class="st-foot"><button type="button" class="btn-quiet" id="st-reset">${t('Use the defaults')}</button></div>`;
+  mountLookPicker(host.querySelector('.lk-mount'), () => ctx.saveSoon());
+  mountAccentPicker(host.querySelector('.fc-mount'), library.accent || ACCENT_DEFAULT, (hex) => {
+    const next = normHex(hex) === ACCENT_DEFAULT ? undefined : normHex(hex);
+    if (next !== library.accent) { library.accent = next; ctx.saveSoon(); }
+  });
+  const fontRow = host.querySelector('.st-fonts'), capRow = host.querySelector('.st-caps');
+  const paintType = () => {
+    fontRow.textContent = ''; capRow.textContent = '';
+    for (const name of BODY_FONT_CHOICES) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'st-chip'; b.textContent = name; b.style.fontFamily = BODY_FONTS[name];
+      b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(bodyNow() === name));
+      b.onclick = () => { library.fonts = { ...fonts(), body: name }; applyFonts(); paintType(); ctx.saveSoon(); };
+      fontRow.appendChild(b);
+    }
+    for (const [key, label] of caps) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'st-chip'; b.textContent = label;
+      b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(capNow() === key));
+      b.onclick = () => { library.fonts = { ...fonts(), dropcap: key }; applyFonts(); paintType(); ctx.saveSoon(); };
+      capRow.appendChild(b);
+    }
+  };
+  paintType();
+  host.querySelector('#st-reset').onclick = () => {
+    library.pageTheme = 'night'; library.background = undefined; library.accent = undefined;
+    library.fonts = { body: Object.keys(BODY_FONTS)[0] || 'Georgia', dropcap: 'literary' };
+    applyFonts();
+    ctx.saveSoon();
+    renderAppearanceSection(host, ctx);
+  };
+}
+
+function openSettings(section = 'profile', opts = {}) {
+  const open = document.getElementById('settings');
+  if (open) { open._show(section, opts); return; }
+  const bd = document.createElement('div');
+  bd.className = 'modal-backdrop';
+  bd.id = 'settings';
+  const nav = SETTINGS_SECTIONS.map(([id, name, icon]) =>
+    `<button type="button" class="st-tab" data-section="${id}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg><span>${t(name)}</span></button>`).join('');
+  bd.innerHTML = `<div class="modal settings-modal" role="dialog" aria-modal="true" aria-label="${escHtml(t('Settings')).replace(/"/g, '&quot;')}">
+    <nav class="st-nav" aria-label="${escHtml(t('Settings')).replace(/"/g, '&quot;')}"><h2>${t('Settings')}</h2>${nav}</nav>
+    <div class="st-main"><button type="button" class="st-close" aria-label="${escHtml(t('Close')).replace(/"/g, '&quot;')}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button><div class="st-body"></div></div>
+  </div>`;
+  document.body.appendChild(bd);
+  const body = bd.querySelector('.st-body');
+  let timer = null;
+  const flush = async () => {
+    clearTimeout(timer); timer = null;
+    try { await writeLibrary(library); } catch (err) { window.neo.logError('settings: ' + ((err && err.message) || err)); }
+  };
+  const ctx = { saveSoon: () => { clearTimeout(timer); timer = setTimeout(flush, 350); }, close: () => close() };
+  // Escape works wherever focus has gone (a button that was removed leaves it on the page)
+  const onKey = (e) => { if (e.key === 'Escape' && document.getElementById('settings') === bd) { e.stopPropagation(); e.preventDefault(); close(); } };
+  document.addEventListener('keydown', onKey, true);
+  const close = () => { document.removeEventListener('keydown', onKey, true); if (timer) flush(); bd.remove(); };
+  bd._show = (id, o = {}) => {
+    if (!SETTINGS_SECTIONS.some(([k]) => k === id)) id = 'profile';
+    for (const b of bd.querySelectorAll('.st-tab')) b.setAttribute('aria-current', String(b.dataset.section === id));
+    body.textContent = '';
+    body.scrollTop = 0;
+    if (id === 'profile') renderProfileSection(body, ctx);
+    if (id === 'appearance') renderAppearanceSection(body, ctx);
+    if (id === 'swift') renderSwiftSection(body, o);
+  };
+  for (const b of bd.querySelectorAll('.st-tab')) b.onclick = () => bd._show(b.dataset.section);
+  bd.querySelector('.st-close').onclick = close;
+  bd.addEventListener('mousedown', (e) => { if (e.target === bd) close(); });
+  bd._show(section, opts);
+}
+for (const b of document.querySelectorAll('.settings-open')) b.onclick = () => openSettings('profile');
+
 function applyFonts() {
   const f = library.fonts || {};
   if (f.body && typeof f.body === 'string') {
@@ -13815,6 +14099,8 @@ function applyFonts() {
     document.documentElement.style.setProperty('--dropcap-font', DROPCAP_FONTS[f.dropcap]);
   }
   document.body.classList.toggle('no-dropcap', f.dropcap === 'none');
+  applyBackground(library.background);
+  applyAccent(library.accent);
   document.body.classList.toggle('night', library.pageTheme === 'night');
   // Light: the paper page in a light room, the whole app with it
   document.body.classList.toggle('light', library.pageTheme === 'light');
@@ -15988,6 +16274,356 @@ async function setEditorFontSize(value) {
   keepReadingPlace(applyFonts);
 }
 
+/* ================================================================== */
+/*  SWIFT 1.2: the local chat in the right-hand pane                   */
+/*  Swift can read the open chapter or the whole book (as much of it   */
+/*  as a small model's window holds). With Edit on it answers with     */
+/*  whole chapters inside <chapter id="N"> blocks; Quill saves a       */
+/*  snapshot, then applies them through the editor, keeping every      */
+/*  paragraph that did not change exactly as it was.                   */
+/* ================================================================== */
+
+// SWIFT-HELPERS-BEGIN
+const SWIFT_BOOK_TOKENS = 18000;   // how much manuscript Swift is sent at once
+const SWIFT_HISTORY_TOKENS = 3000; // how much of the earlier chat rides along
+const SWIFT_SHORT_REPLY = 0.5;     // a rewrite under half the words is held back for review
+
+// the same estimate main.js uses to size the model's window
+function swiftTokens(text) {
+  const s = String(text || '');
+  if (!s) return 0;
+  let wide = 0;
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) > 0x24f) wide++;
+  return Math.ceil(s.length / (wide / s.length > 0.3 ? 1.8 : 3.2));
+}
+
+// A paragraph's inline content as text with <b> <i> <u> <s> tags, so a rewrite
+// can keep the emphasis the way the page has it.
+function swiftInline(node) {
+  let out = '';
+  for (const c of node.childNodes) {
+    if (c.nodeType === 3) { out += c.textContent; continue; }
+    if (c.nodeType !== 1) continue;
+    if (c.tagName === 'BR') { out += '\n'; continue; }
+    const st = c.style || {};
+    const tag = c.tagName;
+    const fw = String(st.fontWeight || '').toLowerCase();
+    const deco = String(st.textDecoration || st.textDecorationLine || '').toLowerCase();
+    const it = tag === 'I' || tag === 'EM' || String(st.fontStyle || '').toLowerCase() === 'italic';
+    const bo = tag === 'B' || tag === 'STRONG' || fw === 'bold' || parseInt(fw, 10) >= 600;
+    const un = tag === 'U' || tag === 'INS' || deco.includes('underline');
+    const sk = tag === 'S' || tag === 'STRIKE' || tag === 'DEL' || deco.includes('line-through');
+    const inner = swiftInline(c);
+    if (!inner) continue;
+    out += (bo ? '<b>' : '') + (it ? '<i>' : '') + (un ? '<u>' : '') + (sk ? '<s>' : '') + inner +
+      (sk ? '</s>' : '') + (un ? '</u>' : '') + (it ? '</i>' : '') + (bo ? '</b>' : '');
+  }
+  return out;
+}
+
+const SWIFT_BREAK = /^(?:\*\s*){3,}$|^⁂$|^#$/;
+// two paragraphs are "the same" if they read the same (spaces and nbsp aside)
+function swiftKey(markup) {
+  const k = markup.replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+  return SWIFT_BREAK.test(k) ? '***' : k;
+}
+
+// A chapter body's paragraphs: what Swift reads (markup) and the page's own
+// html for each, so an unchanged paragraph can be put back exactly as it was.
+// Outline ghosts and the marks that aren't words stay out of what Swift reads.
+function swiftChapterParas(body, capture) {
+  const paras = [];
+  for (const p of body.querySelectorAll(':scope > p')) {
+    if (p.classList.contains('ghost')) continue;
+    const scene = p.classList.contains('scene-break');
+    let markup = '***';
+    if (!scene) {
+      const clone = p.cloneNode(true);
+      clone.querySelectorAll('.darling-anchor, .ph-mark').forEach((n) => n.remove());
+      markup = swiftInline(clone).replace(/ /g, ' ').replace(/[ \t]+\n/g, '\n').trim();
+    }
+    if (!markup) continue;
+    const wrap = document.createElement('div');
+    wrap.appendChild(p.cloneNode(true));
+    paras.push({ markup, key: swiftKey(markup), html: capture(wrap) });
+  }
+  if (!paras.length) {
+    for (const line of (body.textContent || '').split(/\n+/)) {
+      const markup = line.trim();
+      if (markup) paras.push({ markup, key: swiftKey(markup), html: null });
+    }
+  }
+  return paras;
+}
+const swiftChapterText = (paras) => paras.map((p) => p.markup).join('\n\n');
+
+// A reply's text split into paragraphs: blank lines divide them; with none at
+// all, every line is a paragraph (small models often skip the blank lines).
+function swiftSplitParas(text) {
+  const s = String(text || '').replace(/\r\n?/g, '\n').trim();
+  if (!s) return [];
+  const parts = /\n[ \t]*\n/.test(s) ? s.split(/\n[ \t]*\n+/) : s.split(/\n+/);
+  return parts.map((x) => x.trim()).filter(Boolean);
+}
+
+// One paragraph of markup as page html. Only <b> <i> <u> <s> survive; any
+// other tag in a reply is shown as the text it is.
+function swiftParaHtml(markup, esc) {
+  if (SWIFT_BREAK.test(markup.trim())) return '<p class="scene-break">***</p>';
+  const keep = [];
+  let s = markup.replace(/<(\/?)([biusBIUS])>/g, (_, slash, tag) => {
+    keep.push('<' + slash + tag.toLowerCase() + '>');
+    return '\u0000' + (keep.length - 1) + '\u0000';
+  });
+  s = esc(s).replace(/\u0000(\d+)\u0000/g, (_, i) => keep[Number(i)]).replace(/\n/g, '<br>');
+  return '<p>' + s + '</p>';
+}
+
+// For each new paragraph, the old paragraph it still is (or -1): a longest
+// common subsequence, so a few edited paragraphs among hundreds line up.
+function swiftDiff(a, b) {
+  const n = a.length, m = b.length;
+  const map = new Array(m).fill(-1);
+  if (!n || !m || n * m > 16e6) return map;
+  const W = m + 1;
+  const dp = new Uint16Array((n + 1) * W);
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      dp[i * W + j] = a[i] === b[j] ? dp[(i + 1) * W + j + 1] + 1 : Math.max(dp[(i + 1) * W + j], dp[i * W + j + 1]);
+    }
+  }
+  let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) { map[j] = i; i++; j++; }
+    else if (dp[(i + 1) * W + j] >= dp[i * W + j + 1]) i++;
+    else j++;
+  }
+  return map;
+}
+
+// What applying a rewrite would do: the new chapter's html (unchanged
+// paragraphs keep their own html, classes and outline links), and counts.
+function swiftPlan(oldParas, newMarkups, esc) {
+  const map = swiftDiff(oldParas.map((p) => p.key), newMarkups.map(swiftKey));
+  const html = newMarkups.map((m, j) => {
+    const old = map[j] >= 0 ? oldParas[map[j]] : null;
+    return old && old.html ? old.html : swiftParaHtml(m, esc);
+  }).join('');
+  const kept = map.filter((x) => x >= 0).length;
+  return { html, count: newMarkups.length, changed: newMarkups.length - kept, removed: oldParas.length - kept };
+}
+
+// A paragraph that stands in for text it did not write ("[rest of chapter unchanged]")
+const SWIFT_LAZY = /^\W*(?:\.{3}|…)\W*$|(?:rest of (?:the )?(?:chapter|text|story|scene)|remainder of (?:the )?(?:chapter|text)|(?:remains?|stays?|left) (?:the same|unchanged|as[- ]is))\b/i;
+const swiftIsLazy = (m) => m.length <= 140 && SWIFT_LAZY.test(m);
+
+// Swift's reply: the chapters it rewrote (<chapter id="N">…</chapter>) and
+// whatever it said around them. A last block left open is still taken: a
+// reply cut off at the limit never gets this far.
+function swiftParseEdits(reply) {
+  const text = String(reply || '');
+  const found = new Map();
+  const re = /<chapter\b[^>]*?\bid\s*=\s*["']?(\d+)["']?[^>]*>([\s\S]*?)(?:<\/chapter\s*>|$)/gi;
+  let m;
+  while ((m = re.exec(text))) {
+    let body = m[2].replace(/\r\n?/g, '\n').trim();
+    body = body.replace(/^```[a-z]*\n/i, '').replace(/\n```$/, '').trim();
+    found.set(Number(m[1]), body);
+  }
+  const note = text.replace(/<chapter\b[^>]*?\bid\s*=\s*["']?\d+["']?[^>]*>[\s\S]*?(?:<\/chapter\s*>|$)/gi, '').trim();
+  return { note, blocks: [...found].map(([id, body]) => ({ id, text: body })) };
+}
+
+// In the chat history a rewritten chapter is a stub: the book itself already
+// carries it, and the next message sends the book again.
+function swiftStubReply(reply) {
+  return String(reply || '').replace(/<chapter\b[^>]*?\bid\s*=\s*["']?(\d+)["']?[^>]*>[\s\S]*?(?:<\/chapter\s*>|$)/gi,
+    (_, id) => '<chapter id="' + id + '">[rewritten chapter]</chapter>');
+}
+
+// The earlier chat that rides along: the newest messages that fit.
+function swiftTrimHistory(history) {
+  const out = [];
+  let used = 0;
+  for (let i = history.length - 1; i >= 0; i--) {
+    const cost = swiftTokens(history[i].content) + 8;
+    if (used + cost > SWIFT_HISTORY_TOKENS && out.length) break;
+    used += cost;
+    out.unshift(history[i]);
+  }
+  // it has to open on the writer's turn
+  while (out.length && out[0].role !== 'user') out.shift();
+  return out;
+}
+
+const swiftWords = (text) => (String(text || '').match(/\S+/g) || []).length;
+
+// Any <chapter> tag left in a reply that is shown as text
+function swiftStripTags(text) {
+  return String(text || '').replace(/<\/?chapter\b[^>]*>/gi, '').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+// The manuscript as Swift is shown it, and what to do with it. Chapter tags are
+// only used when Swift may rewrite: a small model copies whatever format it is
+// shown, so in Ask mode the book goes in as plain headed text.
+function swiftPrompt(request, ctx, edit) {
+  const num = (n) => Number(n).toLocaleString('en-US');
+  const contents = ctx.items.map((i) =>
+    '[' + i.n + '] ' + i.heading + ' (' + num(i.words) + ' words)' + (i.text == null ? ' - not shown, too long to include' : '')).join('\n');
+  const shown = ctx.items.filter((i) => i.text != null);
+  const blocks = edit
+    ? shown.map((i) => '<chapter id="' + i.n + '">\n' + i.text + '\n</chapter>').join('\n\n')
+    : shown.map((i) => '--- ' + i.heading + ' ---\n' + i.text).join('\n\n');
+  const manner = 'Talk like a thoughtful writing partner: natural, warm and brief. Do not paste the manuscript back unless asked. ';
+  const rules = edit
+    ? manner + 'To change a chapter, reply with its COMPLETE new text inside <chapter id="N"> … </chapter>, using the same N as above. ' +
+      'Write every paragraph of that chapter, changed or not, with a blank line between paragraphs. ' +
+      'Keep the <i>, <b> and <u> tags and the *** scene breaks as they are. ' +
+      'Include only the chapters you changed, and never shorten or summarise a chapter unless asked. ' +
+      'Before the first <chapter> block, say in one or two sentences what you changed. ' +
+      'If the request needs no edit, answer without any <chapter> block.'
+    : manner + 'Use the manuscript to answer. Reply in plain paragraphs. If the writer asks for new text, such as another chapter, write it as ordinary paragraphs. ' +
+      'Never wrap your reply in XML-style tags.';
+  return 'Here is the writer\'s manuscript. It is on their computer and is theirs.\n' +
+    '=== MANUSCRIPT: ' + ctx.title + ' ===\nContents:\n' + contents + '\n\n' + blocks + '\n=== END OF MANUSCRIPT ===\n\n' +
+    rules + '\n\nThe writer\'s request: ' + request;
+}
+// SWIFT-HELPERS-END
+
+/* ---------------- where Swift runs: this computer, or the writer's own key ---------------- */
+
+// Writers whose computer can't run a local model bring their own key. The key
+// lives in the app's encrypted secret store (never in the library, never in
+// the page), and the main process is the only thing that ever sends it.
+const SWIFT_PROVIDERS = {
+  openai: { name: 'OpenAI', keyHint: 'sk-…', where: tk('platform.openai.com → API keys'), model: 'gpt-5-mini' },
+  anthropic: { name: 'Anthropic', keyHint: 'sk-ant-…', where: tk('console.anthropic.com → API keys'), model: 'claude-haiku-5-5' },
+  openrouter: { name: 'OpenRouter', keyHint: 'sk-or-…', where: tk('openrouter.ai → Keys'), model: 'openai/gpt-5-mini' }
+};
+const swiftSettings = () => (library && library.swift) || {};
+const swiftKeyName = (provider) => 'swift-key-' + provider;
+
+// The hosted provider in use right now ({ id, name, model }), or null when Swift runs here.
+async function swiftCloudState() {
+  const cfg = swiftSettings();
+  if (cfg.mode !== 'cloud' || !SWIFT_PROVIDERS[cfg.provider]) return null;
+  const has = await window.neo.hasSecret(swiftKeyName(cfg.provider));
+  if (!has) return null;
+  const p = SWIFT_PROVIDERS[cfg.provider];
+  return { id: cfg.provider, name: p.name, model: (cfg.models && cfg.models[cfg.provider]) || p.model };
+}
+
+// Swift's page of Settings. A thin wrapper keeps the chat's own gear working.
+const openSwiftSettings = (onSaved, startMode) => openSettings('swift', { onSaved, startMode });
+
+function renderSwiftSection(host, opts = {}) {
+  const { onSaved, startMode } = opts;
+  const cfg = swiftSettings();
+  const cards = Object.entries(SWIFT_PROVIDERS).map(([id, p]) =>
+    `<button type="button" class="sw-prov" role="radio" data-provider="${id}"><strong>${p.name}</strong><span>${p.model}</span></button>`).join('');
+  host.innerHTML = `<h3 class="st-h">${t('Swift')}</h3>
+    <p class="soft">${t('Choose where Swift runs.')}</p>
+    <div class="sw-seg" role="radiogroup" aria-label="${escHtml(t('Where Swift runs')).replace(/"/g, '&quot;')}">
+      <button type="button" role="radio" data-mode="local">${t('On this computer')}</button>
+      <button type="button" role="radio" data-mode="cloud">${t('My own API key')}</button>
+    </div>
+    <div class="sw-panel" data-panel="local">
+      <p>${t('Swift 1.2 runs with Ollama on this computer. Nothing you write leaves it. If your computer can’t run it, use your own API key instead.')}</p>
+    </div>
+    <div class="sw-panel" data-panel="cloud" hidden>
+      <p class="lk-label" style="margin-top:0">${t('Provider')}</p>
+      <div class="sw-provs" role="radiogroup" aria-label="${escHtml(t('Provider')).replace(/"/g, '&quot;')}">${cards}</div>
+      <input id="sw-provider" type="hidden" value="${escHtml(cfg.provider || 'openai')}" />
+      <label class="sw-field">${t('API key')}
+        <input id="sw-key" type="password" autocomplete="off" spellcheck="false"/>
+      </label>
+      <p class="soft sw-note" id="sw-note"></p>
+      <label class="sw-field"><span>${t('Model')} <span class="soft">${t('(optional)')}</span></span>
+        <input id="sw-model" type="text" spellcheck="false"/>
+      </label>
+      <p class="sw-warn">${t('With your own key, the chapters Swift reads are sent to the provider you pick. Choose “Nothing” in the chat to share no text.')}</p>
+      <button type="button" class="btn-quiet st-link" id="sw-forget" hidden>${t('Remove saved key')}</button>
+    </div>
+    <p id="sw-msg" class="sw-msg" role="status" hidden></p>
+    <div class="sw-actions">
+      <button type="button" class="btn-quiet" id="sw-test" hidden>${t('Test')}</button>
+      <button type="button" class="btn-gold" id="sw-save">${t('Save')}</button>
+    </div>`;
+  const q = (sel) => host.querySelector(sel);
+  let mode = startMode || (cfg.mode === 'cloud' ? 'cloud' : 'local');
+  const provider = () => q('#sw-provider').value;
+  const msg = (text, bad) => { const m = q('#sw-msg'); m.textContent = text || ''; m.hidden = !text; m.classList.toggle('bad', !!bad); };
+  const changed = () => { document.dispatchEvent(new CustomEvent('swift-settings-changed')); if (onSaved) onSaved(); };
+
+  const paintMode = () => {
+    for (const b of host.querySelectorAll('.sw-seg [data-mode]')) b.setAttribute('aria-checked', String(b.dataset.mode === mode));
+    for (const pn of host.querySelectorAll('.sw-panel')) pn.hidden = pn.dataset.panel !== mode;
+    q('#sw-test').hidden = mode !== 'cloud';
+    msg('');
+  };
+  const paintProvider = async () => {
+    const id = provider(), p = SWIFT_PROVIDERS[id];
+    for (const b of host.querySelectorAll('.sw-prov')) b.setAttribute('aria-checked', String(b.dataset.provider === id));
+    q('#sw-key').value = '';
+    q('#sw-key').placeholder = t('{name} key ({hint})', { name: p.name, hint: p.keyHint });
+    q('#sw-model').placeholder = p.model;
+    q('#sw-model').value = (cfg.models && cfg.models[id]) || '';
+    const has = await window.neo.hasSecret(swiftKeyName(id));
+    if (provider() !== id) return;
+    q('#sw-forget').hidden = !has;
+    q('#sw-note').textContent = has
+      ? t('A {name} key is saved, encrypted, on this computer. Paste a new one to replace it.', { name: p.name })
+      : t('Get a key at {where}. It’s stored encrypted on this computer and only ever sent to {name}.', { where: t(p.where), name: p.name });
+  };
+  for (const b of host.querySelectorAll('.sw-seg [data-mode]')) b.onclick = () => { mode = b.dataset.mode; paintMode(); if (mode === 'cloud') q('#sw-key').focus(); };
+  for (const b of host.querySelectorAll('.sw-prov')) b.onclick = () => { q('#sw-provider').value = b.dataset.provider; paintProvider(); };
+  q('#sw-forget').onclick = async () => {
+    await window.neo.setSecret(swiftKeyName(provider()), '');
+    paintProvider();
+    msg(t('Key removed.'));
+    changed();
+  };
+
+  // write what the page says; false (with a message shown) when it can't be saved
+  const save = async () => {
+    const id = provider();
+    if (mode === 'cloud') {
+      const k = q('#sw-key').value.trim();
+      if (k && !/^\S{20,}$/.test(k)) { msg(t('That doesn’t look like an API key ({name} keys look like {hint}) — not saved', { name: SWIFT_PROVIDERS[id].name, hint: SWIFT_PROVIDERS[id].keyHint }), true); return false; }
+      if (!k && !(await window.neo.hasSecret(swiftKeyName(id)))) { msg(t('Paste your API key to use it.'), true); return false; }
+      if (k) await window.neo.setSecret(swiftKeyName(id), k);
+    }
+    const models = { ...(cfg.models || {}) };
+    const typed = q('#sw-model').value.trim();
+    if (typed) models[id] = typed; else delete models[id];
+    library.swift = { mode, provider: id, models };
+    // the main process reads this copy: it never trusts the page for the host or the key
+    await window.neo.setSecret('swift-config', JSON.stringify({ mode, provider: id, model: models[id] || '' }));
+    await writeLibrary(library);
+    return true;
+  };
+  q('#sw-save').onclick = async () => {
+    try {
+      if (await save()) { msg(t('Saved.')); paintProvider(); changed(); }
+    } catch (err) { msg(String(err && err.message || err), true); }
+  };
+  q('#sw-test').onclick = async () => {
+    const btn = q('#sw-test');
+    btn.disabled = true;
+    msg(t('Testing…'));
+    try {
+      if (!(await save())) return;
+      await window.neo.ollamaChat([{ role: 'user', content: 'Reply with the single word OK.' }]);
+      msg(t('Connected. Swift can use this key.'));
+      changed();
+    } catch (err) {
+      msg(String(err && err.message || err), true);
+    } finally { btn.disabled = false; }
+  };
+  paintMode();
+  paintProvider();
+}
+
 function setupOllamaChat() {
   const button = $('#ollama-open');
   const pane = $('#ollama-pane');
@@ -15999,61 +16635,50 @@ function setupOllamaChat() {
   const input = $('#ollama-input');
   const send = $('#ollama-send');
   const mic = $('#ollama-mic');
-  const contextToggle = $('#ollama-context');
+  const scopeEl = $('#ollama-scope');
+  const scopeInfo = $('#ollama-scope-info');
+  const modeEl = $('#ollama-mode');
+  const gear = $('#ollama-settings');
+  const headLabel = $('#ollama-head-label');
   const autoToggle = $('#ollama-auto');
+  const autoChip = $('#ollama-auto-chip');
   const messagesEl = $('#ollama-messages');
   const status = $('#ollama-status');
   const messages = [];
+  let scope = 'book'; // what Swift can read: 'none', 'chapter' or 'book'
+  let editOn = false; // Ask (false) or Edit (true)
   let pending = false;
   let recognition = null;
 
   button.hidden = false;
   pane.hidden = false;
 
+  const el = (tag, cls, text) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text != null) node.textContent = text;
+    return node;
+  };
+
+  function welcomeText() {
+    return t('Swift reads your book and helps you write. Choose what it can read below. In Edit mode it can rewrite chapters, and Quill saves a snapshot of your book first.');
+  }
+
   function addMessage(role, text, thinking = '') {
-    const message = document.createElement('div');
-    message.className = 'ollama-message ' + role;
-    const label = document.createElement('div');
-    label.className = 'ollama-role';
-    label.textContent = role === 'user' ? t('You') : t('Swift 1.2');
-    message.appendChild(label);
+    const message = el('div', 'ollama-message ' + role);
+    message.appendChild(el('div', 'ollama-role', role === 'user' ? t('You') : t('Swift 1.2')));
     if (role === 'assistant' && thinking) {
-      const disclosure = document.createElement('details');
-      disclosure.className = 'ollama-thinking';
-      const summary = document.createElement('summary');
-      summary.textContent = t('Thinking');
-      const thought = document.createElement('div');
-      thought.className = 'ollama-thought';
-      thought.textContent = thinking;
-      disclosure.append(summary, thought);
+      const disclosure = el('details', 'ollama-thinking');
+      disclosure.append(el('summary', '', t('Thinking')), el('div', 'ollama-thought', thinking));
       message.appendChild(disclosure);
     }
-    const content = document.createElement('div');
-    content.className = 'ollama-text';
-    content.textContent = text;
-    message.appendChild(content);
+    message.appendChild(el('div', 'ollama-text', text));
     messagesEl.appendChild(message);
     scrollMessages();
     return message;
   }
 
-  function addApplyButton(message, chapter) {
-    const apply = document.createElement('button');
-    apply.className = 'ollama-apply';
-    apply.type = 'button';
-    apply.textContent = t('Replace open chapter with this reply');
-    apply.onclick = () => {
-      try {
-        replaceChapter(chapter, message.querySelector('.ollama-text').textContent);
-        apply.disabled = true;
-        apply.textContent = t('Chapter replaced');
-        setStatus(t('The open chapter was replaced.'));
-      } catch (err) {
-        setStatus(t('Could not replace the chapter: {error}', { error: String(err && err.message || err) }), true);
-      }
-    };
-    message.appendChild(apply);
-  }
+  /* ---------------- what Swift can read ---------------- */
 
   function currentChapter() {
     if (!book || $('#editor-view').hidden || currentTab !== 'manuscript' || !currentChapterId ||
@@ -16061,40 +16686,352 @@ function setupOllamaChat() {
     if (isScript()) return null;
     const body = document.querySelector(`.chapter[data-id="${currentChapterId}"] .chapter-body`);
     if (!body || !body.isContentEditable) return null;
-    return { bookId: book.id, chapterId: currentChapterId, text: body.innerText || body.textContent || '' };
+    return { bookId: book.id, chapterId: currentChapterId };
   }
 
-  function replaceChapter(chapter, text) {
-    if (!chapter || !book || book.id !== chapter.bookId || $('#editor-view').hidden || isScript()) {
-      throw new Error(t('The chapter is no longer open.'));
+  function chapterSource(chId) {
+    const live = document.querySelector(`.chapter[data-id="${chId}"] .chapter-body`);
+    if (live) return live;
+    const holder = document.createElement('div');
+    holder.innerHTML = chapterHTML[chId] || '';
+    return holder;
+  }
+
+  // The story's chapters numbered 1, 2, 3…, each with its text where it fits
+  // the budget: the open chapter first, then the ones nearest to it.
+  function buildContext(wanted) {
+    if (!book || $('#editor-view').hidden) return { error: t('Open a book first.') };
+    if (isScript()) return { error: t('Screenplays are not supported.') };
+    const story = book.chapterOrder.filter((id) => isStory(id));
+    if (!story.length) return { error: t('This book has no chapters to share yet.') };
+    const all = story.map((chId, i) => ({
+      n: i + 1, chId, heading: chapterHeading(chId) || chapterName(chId), words: chapterWords(chId), text: null
+    }));
+    const open = currentChapter();
+    const openIdx = open ? all.findIndex((i) => i.chId === open.chapterId) : -1;
+    let pool = all;
+    if (wanted === 'chapter') {
+      if (openIdx < 0) return { error: t('Open a prose chapter before sharing it. Screenplays are not supported.') };
+      pool = [all[openIdx]];
     }
-    if (currentTab !== 'manuscript') switchTab('manuscript');
-    const body = document.querySelector(`.chapter[data-id="${chapter.chapterId}"] .chapter-body`);
-    if (!body || !body.isContentEditable || !Array.isArray(book.chapterOrder) || !book.chapterOrder.includes(chapter.chapterId)) {
-      throw new Error(t('The chapter is no longer available.'));
+    const anchor = Math.max(0, openIdx);
+    const nearest = [...pool].sort((a, b) => Math.abs(a.n - 1 - anchor) - Math.abs(b.n - 1 - anchor) || a.n - b.n);
+    let used = 0;
+    for (const item of nearest) {
+      if (used + item.words * 1.6 > SWIFT_BOOK_TOKENS * 1.2) continue; // plainly too long: no need to read it
+      const text = swiftChapterText(swiftChapterParas(chapterSource(item.chId), captureBody));
+      const cost = swiftTokens(text) + 16;
+      if (used + cost > SWIFT_BOOK_TOKENS) continue;
+      used += cost;
+      item.text = text;
     }
-    const html = text.trim().split(/\n{2,}/).map((paragraph) =>
-      '<p>' + paragraph.split('\n').map(escHtml).join('<br>') + '</p>'
-    ).join('');
-    focusChapter(chapter.chapterId);
+    if (!pool.some((i) => i.text != null)) {
+      return { error: wanted === 'chapter'
+        ? t('This chapter is too long for Swift 1.2 to read at once.')
+        : t('The chapters are too long for Swift 1.2 to read at once.') };
+    }
+    return { bookId: book.id, scope: wanted, items: pool, byN: new Map(pool.map((i) => [i.n, i])), title: book.title || t('Untitled') };
+  }
+
+  function updateScopeInfo() {
+    let text = '';
+    if (scope === 'chapter') {
+      const open = currentChapter();
+      text = open ? chapterHeading(open.chapterId) || chapterName(open.chapterId) : t('Open a prose chapter to share it.');
+    } else if (scope === 'book' && book && !$('#editor-view').hidden && !isScript()) {
+      const story = book.chapterOrder.filter((id) => isStory(id));
+      const words = story.reduce((n, id) => n + chapterWords(id), 0);
+      text = t('{n} chapters · {w} words', { n: story.length, w: words.toLocaleString() });
+      if (words * 1.6 > SWIFT_BOOK_TOKENS) {
+        text += ' · ' + t('Swift reads about {w} words at once', { w: Math.round(SWIFT_BOOK_TOKENS / 1.6 / 100) * 100 });
+      }
+    }
+    scopeInfo.textContent = text;
+    scopeInfo.hidden = !text;
+  }
+
+  function setScope(next) {
+    scope = next;
+    for (const b of scopeEl.querySelectorAll('[data-scope]')) b.setAttribute('aria-checked', String(b.dataset.scope === scope));
+    if (scope === 'none') editOn = false;
+    syncEditChips();
+    updateScopeInfo();
+  }
+
+  function setMode(next) {
+    editOn = next === 'edit';
+    // editing needs something to edit: at least the open chapter
+    if (editOn && scope === 'none') setScope('chapter');
+    syncEditChips();
+  }
+
+  function syncEditChips() {
+    for (const b of modeEl.querySelectorAll('[data-mode]')) {
+      b.setAttribute('aria-checked', String(b.dataset.mode === (editOn ? 'edit' : 'ask')));
+    }
+    modeEl.querySelector('[data-mode="edit"]').disabled = scope === 'none';
+    autoChip.hidden = !editOn;
+    if (!editOn) autoToggle.checked = false;
+  }
+
+  /* ---------------- applying a rewrite ---------------- */
+
+  function editableBody(ctx, item) {
+    if (!book || book.id !== ctx.bookId || $('#editor-view').hidden || isScript()) throw new Error(t('The book is no longer open.'));
+    if (!Array.isArray(book.chapterOrder) || !book.chapterOrder.includes(item.chId)) throw new Error(t('That chapter no longer exists.'));
+    const body = document.querySelector(`.chapter[data-id="${item.chId}"] .chapter-body`);
+    if (!body || !body.isContentEditable) throw new Error(t('That chapter cannot be edited here.'));
+    return body;
+  }
+
+  // What applying `text` to this chapter would do, and what to look out for.
+  function planEdit(ctx, item, text) {
+    const body = editableBody(ctx, item);
+    const oldParas = swiftChapterParas(body, captureBody);
+    const news = swiftSplitParas(text);
+    const plan = swiftPlan(oldParas, news, escHtml);
+    const bare = (s) => s.replace(/<\/?[biusBIUS]>/g, '');
+    const oldWords = countWords(bare(swiftChapterText(oldParas)));
+    const newWords = countWords(bare(news.join('\n\n')));
+    const warn = [];
+    if (!news.length) warn.push('empty');
+    if (item.text != null && swiftChapterText(oldParas) !== item.text) warn.push('stale');
+    if (oldWords >= 120 && newWords < oldWords * SWIFT_SHORT_REPLY) warn.push('short');
+    if (news.some(swiftIsLazy)) warn.push('lazy');
+    return { ...plan, oldWords, newWords, warn };
+  }
+
+  function warnText(code) {
+    return {
+      empty: t('Swift sent no text for this chapter.'),
+      stale: t('You changed this chapter after Swift read it. Applying will replace your changes.'),
+      short: t('Much shorter than the chapter is now.'),
+      lazy: t('Looks unfinished: it skips part of the chapter.')
+    }[code];
+  }
+
+  function describePlan(plan) {
+    if (!plan.changed && !plan.removed) return t('Same as your text');
+    const delta = plan.newWords - plan.oldWords;
+    return t('Changed paragraphs: {n}', { n: plan.changed }) + ' · ' + t('Words: {n}', { n: (delta > 0 ? '+' : '') + delta });
+  }
+
+  // A snapshot first, so whatever Swift writes can be taken back from the
+  // Darlings tab. No snapshot, no edit.
+  async function safetySnapshot() {
+    try {
+      return !!(await takeSnapshot(SNAP_KEPT));
+    } catch { return false; }
+  }
+
+  function applyEntry(ctx, entry) {
+    const item = entry.item;
+    const body = editableBody(ctx, item);
+    const plan = swiftPlan(swiftChapterParas(body, captureBody), swiftSplitParas(entry.text), escHtml);
+    if (!plan.count) throw new Error(t('Swift sent no text for this chapter.'));
+    body.focus({ preventScroll: true });
     const range = document.createRange();
     range.selectNodeContents(body);
     const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
-    if (!document.execCommand('insertHTML', false, html)) {
-      throw new Error(t('The editor could not apply the replacement.'));
-    }
-    syncChapter(body, chapter.chapterId);
+    if (!document.execCommand('insertHTML', false, plan.html)) throw new Error(t('The editor could not apply the replacement.'));
+    syncChapter(body, item.chId);
     updateCounters();
-    scheduleChapterSave(chapter.chapterId);
-    flushAllSaves();
+    scheduleChapterSave(item.chId);
   }
 
-  function chapterPrompt(content, chapter) {
-    if (!chapter) return content;
-    return `${content}\n\nOpen chapter to use as context:\n--- BEGIN OPEN CHAPTER ---\n${chapter.text}\n--- END OPEN CHAPTER ---`;
+  // Applies the entries it is given; each one's row says how it went.
+  async function applyEntries(ctx, entries) {
+    const todo = entries.filter((e) => !e.applied);
+    if (!todo.length) return 0;
+    if (currentTab !== 'manuscript') switchTab('manuscript');
+    if (!(await safetySnapshot())) throw new Error(t('Quill could not save a snapshot first, so nothing was changed.'));
+    const caret = captureCaret();
+    let done = 0;
+    for (const entry of todo) {
+      try {
+        applyEntry(ctx, entry);
+        entry.applied = true;
+        done++;
+      } catch (err) {
+        entry.error = String(err && err.message || err);
+      }
+      entry.paint();
+    }
+    flushAllSaves();
+    restoreCaret(caret);
+    return done;
   }
+
+  const DOC_ICON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>';
+
+  function mkBtn(label, cls) {
+    const b = el('button', cls || 'oc-btn', label);
+    b.type = 'button';
+    return b;
+  }
+
+  // "Show text" / "Hide text": the new text stays out of sight until asked for
+  function textToggle(card, text) {
+    const view = el('div', 'ollama-edit-text', text);
+    view.hidden = true;
+    const toggle = mkBtn(t('Show text'), 'oc-btn');
+    toggle.onclick = () => {
+      view.hidden = !view.hidden;
+      toggle.textContent = view.hidden ? t('Show text') : t('Hide text');
+    };
+    return { toggle, view };
+  }
+
+  async function copyText(text, btn) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = el('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch { /* nothing more to try */ }
+      ta.remove();
+    }
+    const was = btn.textContent;
+    btn.textContent = t('Copied');
+    setTimeout(() => { btn.textContent = was; }, 1400);
+  }
+
+  // The proposed edits as cards: one per chapter, with the buttons on the card.
+  function addEditCard(message, ctx, blocks, auto) {
+    const entries = [];
+    const ignored = [];
+    for (const block of blocks) {
+      const item = ctx.byN.get(block.id);
+      if (!item || item.text == null) { ignored.push(block.id); continue; }
+      const entry = { item, text: block.text, applied: false, error: '', plan: null, row: null, paint: null };
+      try { entry.plan = planEdit(ctx, item, block.text); } catch (err) { entry.error = String(err && err.message || err); }
+      entries.push(entry);
+    }
+    if (!entries.length) return { entries, ignored, card: null };
+
+    const card = el('div', 'ollama-edits');
+    for (const entry of entries) {
+      const row = el('div', 'ollama-edit');
+      const head = el('div', 'ollama-edit-head');
+      const icon = el('span', 'oc-icon');
+      icon.innerHTML = DOC_ICON;
+      const title = el('div', 'oc-card-title');
+      title.append(el('span', 'oe-name', entry.item.heading), el('span', 'oe-meta', entry.plan ? describePlan(entry.plan) : ''));
+      head.append(icon, title);
+      row.appendChild(head);
+      const warnings = el('div', 'ollama-edit-warn');
+      row.appendChild(warnings);
+      const actions = el('div', 'oc-actions');
+      const apply = mkBtn(t('Apply'), 'ollama-apply');
+      const { toggle, view } = textToggle(row, entry.text);
+      actions.append(apply, toggle);
+      row.append(actions, view);
+      entry.row = row;
+      entry.paint = () => {
+        warnings.textContent = '';
+        const lines = entry.error ? [entry.error] : (entry.plan ? entry.plan.warn.map(warnText) : []);
+        for (const line of lines) warnings.appendChild(el('div', entry.error ? 'oe-error' : 'oe-warn', line));
+        warnings.hidden = !warnings.childNodes.length;
+        row.classList.toggle('applied', entry.applied);
+        apply.disabled = entry.applied || !entry.plan || entry.plan.warn.includes('empty');
+        apply.textContent = entry.applied ? t('Applied') : t('Apply');
+      };
+      apply.onclick = async () => {
+        apply.disabled = true;
+        entry.error = '';
+        try {
+          if (await applyEntries(ctx, [entry])) setStatus(t('Applied. Quill saved a snapshot first; it is on the Darlings tab.'));
+        } catch (err) {
+          setStatus(String(err && err.message || err), true);
+        }
+        entry.paint();
+      };
+      entry.paint();
+      card.appendChild(row);
+    }
+    if (entries.length > 1) {
+      const all = mkBtn(t('Apply all'), 'ollama-apply ollama-apply-all');
+      all.onclick = async () => {
+        all.disabled = true;
+        try {
+          const n = await applyEntries(ctx, entries.filter((e) => e.plan && !e.plan.warn.includes('empty')));
+          if (n) setStatus(t('Applied. Quill saved a snapshot first; it is on the Darlings tab.'));
+        } catch (err) {
+          setStatus(String(err && err.message || err), true);
+        }
+        all.disabled = entries.every((e) => e.applied);
+      };
+      card.appendChild(all);
+    }
+    message.appendChild(card);
+    return { entries, ignored, card };
+  }
+
+  // A new chapter at the end of the story, holding the text Swift wrote.
+  async function addAsNewChapter(ctx, text) {
+    if (!book || book.id !== ctx.bookId || $('#editor-view').hidden || isScript()) throw new Error(t('The book is no longer open.'));
+    const paras = swiftSplitParas(text);
+    if (!paras.length) throw new Error(t('Swift sent no text for this chapter.'));
+    if (!(await safetySnapshot())) throw new Error(t('Quill could not save a snapshot first, so nothing was changed.'));
+    if (currentTab !== 'manuscript') switchTab('manuscript');
+    const chId = createChapterAt(storyEnd());
+    const html = paras.map((x) => swiftParaHtml(x, escHtml)).join('');
+    chapterHTML[chId] = html;
+    delete wordCache[chId];
+    await persistChapter(chId, html);
+    renderChapters();
+    updateCounters();
+    focusChapter(chId);
+  }
+
+  // Under a reply that reads like writing: Copy, add it to the book as a new
+  // chapter, and (Edit on, one chapter shared) replace the open chapter with it.
+  function addReplyActions(message, ctx, text, edit) {
+    const row = el('div', 'oc-actions oc-reply-actions');
+    const copy = mkBtn(t('Copy'), 'oc-btn');
+    copy.onclick = () => copyText(text, copy);
+    const add = mkBtn(t('Add as new chapter'), 'oc-btn');
+    add.onclick = async () => {
+      add.disabled = true;
+      try {
+        await addAsNewChapter(ctx, text);
+        add.textContent = t('Chapter added');
+        setStatus(t('Added as a new chapter. Quill saved a snapshot first; it is on the Darlings tab.'));
+      } catch (err) {
+        add.disabled = false;
+        setStatus(String(err && err.message || err), true);
+      }
+    };
+    row.append(copy, add);
+    if (edit && ctx.scope === 'chapter') {
+      const item = ctx.items[0];
+      const replace = mkBtn(t('Replace open chapter with this reply'), 'ollama-apply');
+      replace.onclick = async () => {
+        replace.disabled = true;
+        const entry = { item, text, applied: false, error: '', paint() {} };
+        try {
+          if (await applyEntries(ctx, [entry])) {
+            replace.textContent = t('Chapter replaced');
+            setStatus(t('The open chapter was replaced. Quill saved a snapshot first; it is on the Darlings tab.'));
+          } else {
+            replace.disabled = false;
+            setStatus(entry.error || t('Could not replace the chapter.'), true);
+          }
+        } catch (err) {
+          replace.disabled = false;
+          setStatus(String(err && err.message || err), true);
+        }
+      };
+      row.appendChild(replace);
+    }
+    message.appendChild(row);
+  }
+
+  /* ---------------- dictation ---------------- */
 
   function handleSpeechResult(event) {
     const transcript = Array.from(event.results || [])
@@ -16105,6 +17042,7 @@ function setupOllamaChat() {
       .join(' ');
     if (transcript) {
       input.value = [input.value.trimEnd(), transcript].filter(Boolean).join(' ');
+      autosize();
       input.focus();
     }
   }
@@ -16148,9 +17086,34 @@ function setupOllamaChat() {
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  function setStatus(text, error = false) {
+  function setStatus(text, error = false, action = null) {
     status.textContent = text;
     status.classList.toggle('error', error);
+    if (action) {
+      const b = el('button', 'oc-btn oc-status-btn', action.label);
+      b.type = 'button';
+      b.onclick = action.run;
+      status.append(' ', b);
+    }
+  }
+
+  // The header names what Swift runs on: this computer, or the writer's own key
+  async function paintHead() {
+    let label = t('Swift 1.2 · local');
+    try {
+      const cfg = await swiftCloudState();
+      if (cfg) label = t('Swift · {name}', { name: cfg.name });
+    } catch { /* keep the local label */ }
+    headLabel.textContent = label;
+  }
+  gear.onclick = () => openSwiftSettings(paintHead);
+  document.addEventListener('swift-settings-changed', paintHead);
+  paintHead();
+
+  // the box grows with what is typed, up to a few lines
+  function autosize() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 176) + 'px';
   }
 
   function open() {
@@ -16159,6 +17122,7 @@ function setupOllamaChat() {
     pane.classList.add('open');
     pane.setAttribute('aria-hidden', 'false');
     button.setAttribute('aria-expanded', 'true');
+    updateScopeInfo();
     input.focus();
   }
 
@@ -16175,64 +17139,89 @@ function setupOllamaChat() {
   button.onclick = () => pane.classList.contains('open') ? dismiss() : open();
   close.onclick = dismiss;
   mic.onclick = startDictation;
-  autoToggle.addEventListener('change', () => {
-    contextToggle.disabled = autoToggle.checked;
-    if (autoToggle.checked) contextToggle.checked = true;
-  });
+  for (const b of scopeEl.querySelectorAll('[data-scope]')) b.onclick = () => setScope(b.dataset.scope);
+  for (const b of modeEl.querySelectorAll('[data-mode]')) b.onclick = () => setMode(b.dataset.mode);
+  input.addEventListener('input', autosize);
+  input.addEventListener('focus', updateScopeInfo);
   clear.onclick = () => {
     if (pending) return;
     messages.length = 0;
     messagesEl.innerHTML = '';
-    const welcome = document.createElement('p');
-    welcome.className = 'ollama-welcome';
-    welcome.textContent = t('Experimental local chat with Swift 1.2. Your manuscript is only shared when you choose to include the open chapter.');
-    messagesEl.appendChild(welcome);
+    messagesEl.appendChild(el('p', 'ollama-welcome', welcomeText()));
     setStatus('');
     input.focus();
   };
+  setScope('book');
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const content = input.value.trim();
     if (pending || !content) return;
-    const autoReplace = autoToggle.checked;
-    const chapter = (contextToggle.checked || autoReplace) ? currentChapter() : null;
-    if ((contextToggle.checked || autoReplace) && !chapter) {
-      setStatus(t('Open a prose chapter before sharing or replacing it. Screenplays are not supported.'), true);
-      return;
+    const edit = editOn && scope !== 'none';
+    const auto = edit && autoToggle.checked;
+    let ctx = null;
+    if (scope !== 'none') {
+      ctx = buildContext(scope);
+      if (ctx.error) { setStatus(ctx.error, true); return; }
     }
 
     input.value = '';
+    autosize();
     messagesEl.querySelector('.ollama-welcome')?.remove();
     addMessage('user', content);
-    const request = [...messages, { role: 'user', content: chapter ? chapterPrompt(content, chapter) : content }];
+    const request = [...swiftTrimHistory(messages), { role: 'user', content: ctx ? swiftPrompt(content, ctx, edit) : content }];
     pending = true;
     send.disabled = true;
     clear.disabled = true;
-    setStatus(t('Waiting for Ollama…'));
+    setStatus(ctx ? t('Swift is reading your book…') : t('Swift is thinking…'));
     try {
       const response = await window.neo.ollamaChat(request);
-      messages.push({ role: 'user', content }, { role: 'assistant', content: response.content });
-      const assistantMessage = addMessage('assistant', response.content, response.thinking);
-      if (chapter && autoReplace) {
-        try {
-          replaceChapter(chapter, response.content);
-          setStatus(t('The open chapter was replaced automatically.'));
-        } catch (err) {
-          setStatus(t('Could not replace the chapter: {error}', { error: String(err && err.message || err) }), true);
-          addApplyButton(assistantMessage, chapter);
+      const reply = response.content;
+      messages.push({ role: 'user', content }, { role: 'assistant', content: ctx ? (edit ? swiftStubReply(reply) : swiftStripTags(reply) || reply) : reply });
+      // tags are read whatever the mode: a model may write them unasked, and the
+      // writer should never see them. Edit on: they become cards. Edit off: the
+      // text inside is shown as plain writing.
+      const parsed = ctx ? swiftParseEdits(reply) : null;
+      const proposing = !!(edit && parsed && parsed.blocks.length);
+      const shown = proposing
+        ? (parsed.note || t('Here are the changes I suggest.'))
+        : swiftStripTags(reply) || reply;
+      const assistantMessage = addMessage('assistant', shown, response.thinking);
+      setStatus('');
+      if (proposing) {
+        const { entries, ignored, card } = addEditCard(assistantMessage, ctx, parsed.blocks, auto);
+        if (!card) {
+          setStatus(t('Swift named a chapter it was not shown, so nothing was changed.'), true);
+        } else if (auto && currentTab === 'manuscript') {
+          const ready = entries.filter((e) => e.plan && !e.plan.warn.length);
+          try {
+            const n = await applyEntries(ctx, ready);
+            const held = entries.length - n;
+            setStatus(n ? t('Applied {n} chapter edit(s). Quill saved a snapshot first; it is on the Darlings tab.', { n }) +
+              (held ? ' ' + t('{n} held back for your review.', { n: held }) : '') : t('Nothing was applied automatically. Review the changes below.'), !n);
+          } catch (err) {
+            setStatus(String(err && err.message || err), true);
+          }
+        } else if (ignored.length) {
+          setStatus(t('Some of the chapters Swift named were not shown to it, so they were ignored.'));
         }
-      } else if (chapter) {
-        addApplyButton(assistantMessage, chapter);
+      } else if (ctx && (swiftWords(shown) >= 30 || (edit && ctx.scope === 'chapter'))) {
+        if (edit && ctx.scope === 'chapter' && auto) setStatus(t('Swift did not return any chapter text, so nothing was changed.'));
+        else addReplyActions(assistantMessage, ctx, shown, edit);
+      } else if (edit) {
+        setStatus(t('Swift did not return any chapter text, so nothing was changed.'));
       }
       scrollMessages();
-      if (!autoReplace || !chapter) setStatus('');
     } catch (err) {
-      setStatus(t('Ollama error: {error}', { error: String(err && err.message || err) }), true);
+      const msg = String(err && err.message || err);
+      const noLocal = /Could not reach Ollama/i.test(msg);
+      setStatus(t('Swift error: {error}', { error: msg }), true,
+        noLocal ? { label: t('Use my own API key'), run: () => openSwiftSettings(paintHead, 'cloud') } : null);
     } finally {
       pending = false;
       send.disabled = false;
       clear.disabled = false;
+      updateScopeInfo();
     }
   });
 
@@ -16244,7 +17233,7 @@ function setupOllamaChat() {
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape' || !pane.classList.contains('open')) return;
+    if (event.key !== 'Escape' || !pane.classList.contains('open') || document.querySelector('.modal-backdrop:not([hidden])')) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     dismiss();
@@ -16259,7 +17248,7 @@ window.neo.onMenu(async (msg) => {
   if ($('#keyboard-shortcuts') && msg.type !== 'help') return;
   // a window the menu opens (⌘, for Goals, say) never stacks on one that's
   // already open: pressing it again used to pile up overlays
-  const WINDOWS = ['stats', 'about', 'emailSettings', 'coverArt', 'reshelve', 'checkUpdate'];
+  const WINDOWS = ['stats', 'about', 'emailSettings', 'coverArt', 'reshelve', 'checkUpdate', 'settings'];
   if (WINDOWS.includes(msg.type) && document.querySelector('.modal-backdrop:not([hidden])')) {
     if (msg.type === 'checkUpdate' && updateDialog) updateDialog.focus();
     return;
@@ -16300,6 +17289,7 @@ window.neo.onMenu(async (msg) => {
     await writeLibrary(library);
     if (window.neo.writingStyleState) window.neo.writingStyleState(library.writingStyle);
   }
+  if (msg.type === 'settings') openSettings('profile');
   if (msg.type === 'coverArt') openCoverArt();
   // a script's lines sit where they print: no alignment, poetry or flush
   if (msg.type === 'align' && !(book && isScript())) {

@@ -3,7 +3,7 @@
   "productName": "Quill",
   "version": "1.5.0",
   "description": "A word processor for authors. Distraction-free by default.",
-  "homepage": "https://github.com/hughhowey/neo",
+  "homepage": "https://github.com/fritzfurher567/Quill",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -24,12 +24,12 @@
     "package:all": "electron-builder --mac --win --linux"
   },
   "build": {
-    "appId": "com.hughhowey.neo",
+    "appId": "com.fritzfurher567.quill",
     "productName": "Quill",
     "publish": {
       "provider": "github",
-      "owner": "hughhowey",
-      "repo": "neo"
+      "owner": "fritzfurher567",
+      "repo": "Quill"
     },
     "mac": {
       "category": "public.app-category.productivity",

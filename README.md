@@ -96,8 +96,8 @@ NEO speaks English, French, Spanish, Portuguese, German, Italian, Dutch, Polish,
 Requires [Node.js](https://nodejs.org).
 
 ```
-git clone https://github.com/hughhowey/neo.git
-cd neo
+git clone https://github.com/fritzfurher567/Quill.git
+cd Quill
 npm install
 npm start
 ```
