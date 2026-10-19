@@ -41,6 +41,7 @@ function loadMain() {
     process: { platform: process.platform, on() {} },
     console,
     AbortController,
+    TextDecoder,
     setTimeout,
     clearTimeout,
     libraryRoot: os.tmpdir()
@@ -51,6 +52,7 @@ function loadMain() {
   return {
     context,
     call: (name, ...args) => handlers.get(name)(null, ...args),
+    callWithEvent: (name, event, ...args) => handlers.get(name)(event, ...args),
     pointAt(dir) {
       context.libraryRoot = dir;
       vm.runInContext('LIBRARY_DIR = libraryRoot; LIBRARY_FILE = require("path").join(libraryRoot, "library.json");', context);
@@ -67,6 +69,45 @@ function tempLibrary() {
 }
 
 describe('filesystem', { concurrency: 1 }, () => {
+  test('ollama:model:install pulls the local Qwen3 model and reports progress', async () => {
+    const originalFetch = main.context.fetch;
+    let request;
+    const progress = [];
+    const lines = [
+      { status: 'pulling manifest' },
+      { status: 'pulling layer', completed: 50, total: 100 },
+      { status: 'success' }
+    ];
+    main.context.fetch = async (url, options) => {
+      request = { url, options };
+      return {
+        ok: true,
+        body: (async function* () {
+          yield Buffer.from(lines.slice(0, 2).map((line) => JSON.stringify(line)).join('\n') + '\n');
+          yield Buffer.from(JSON.stringify(lines[2]));
+        })()
+      };
+    };
+    try {
+      const result = await main.callWithEvent('ollama:model:install', {
+        sender: {
+          isDestroyed: () => false,
+          send: (channel, message) => progress.push({ channel, message })
+        }
+      });
+      assert.equal(result.model, 'qwen3:0.6b');
+      assert.equal(request.url, 'http://127.0.0.1:11434/api/pull');
+      assert.deepEqual(JSON.parse(request.options.body), { model: 'qwen3:0.6b', stream: true });
+      assert.equal(progress.length, 3);
+      assert.equal(progress[1].channel, 'ollama:model-progress');
+      assert.equal(progress[1].message.status, 'pulling layer');
+      assert.equal(progress[1].message.completed, 50);
+      assert.equal(progress[1].message.total, 100);
+    } finally {
+      main.context.fetch = originalFetch;
+    }
+  });
+
   test('ollama:chat sends the conversation to the local Qwen3 model', async () => {
     const originalFetch = main.context.fetch;
     let request;
@@ -81,10 +122,16 @@ describe('filesystem', { concurrency: 1 }, () => {
       assert.equal(request.url, 'http://127.0.0.1:11434/api/chat');
       assert.deepEqual(JSON.parse(request.options.body), {
         model: 'qwen3:0.6b',
-        messages: [{ role: 'user', content: 'Hello' }],
+        messages: [
+          {
+            role: 'system',
+            content: 'You are Swift 1.2, a writing assistant inside Quill, a book-writing app. Think and reply in the same language as the user\'s most recent message. If that is unclear, use English. Never use Chinese unless the user writes in Chinese. When a manuscript is included it uses <i>, <b> and <u> tags for emphasis; keep them.'
+          },
+          { role: 'user', content: 'Hello' }
+        ],
         stream: false,
         think: true,
-        options: { num_predict: 4096 },
+        options: { num_predict: 4096, num_ctx: 8192 },
         keep_alive: '5m'
       });
     } finally {

@@ -11,8 +11,8 @@ LGPL-3.0.txt, with the GPL version 3 text it incorporates in GPL-3.0.txt.
 Source availability
 
 index.aff and index.dic are the dictionary's source files, shipped verbatim
-with this notice in app.asar.unpacked/node_modules/dictionary-sv/ on desktop
-and dict/sv/ in Pocket. On macOS the desktop directory is inside
+with this notice in app.asar.unpacked/node_modules/dictionary-sv/. On macOS
+the desktop directory is inside
 Quill.app/Contents/Resources; on Windows and Linux it is inside resources.
 An AppImage can be extracted with --appimage-extract. These files remain
 separate from Quill's code and may be replaced with a modified dictionary.

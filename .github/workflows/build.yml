@@ -1,7 +1,6 @@
+
 name: Build installers
 
-# Runs when you push a version tag (git tag v1.0.0 && git push --tags),
-# or by hand from the Actions tab → "Build installers" → Run workflow.
 on:
   push:
     tags: ['v*']
@@ -13,22 +12,24 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
+
     runs-on: ${{ matrix.os }}
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-        node-version: 24
+          node-version: 24
 
-      # `npm ci` needs a package-lock.json; fall back to `npm install` without one
       - name: Install dependencies
         shell: bash
         run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
-
-      # Assumes package.json has a "dist" script (e.g. "electron-builder").
-      # Change this line to whatever your build script is called.
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Build installer
         shell: bash
@@ -46,10 +47,6 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
-        env:
-          # unsigned builds: stops electron-builder hunting for a Mac signing identity
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
@@ -57,10 +54,7 @@ jobs:
           path: |
             dist/*.exe
             dist/*.dmg
+            dist/*.zip
             dist/*.AppImage
             dist/*.deb
-            release/*.exe
-            release/*.dmg
-            release/*.AppImage
-            release/*.deb
           if-no-files-found: error

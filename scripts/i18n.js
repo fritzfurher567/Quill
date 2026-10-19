@@ -9,16 +9,15 @@
 //                                      only holds what differs from fr.json
 //
 // Strings are found in t('…'), tk('…') and QuillI18n.t('…') calls in the
-// JavaScript, and in the data-i18n* attributes of index.html. Quill Pocket's
-// own page and bridge count too: they show the same locales/ files.
+// JavaScript, and in the data-i18n* attributes of index.html.
 
 'use strict';
 const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const JS_FILES = ['app.js', 'main.js', 'covers.js', 'pocket/www/pocket-bridge.js', 'pocket/www/index.html'];
-const HTML_FILES = ['index.html', 'pocket/www/index.html'];
+const JS_FILES = ['app.js', 'main.js', 'covers.js'];
+const HTML_FILES = ['index.html'];
 const LOCALES = path.join(ROOT, 'locales');
 
 function unescapeJs(s) {

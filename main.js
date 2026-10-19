@@ -731,7 +731,7 @@ ipcMain.handle('chapter:write', (_e, bookId, chapterId, html, expected) => {
   writeFileDurable(file, html);
   return true;
 });
-// shared with Pocket's bridge (same rule): the disk copy differs from what
+// the disk copy differs from what
 // this device last knew, holds words, and has a word the new text lacks
 function chapterDiverged(cur, expected, html) {
   if (cur === expected || cur === html) return false;
@@ -1182,6 +1182,75 @@ ipcMain.handle('ollama:chat', async (_e, messages) => {
     thinking: typeof result.message.thinking === 'string' ? result.message.thinking : ''
   };
 });
+
+ipcMain.handle('ollama:model:install', async (event) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1800000);
+  let response;
+  try {
+    response = await fetch('http://127.0.0.1:11434/api/pull', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: SWIFT_MODEL, stream: true }),
+      signal: controller.signal
+    });
+  } catch (err) {
+    clearTimeout(timeout);
+    if (controller.signal.aborted) throw new Error('Ollama did not respond within 30 minutes.');
+    throw new Error(`Could not reach Ollama. Install and open Ollama, then try again. ${String(err && err.message || err)}`);
+  }
+
+  const sendProgress = (progress) => {
+    if (!event.sender.isDestroyed()) event.sender.send('ollama:model-progress', progress);
+  };
+  try {
+    if (!response.ok) throw new Error(`Ollama returned HTTP ${response.status}: ${(await response.text()).slice(0, 1000)}`);
+    if (!response.body || !response.body[Symbol.asyncIterator]) {
+      throw new Error('Ollama returned no model-download stream.');
+    }
+    const decoder = new TextDecoder();
+    let pending = '';
+    let complete = false;
+    const readLine = (line) => {
+      if (!line.trim()) return;
+      let item;
+      try {
+        item = JSON.parse(line);
+      } catch {
+        throw new Error('Ollama returned invalid model-download progress.');
+      }
+      if (item.error) throw new Error(`Ollama: ${item.error}`);
+      sendProgress({
+        status: typeof item.status === 'string' ? item.status : '',
+        completed: Number.isFinite(item.completed) ? item.completed : 0,
+        total: Number.isFinite(item.total) ? item.total : 0
+      });
+      if (item.status === 'success') complete = true;
+    };
+    try {
+      for await (const chunk of response.body) {
+        pending += decoder.decode(chunk, { stream: true });
+        let newline;
+        while ((newline = pending.indexOf('\n')) !== -1) {
+          readLine(pending.slice(0, newline));
+          pending = pending.slice(newline + 1);
+        }
+      }
+      pending += decoder.decode();
+      if (pending.trim()) readLine(pending);
+      if (!complete) throw new Error('Ollama ended the model download before reporting success.');
+    } catch (err) {
+      if (controller.signal.aborted) throw new Error('Ollama did not respond within 30 minutes.');
+      throw err;
+    }
+    return { model: SWIFT_MODEL };
+  } finally {
+    clearTimeout(timeout);
+  }
+});
+
+ipcMain.handle('ollama:open-download', () =>
+  require('electron').shell.openExternal('https://ollama.com/download'));
 
 // ---------------------------------------------------------------------------
 // Fullscreen
@@ -2572,8 +2641,8 @@ function buildMenu() {
         },
         { label: t('Email Settings…'), click: () => sendToWindow({ type: 'emailSettings' }) },
         { type: 'separator' },
-        // shown, not registered: the window answers ⌘S itself, so it works the
-        // same in Pocket with a keyboard and never fires twice
+        // shown, not registered: the window answers ⌘S itself, so it never
+        // fires twice
         { label: t('Take Snapshot'), accelerator: 'CmdOrCtrl+S', registerAccelerator: false, click: () => sendToWindow({ type: 'snapshot' }) },
         { type: 'separator' },
         { label: t('Settings…'), accelerator: 'CmdOrCtrl+Shift+,', click: () => sendToWindow({ type: 'settings' }) },

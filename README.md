@@ -55,6 +55,10 @@ The Outline tab lays your book out as index cards, set like a page: they read le
 
 Every book gets a cover! New books are dressed in a seeded abstract (six art styles, six type templates, typefaces bundled with Quill) so no two stories on the shelf look alike. Once a story passes 1,000 words, Quill can read it and paint an abstract cover from the text. This is a bit more work but totally worth it. Get an OpenAI API key from their website and paste it into **File → Cover Art…**. The art is generated in the background for about a penny a picture. (These are not meant for publication, just writing inspiration!) The API key is stored encrypted in Quill's own settings, never in your library folder. The title and author are always set in real type on top, so the lettering is never left to a gen-AI model. The ↻ on any book re-rolls its type and colors, or paints it again. And you can always switch back and forth from the seeded modern look to the painted variety.
 
+**Swift, your local writing assistant**
+
+Choose **Set up local AI** during onboarding to download the Qwen3 0.6B model through Ollama. Ollama itself must be installed and running; Quill can open its official download page if it is not. The model download can also be started later from **Settings → Swift**. With local Swift, your writing stays on your computer.
+
 **Goals and momentum** 
 
 Daily word goals, word sprints, and a NaNoWriMo-style progress chart. Needs more testing, but I think it works okay!
@@ -69,7 +73,7 @@ A lot of you have asked for this feature, so here it is! Right-click the + on an
 
 You never have to pick a formatting element. Start a line with INT. or EXT. and it's a scene heading. Type a name in capitals, hit Enter, and the next line is dialogue. Hit Enter twice after a speech and you're on the next speaker, with whoever is being answered already there in gray. Tab or Enter fills it in. ⌘1 through ⌘7 will let you pick an element yourself, the same keys Final Draft uses. The left panel lists your scenes and how long each one runs, in eighths of a page. Drag a scene to move it. (CONT'D) happens automatically. The Outline tab lays every scene out as an index card: its heading, its length, who's in it, and a note you can write on it. Drag the cards to restructure the script, or start a script as a stack of cards and write it from there.
 
-Export an industry-format PDF, or a Fountain or Final Draft (.fdx) file. Drop a .fountain or .fdx file on a shelf to import a script. Notes, Darlings, placeholders, sprints, and Quill Pocket all work the same as they do for books.
+Export an industry-format PDF, or a Fountain or Final Draft (.fdx) file. Drop a .fountain or .fdx file on a shelf to import a script. Notes, Darlings, placeholders, and sprints all work the same as they do for books.
 
 **Exports** 
 
@@ -108,18 +112,14 @@ To build installers: `npm install electron-builder --save-dev`, then `npm run pa
 
 The app is very simple: an Electron shell (`main.js`), a preload bridge (`preload.js`), and a renderer (`app.js` + `styles.css` + `index.html`). If you know JavaScript, you can change Quill. Have at it.
 
-## Roadmap (things I'm dreaming up but may never get to):
+## Roadmap
 
 Chapter version history · manuscript format for agent submissions (Times New Roman, double-spaced, address block, just to make Kristin Nelson happy) · global end matter that updates every book at once (same for copyright pages, bios, etc).
 
 ## Contributing
 
-Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Fair warning: Quill is opinionated by design, and bloat killed every writing app I've ever tried. If you want complex, try Scrivener. It really is a great application beloved by many! There are so many wonderful writing apps out there! Nobody needs to use this but me.
+Issues and pull requests are welcome see [CONTRIBUTING.md](CONTRIBUTING.md). Fair warning: Quill is opinionated by design, and bloat killed every writing app I've ever tried. If you want complex, try Scrivener. It really is a great application beloved by many! There are so many wonderful writing apps out there! Nobody needs to use this but me.
 
 ## License
 
 [MIT](LICENSE) — free to use, free to modify, free to share.
-
-## Philosophy
-
-If you didn't know, I opened up the Silo universe to fan fiction years ago. And not just to put on fan fiction sites, but you can charge money for the things you write and keep every penny of the income! Lots of incredible Silo Stories out there. But readers are forever looking for more.

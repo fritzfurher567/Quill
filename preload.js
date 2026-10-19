@@ -41,6 +41,14 @@ contextBridge.exposeInMainWorld('quill', {
   readCover: (bookId, fname) => ipcRenderer.invoke('cover:read', bookId, fname),
   paintCover: (bookId, text, options) => ipcRenderer.invoke('cover:paint', bookId, text, options),
   ollamaChat: (messages) => ipcRenderer.invoke('ollama:chat', messages),
+  installOllamaModel: (onProgress) => {
+    const listener = (_event, progress) => onProgress(progress);
+    ipcRenderer.on('ollama:model-progress', listener);
+    return ipcRenderer.invoke('ollama:model:install').finally(() => {
+      ipcRenderer.removeListener('ollama:model-progress', listener);
+    });
+  },
+  openOllamaDownload: () => ipcRenderer.invoke('ollama:open-download'),
   setSecret: (name, value) => ipcRenderer.invoke('secret:set', name, value),
   hasSecret: (name) => ipcRenderer.invoke('secret:has', name),
   importFiles: (paths) => ipcRenderer.invoke('import:files', paths),

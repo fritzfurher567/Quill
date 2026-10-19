@@ -268,11 +268,8 @@ function setText(el, text) {
 
 // Platform-aware key labels: Macs read ⌘⇧X, everyone else reads Ctrl+Shift+X
 const IS_MAC = navigator.platform.toLowerCase().includes('mac');
-const IS_LINUX = !IS_MAC && /linux/i.test(navigator.platform) && !window.Capacitor;
-// a touch screen (Pocket): nothing to hover, no right button
-const NO_HOVER = !!(window.matchMedia && window.matchMedia('(hover: none)').matches) || !!window.Capacitor;
-// Quill Pocket (the Android and iOS shell)
-const IS_POCKET = !!window.Capacitor;
+const IS_LINUX = !IS_MAC && /linux/i.test(navigator.platform);
+const NO_HOVER = !!(window.matchMedia && window.matchMedia('(hover: none)').matches);
 
 // Touch has no right-click: a long press on a book, a shelf name or a chapter
 // heading opens the same menu. Not inside the text itself — there a long
@@ -288,7 +285,6 @@ const IS_POCKET = !!window.Capacitor;
     if (!target.closest) return;
     // shelf names are editable on tap, but a long press on one is a menu
     if (target.closest('[contenteditable="true"], input, textarea')) return;
-    if (target.closest('#pocket-chapters')) return;
     const p = e.touches[0];
     start = { x: p.clientX, y: p.clientY, target };
     armed = false;
@@ -529,11 +525,11 @@ document.addEventListener('mousedown', (e) => {
 // The open book's title up where the window's buttons are: the system's own
 // title bar on Windows and Linux (and the Window menu everywhere), and on
 // macOS, where that bar is hidden behind the page, the strip beside the buttons
-if (IS_MAC && !IS_POCKET) document.body.classList.add('mac-bar');
+if (IS_MAC) document.body.classList.add('mac-bar');
 function showWindowTitle() {
   const title = book ? (book.title || t('Untitled')) : '';
   document.title = title ? title + ' — Quill' : 'Quill';
-  const strip = IS_MAC && !IS_POCKET && document.querySelector('#dragstrip'); // the desktop's page only
+  const strip = IS_MAC && document.querySelector('#dragstrip');
   if (strip) strip.textContent = title;
 }
 
@@ -717,10 +713,6 @@ function wordsBeforeCaret(body, node, offset) {
 let libraryDirPath = '';
 
 function coverUrl(meta) {
-  // Pocket serves the library through a URL; desktop hands a plain path
-  if (/^[a-z]+:\/\//.test(libraryDirPath)) {
-    return libraryDirPath + '/' + encodeURIComponent(meta.id) + '/' + encodeURIComponent(meta.coverImage);
-  }
   const p = (libraryDirPath + '/' + meta.id + '/' + meta.coverImage).replace(/\\/g, '/');
   return encodeURI('file://' + (p.startsWith('/') ? '' : '/') + p);
 }
@@ -773,9 +765,11 @@ function showFirstRun() {
     applyFonts();
     fr.hidden = true;
     renderShelves();
-    if (thenSettings) openSettings('profile');
+    if (thenSettings === 'swift') openSettings('swift', { startMode: 'local', setupLocalModel: true });
+    else if (thenSettings) openSettings('profile');
   };
   $('#fr-done').onclick = () => finish(false);
+  $('#fr-local-ai').onclick = () => finish('swift');
   $('#fr-customize').onclick = () => finish(true);
 }
 
@@ -802,7 +796,7 @@ function displayAuthor() {
 }
 
 // Redrawing the shelves used to read every book.json again — eighty files
-// through the bridge on Pocket, for a shelf rename. The shelves now keep
+// for a shelf rename. The shelves now keep
 // what they last read; any write to a book, and every look at the disk
 // (refreshFromDisk), forgets it.
 const bookMetaCache = new Map();
@@ -1139,7 +1133,7 @@ window.addEventListener('resize', () => {
 /*  ordinary books to write in. A cover and the pages a published book */
 /*  carries (copyright, dedication, epigraph, parts, acknowledgments,  */
 /*  about the author) join them as small books of their own: plain     */
-/*  folders like every other, so backups, sync and Pocket carry them.  */
+/*  folders like every other, so backups and sync carry them.  */
 /*  Hovering a bound shelf shows each missing page, faint, in its      */
 /*  place; a click adds it and opens it as the page it will print as.  */
 /*  Unbinding tucks the pages away (shelf.binding.parked) until the    */
@@ -1416,9 +1410,7 @@ function pageTile(shelf, meta, label) {
       { label: t('Open'), value: 'open' },
       {
         label: t('Remove page'),
-        desc: window.Capacitor
-          ? t('Moves the book folder to Deleted Books in your Quill Library, where you can recover it.')
-          : t('Sends the page to your system trash, where you can recover it.'),
+        desc: t('Sends the page to your system trash, where you can recover it.'),
         danger: true, value: 'remove'
       }
     ]);
@@ -1888,30 +1880,27 @@ function bookTile(meta, opts = {}) {
       startPart = !(prev && prev.kind === 'part');
     }
     const script = isScript(meta);
-    const trashLabel = window.Capacitor ? t('Delete book')
-      : navigator.platform.toLowerCase().includes('win') ? t('Move to Recycle Bin') : t('Move to Trash');
+    const trashLabel = navigator.platform.toLowerCase().includes('win') ? t('Move to Recycle Bin') : t('Move to Trash');
     const canCopy = !!window.quill.duplicateBook && !isPageMeta(meta);
     // the cover's own choices, gathered in one place
     const coverItems = script ? [] : [
       ...(NO_HOVER ? [] : [{ label: meta.coverImage ? t('Replace cover art…') : t('Set cover art…'), value: 'cover' }]),
       { label: t('New cover'), value: 'refresh' },
-      ...(!window.Capacitor ? [{ label: t('Save cover as image…'), value: 'saveCover' }] : []),
+      { label: t('Save cover as image…'), value: 'saveCover' },
       ...(meta.coverImage ? ['-', { label: t('Remove cover art'), value: 'uncover', danger: true }] : [])
     ];
     let choice;
-    if (NO_HOVER || window.Capacitor) {
+    if (NO_HOVER) {
       // a touch screen: the larger cards, each saying what it does
       const options = [];
       if (startPart) options.push({ label: t('Start a part here'), desc: t('A part page goes in before “{title}”.', { title: escHtml(shownTitle(meta.title)) }), value: 'part' });
-      options.push(window.Capacitor
-        ? { label: t('Export…'), desc: script ? t('PDF, Fountain or Final Draft, through the share sheet.') : t('Text, Markdown, HTML, PDF, Word or EPUB, through the share sheet.'), value: 'export' }
-        : { label: t('Export…'), value: 'export' });
+      options.push({ label: t('Export…'), value: 'export' });
       if (canCopy) options.push({ label: t('Duplicate'), desc: t('A copy of the whole book on this shelf, to keep as a backup or try another version.'), value: 'duplicate' });
       if (coverItems.length) options.push({ label: t('Cover'), desc: t('A new cover, your own art, or a saved image.'), value: 'coverMenu' });
       options.push(
         { label: t('Set word goal…'), desc: t('Adds the subtle progress bar to the cover.'), value: 'goal' },
         { label: t('Remove from bookshelf'), desc: t('Takes it off your shelves. The files stay safe in your Quill Library folder on disk.'), value: 'remove' },
-        { label: trashLabel, desc: window.Capacitor ? t('Moves the book folder to Deleted Books in your Quill Library, where you can recover it.') : t('Sends the book folder to your system trash, where you can recover it.'), danger: true, value: 'trash' }
+        { label: trashLabel, desc: t('Sends the book folder to your system trash, where you can recover it.'), danger: true, value: 'trash' }
       );
       choice = await optionModal(t('“{title}”', { title: escHtml(shownTitle(meta.title)) }), null, options);
       if (choice === 'coverMenu') choice = await optionModal(t('Cover'), null, coverItems.filter((x) => x !== '-'));
@@ -1948,10 +1937,10 @@ function bookTile(meta, opts = {}) {
         { label: t('Text (.txt)'), value: 'txt' }, { label: t('Markdown (.md)'), value: 'md' }, { label: t('HTML (.html)'), value: 'html' },
         { label: 'PDF (.pdf)', value: 'pdf' },
         { label: t('Word (.docx)'), value: 'docx' }, { label: t('EPUB (.epub)'), value: 'epub' },
-        ...(window.Capacitor || isPageMeta(meta) ? [] : [{ label: t('Paperback for KDP…'), value: 'paperback' }])
+        ...(isPageMeta(meta) ? [] : [{ label: t('Paperback for KDP…'), value: 'paperback' }])
       ]);
       if (!fmt) return;
-      if (window.Capacitor || fmt === 'paperback') {
+      if (fmt === 'paperback') {
         await openBook(meta.id);
         await doExport(fmt);
       } else {
@@ -2764,10 +2753,8 @@ function wireChapterBody(body, chId) {
 
   // ⌘Z takes back what was typed since the last pause, not a whole page of
   // it: a second of quiet closes the engine's undo run (the caret stays put).
-  // Not on a phone, where the keyboard keeps its own run of words in hand.
   let runTimer = null;
   const endTypingRunSoon = () => {
-    if (IS_POCKET) return;
     clearTimeout(runTimer);
     runTimer = setTimeout(() => {
       if (composing || document.activeElement !== body) return;
@@ -4696,7 +4683,7 @@ function goToTab(name) {
 const TAB_ORDER = ['manuscript', 'notes', 'outline', 'darlings'];
 window.addEventListener('keydown', (e) => {
   if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-  const cmd = IS_POCKET ? (e.metaKey !== e.ctrlKey) : (IS_MAC ? e.metaKey : e.ctrlKey);
+  const cmd = IS_MAC ? e.metaKey : e.ctrlKey;
   if (!cmd || !e.altKey || e.shiftKey || e.isComposing) return;
   if ($('#editor-view').hidden || document.querySelector('.modal-backdrop:not([hidden])')) return;
   e.preventDefault();
@@ -4853,8 +4840,6 @@ document.addEventListener('keydown', (e) => {
 // ⌥⌘↓ / ⌥⌘↑ (Ctrl+Alt on Windows and Linux): next or previous chapter.
 // No menu item carries these any more, so the window catches them itself —
 // first, before the page or the outline can read them as plain arrows.
-// Pocket takes both: a keyboard paired with a phone or an iPad may be a
-// Mac's (⌘ arrives as Meta) or a PC's (Ctrl).
 // Off the Mac, Ctrl+Page Down / Ctrl+Page Up do the same: GNOME keeps
 // Ctrl+Alt+↑↓ for switching workspaces, so Quill never hears them there, and
 // some Windows graphics drivers turn the screen with them (#254).
@@ -4862,9 +4847,9 @@ window.addEventListener('keydown', (e) => {
   const arrows = e.key === 'ArrowDown' || e.key === 'ArrowUp';
   const pages = e.key === 'PageDown' || e.key === 'PageUp';
   if (!arrows && !pages) return;
-  const cmd = IS_POCKET ? (e.metaKey !== e.ctrlKey) : (IS_MAC ? e.metaKey : e.ctrlKey);
+  const cmd = IS_MAC ? e.metaKey : e.ctrlKey;
   if (arrows && (!cmd || !e.altKey || e.shiftKey)) return;
-  if (pages && ((IS_MAC && !IS_POCKET) || !e.ctrlKey || e.metaKey || e.altKey || e.shiftKey)) return;
+  if (pages && (IS_MAC || !e.ctrlKey || e.metaKey || e.altKey || e.shiftKey)) return;
   if ($('#editor-view').hidden || document.querySelector('.modal-backdrop:not([hidden])')) return;
   e.preventDefault();
   e.stopPropagation();
@@ -5890,7 +5875,7 @@ function spSetElement(type) {
 
 // The keys of a script. True when the key was handled here.
 function scriptKey(e, body) {
-  const cmd = IS_POCKET ? (e.metaKey !== e.ctrlKey) : (IS_MAC ? e.metaKey : e.ctrlKey);
+  const cmd = IS_MAC ? e.metaKey : e.ctrlKey;
   if (cmd && !e.shiftKey && !e.altKey && /^Digit[1-7]$/.test(e.code || '')) {
     e.preventDefault();
     spSetElement(SP_TYPES[Number(e.code.slice(5)) - 1]);
@@ -6356,7 +6341,6 @@ function renderScriptNav() {
       const sc = $('#paper-scroll');
       sc.scrollTop += p.getBoundingClientRect().top - sc.getBoundingClientRect().top - sc.clientHeight / 4;
       updateCounters();
-      if (IS_POCKET && $('#nav-pane').dataset.pinned !== '1') $('#nav-pane').classList.remove('open');
     };
     pressable(row, [String(k + 1), s.slug].join(' '));
     list.appendChild(item);
@@ -7203,20 +7187,12 @@ function renderNav() {
     rowEl.addEventListener('dragend', finishChapterDrag);
     // right-click: what it is, or Delete
     item.addEventListener('contextmenu', (e) => {
-      if (IS_POCKET) { e.preventDefault(); return; } // on a phone this pane is for hopping
       if (e.target.closest('.nav-note[contenteditable="true"]')) return; // the note's own text menu
       e.preventDefault();
       chapterMenu(chId, e.clientX, e.clientY, rowEl);
     });
 
-    if (story && IS_POCKET) {
-      // on a phone this pane is for hopping: a tap anywhere on the box
-      // goes there. The note is read here and written in the Outline.
-      const note = document.createElement('div');
-      note.className = 'nav-note nav-note-ro';
-      note.textContent = book.chapterNotes[chId] || '';
-      item.appendChild(note);
-    } else if (story) {
+    if (story) {
       // outline your whole book from this panel:
       const note = document.createElement('div');
       note.className = 'nav-note';
@@ -7247,14 +7223,6 @@ function renderNav() {
 
     item.onclick = () => {
       switchTab('manuscript');
-      if (IS_POCKET) {
-        // the top of the chapter, and the pane steps aside for the page
-        const sec = document.querySelector(`.chapter[data-id="${chId}"]`);
-        focusChapterStart(chId);
-        if (sec) sec.scrollIntoView({ behavior: scrollBehavior(), block: 'start' });
-        if ($('#nav-pane').dataset.pinned !== '1') $('#nav-pane').classList.remove('open');
-        return;
-      }
       focusChapter(chId);
     };
     // from the keyboard, the row is the chapter's button (F6 reaches the pane)
@@ -10439,7 +10407,7 @@ function sidePaneForTab(name) {
   if (outline) renderLooseCards();
   // on Darlings the pane holds the book's snapshots, and stays open
   const was = $('#editor-view').classList.contains('darlings-tab');
-  const dar = name === 'darlings' && !!book && snapsCan() && !IS_POCKET; // (Pocket's own list: later)
+  const dar = name === 'darlings' && !!book && snapsCan();
   $('#editor-view').classList.toggle('darlings-tab', dar);
   if (dar) { snapList(); $('#side-pane').classList.add('open'); }
   else if (was && $('#side-pane').dataset.pinned !== '1') $('#side-pane').classList.remove('open');
@@ -11254,7 +11222,7 @@ function flushAllSaves(e) {
 // marked, and brings a chapter or the whole book back.
 //
 // book-…/snapshots/<name>/  one folder per snapshot, its files written once
-// (main.js, Pocket's bridge): <chapterId>.html for each chapter that changed,
+// (main.js): <chapterId>.html for each chapter that changed,
 // then snapshot.json, last, so a folder without it is still being written.
 // A chapter's text at a snapshot is in the newest snapshot at or before it
 // that holds the file. The name carries what the list shows:
@@ -16517,7 +16485,7 @@ async function swiftCloudState() {
 const openSwiftSettings = (onSaved, startMode) => openSettings('swift', { onSaved, startMode });
 
 function renderSwiftSection(host, opts = {}) {
-  const { onSaved, startMode } = opts;
+  const { onSaved, startMode, setupLocalModel } = opts;
   const cfg = swiftSettings();
   const cards = Object.entries(SWIFT_PROVIDERS).map(([id, p]) =>
     `<button type="button" class="sw-prov" role="radio" data-provider="${id}"><strong>${p.name}</strong><span>${p.model}</span></button>`).join('');
@@ -16529,6 +16497,12 @@ function renderSwiftSection(host, opts = {}) {
     </div>
     <div class="sw-panel" data-panel="local">
       <p>${t('Swift 1.2 runs with Ollama on this computer. Nothing you write leaves it. If your computer can’t run it, use your own API key instead.')}</p>
+      <p class="sw-note">${t('Download the Qwen3 0.6B model to use local Swift. Ollama must be installed and running.')}</p>
+      <div class="sw-model-actions">
+        <button type="button" class="btn-quiet" id="sw-model-install">${t('Download Qwen3 0.6B model')}</button>
+        <button type="button" class="btn-quiet st-link" id="sw-ollama-download">${t('Get Ollama')}</button>
+      </div>
+      <p class="sw-msg" id="sw-model-msg" role="status" hidden></p>
     </div>
     <div class="sw-panel" data-panel="cloud" hidden>
       <p class="lk-label" style="margin-top:0">${t('Provider')}</p>
@@ -16551,6 +16525,7 @@ function renderSwiftSection(host, opts = {}) {
     </div>`;
   const q = (sel) => host.querySelector(sel);
   let mode = startMode || (cfg.mode === 'cloud' ? 'cloud' : 'local');
+  let installingModel = false;
   const provider = () => q('#sw-provider').value;
   const msg = (text, bad) => { const m = q('#sw-msg'); m.textContent = text || ''; m.hidden = !text; m.classList.toggle('bad', !!bad); };
   const changed = () => { document.dispatchEvent(new CustomEvent('swift-settings-changed')); if (onSaved) onSaved(); };
@@ -16602,6 +16577,46 @@ function renderSwiftSection(host, opts = {}) {
     await writeLibrary(library);
     return true;
   };
+  const setModelMessage = (text, bad = false) => {
+    const status = q('#sw-model-msg');
+    status.textContent = text || '';
+    status.hidden = !text;
+    status.classList.toggle('bad', bad);
+  };
+  const installModel = async () => {
+    if (installingModel) return;
+    mode = 'local';
+    paintMode();
+    installingModel = true;
+    const button = q('#sw-model-install');
+    button.disabled = true;
+    setModelMessage(t('Preparing model download…'));
+    try {
+      if (!(await save())) return;
+      await window.quill.installOllamaModel((progress) => {
+        if (progress.total > 0) {
+          const percent = Math.floor(progress.completed * 100 / progress.total);
+          setModelMessage(t('Downloading model… {percent}%', { percent }));
+        } else {
+          setModelMessage(t('Preparing model download…'));
+        }
+      });
+      setModelMessage(t('Local model is ready.'));
+      changed();
+    } catch (err) {
+      setModelMessage(String(err && err.message || err), true);
+    } finally {
+      installingModel = false;
+      button.disabled = false;
+    }
+  };
+  q('#sw-model-install').onclick = installModel;
+  q('#sw-ollama-download').onclick = async () => {
+    try { await window.quill.openOllamaDownload(); } catch (err) {
+      setModelMessage(String(err && err.message || err), true);
+    }
+  };
+  if (setupLocalModel) installModel();
   q('#sw-save').onclick = async () => {
     try {
       if (await save()) { msg(t('Saved.')); paintProvider(); changed(); }
@@ -16627,7 +16642,7 @@ function renderSwiftSection(host, opts = {}) {
 function setupOllamaChat() {
   const button = $('#ollama-open');
   const pane = $('#ollama-pane');
-  if (IS_POCKET || typeof window.quill.ollamaChat !== 'function') return;
+  if (typeof window.quill.ollamaChat !== 'function') return;
 
   const close = $('#ollama-close');
   const clear = $('#ollama-clear');

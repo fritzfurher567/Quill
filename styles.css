@@ -432,7 +432,7 @@ button { font: inherit; cursor: pointer; }
 @keyframes quill-stitch { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 
 /* ---------------- A page, open as it will print ---------------- */
-.page-sheet-backdrop { background: rgba(12,12,12,0.66); bottom: var(--kb, 0px); } /* above Pocket's keyboard */
+.page-sheet-backdrop { background: rgba(12,12,12,0.66); bottom: var(--kb, 0px); }
 .page-sheet { display: flex; flex-direction: column; gap: 10px; }
 .page-sheet .ps-bar { display: flex; align-items: center; justify-content: space-between; }
 .page-sheet .ps-name { font-size: 11px; letter-spacing: 2.4px; text-transform: uppercase; color: #9a958c; }
@@ -2608,6 +2608,8 @@ body.light #ollama-open:hover { border-color: var(--accent); }
 .sw-seg button[aria-checked="true"] { background: var(--accent-ui); color: var(--bg); font-weight: 600; }
 .sw-panel { display: flex; flex-direction: column; gap: 10px; }
 .sw-panel[hidden] { display: none; }
+.sw-model-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.sw-model-actions button:disabled { opacity: 0.55; cursor: default; }
 .sw-field { display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; }
 .sw-field input, .sw-field select { width: 100%; }
 .sw-note { margin: -4px 0 0; font-size: 12px; line-height: 1.5; }
