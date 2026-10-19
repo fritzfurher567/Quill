@@ -30,7 +30,7 @@ test('the fingerprint tells texts apart', () => {
   assert.notEqual(textHash(''), textHash(' '));
 });
 
-test('NEO\'s own snapshots go after a month; ⌘S ones and the newest stay', () => {
+test('Quill\'s own snapshots go after a month; ⌘S ones and the newest stay', () => {
   const now = Date.UTC(2026, 9, 9);
   const s = (daysAgo, kind) => ({ name: kind + daysAgo, at: now - daysAgo * DAY, kind });
   const snaps = [s(90, 'd'), s(60, 'k'), s(45, 'r'), s(29, 'd'), s(1, 'd')];

@@ -1,9 +1,9 @@
 Romanian spelling dictionary
 
-NEO distributes the dictionary and affix data from dictionary-ro 3.0.0
+Quill distributes the dictionary and affix data from dictionary-ro 3.0.0
 under the Mozilla Public License 1.1 option of its upstream
 GPL-2.0-or-later / LGPL-2.1-or-later / MPL-1.1-or-later license notice.
-NEO's MIT license does not replace the dictionary's license.
+Quill's MIT license does not replace the dictionary's license.
 
 Original dictionary: Romanian Hunspell package, word list version 3.3.10.
 Copyright (C) 2005-2013 Rospell Team.
@@ -17,7 +17,7 @@ with every packaged app, together with the upstream license, in the same
 directory as this notice:
   app.asar.unpacked/node_modules/dictionary-ro/
 
-On macOS this is inside NEO.app/Contents/Resources. On Windows and Linux
+On macOS this is inside Quill.app/Contents/Resources. On Windows and Linux
 it is inside the application's resources directory. An AppImage can be
 extracted using --appimage-extract.
 
@@ -28,10 +28,10 @@ Dictionary project: https://rospell.wordpress.com/
 
 Lookup, updated 2026-09-30
 
-Since NEO 1.2, Hunspell reads index.aff and index.dic exactly as
+Since Quill 1.2, Hunspell reads index.aff and index.dic exactly as
 distributed; no conversion is applied. Lookup normalizes Romanian
-diacritics (spell-ro.js, in app.asar and in NEO's source repository,
-https://github.com/hughhowey/neo) without altering manuscript text.
+diacritics (spell-ro.js, in app.asar and in Quill's source repository,
+https://github.com/hughhowey/quill) without altering manuscript text.
 
 MPL 1.1 Exhibit A notice for the dictionary data
 
@@ -54,4 +54,4 @@ Contributors are listed in upstream-license.txt.
 Alternatively, the contents of these files may be used under the terms of
 the GNU General Public License Version 2 or later, or the GNU Lesser
 General Public License Version 2.1 or later, as specified in the retained
-upstream license notice. NEO does not remove those alternatives.
+upstream license notice. Quill does not remove those alternatives.

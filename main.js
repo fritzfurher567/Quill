@@ -1,4 +1,4 @@
-// NEO — main process
+// Quill — main process
 // Owns the window and all file-system access. The renderer talks to this
 // through the IPC handlers below (see preload.js for the exposed API).
 
@@ -37,10 +37,10 @@ if (process.platform === 'linux') app.commandLine.appendSwitch('enable-speech-di
 // ---------------------------------------------------------------------------
 // Resolved properly at startup via app.getPath('documents') — this default
 // covers any early access and non-redirected setups.
-let LIBRARY_DIR = path.join(os.homedir(), 'Documents', 'NEO Library');
+let LIBRARY_DIR = path.join(os.homedir(), 'Documents', 'Quill Library');
 let LIBRARY_FILE = path.join(LIBRARY_DIR, 'library.json');
 
-// NEO's few app-level settings (today: a custom library folder) live in the
+// Quill's few app-level settings (today: a custom library folder) live in the
 // system's per-app data folder, since they must exist before the library
 // is found. Everything about the writing stays in the library itself.
 function settingsPath() { return path.join(app.getPath('userData'), 'settings.json'); }
@@ -57,10 +57,10 @@ function writeSettings(obj) {
 // ---------------------------------------------------------------------------
 // Interface language: one JSON file per language in locales/ (see i18n.js).
 // The choice is app-level, like the library folder, so it lives in
-// settings.json. First launch follows the system language when NEO has it.
+// settings.json. First launch follows the system language when Quill has it.
 // ---------------------------------------------------------------------------
-const NeoI18n = require('./i18n.js');
-const { t } = NeoI18n;
+const QuillI18n = require('./i18n.js');
+const { t } = QuillI18n;
 const LOCALES_DIR = path.join(__dirname, 'locales');
 let uiLanguage = 'en';
 
@@ -117,7 +117,7 @@ function loadLanguage(code) {
   uiLanguage = resolveLanguage(code) || 'en';
   const english = readLocaleFile('en') || {};
   const dict = localeDict(uiLanguage);
-  NeoI18n.setLocale(uiLanguage, dict, english);
+  QuillI18n.setLocale(uiLanguage, dict, english);
   return { locale: uiLanguage, dict, base: english };
 }
 
@@ -187,11 +187,11 @@ function setupMicrophonePermission() {
   });
 }
 
-// File → Library Folder…: point NEO at any folder, or back at the default.
-// The library is plain files, so the writer moves them; NEO only follows.
+// File → Library Folder…: point Quill at any folder, or back at the default.
+// The library is plain files, so the writer moves them; Quill only follows.
 async function chooseLibraryFolder() {
   const win = BrowserWindow.getFocusedWindow() || BrowserWindow.getAllWindows()[0];
-  const defaultDir = path.join(app.getPath('documents'), 'NEO Library');
+  const defaultDir = path.join(app.getPath('documents'), 'Quill Library');
   const custom = LIBRARY_DIR !== defaultDir;
   const ask = await dialog.showMessageBox(win, {
     type: 'question',
@@ -223,14 +223,14 @@ async function chooseLibraryFolder() {
   app.exit(0);
 }
 
-// Can NEO write in this folder? Windows' Controlled folder access (Defender's
+// Can Quill write in this folder? Windows' Controlled folder access (Defender's
 // ransomware protection) refuses new files in Documents to apps it doesn't
-// know, and NEO is one. A small file written and removed tells.
+// know, and Quill is one. A small file written and removed tells.
 let lastFolderError = null;
 function folderWritable(dir) {
   try {
     fs.mkdirSync(dir, { recursive: true });
-    const probe = path.join(dir, '.neo-write-test');
+    const probe = path.join(dir, '.quill-write-test');
     fs.writeFileSync(probe, 'ok');
     fs.unlinkSync(probe);
     lastFolderError = null;
@@ -261,9 +261,9 @@ function fallbackLibraryDir() {
   const spots = [];
   try {
     const docs = path.join(home, 'Documents');
-    if (fs.statSync(docs).isDirectory()) spots.push(path.join(docs, 'NEO Library'));
+    if (fs.statSync(docs).isDirectory()) spots.push(path.join(docs, 'Quill Library'));
   } catch { /* no plain Documents folder here */ }
-  spots.push(path.join(home, 'NEO Library'));
+  spots.push(path.join(home, 'Quill Library'));
   return spots.find((dir) => dir !== LIBRARY_DIR && folderWritable(dir)) || null;
 }
 function useLibraryDir(dir) {
@@ -281,7 +281,7 @@ function useLibraryDir(dir) {
 // with the default folder for this session only; the choice stays saved.
 function isDir(dir) { try { return fs.statSync(dir).isDirectory(); } catch { return false; } }
 function awaitChosenLibrary(chosen) {
-  const fallback = path.join(app.getPath('documents'), 'NEO Library');
+  const fallback = path.join(app.getPath('documents'), 'Quill Library');
   while (!isDir(chosen)) {
     const r = dialog.showMessageBoxSync({
       type: 'warning',
@@ -338,7 +338,7 @@ function checkLibraryWritable() {
   while (!folderWritable(LIBRARY_DIR)) {
     const r = dialog.showMessageBoxSync({
       type: 'warning',
-      message: t('NEO can\'t save in your library folder'),
+      message: t('Quill can\'t save in your library folder'),
       detail: blockedDetail(LIBRARY_DIR, lastFolderError),
       buttons: [t('Choose Folder…'), t('Try Again'), t('Continue')],
       defaultId: 0,
@@ -357,7 +357,7 @@ function checkLibraryWritable() {
   }
 }
 // Later on (the protection switched on mid-session), a refused save says so
-// once. The words stay on the page; NEO saves them as soon as it may.
+// once. The words stay on the page; Quill saves them as soon as it may.
 let blockedShown = false;
 function reportBlockedWrite(err) {
   if (blockedShown || !isBlockedWrite(err)) return;
@@ -400,7 +400,7 @@ function ensureLibrary() {
 
 // Every book, chapter and sidecar name the page sends is one plain name
 // inside the library: ".", ".." and path separators never reach the disk.
-// Any name NEO ever made passes, and so does a folder named by hand.
+// Any name Quill ever made passes, and so does a folder named by hand.
 function libName(name) {
   if (typeof name !== 'string' || !name || name === '.' || name === '..' || /[\\/\0]/.test(name)) {
     throw new Error('Invalid library name');
@@ -455,7 +455,7 @@ function writeCatalog() {
 // for a moment: antivirus looking at what was just written, the search
 // indexer, a backup or sync client, a tool reading the library. Wait a beat
 // and try again (up to ~0.6 s) before calling the save failed, so a passing
-// glance never reaches the writer as "NEO can't save". A folder that really
+// glance never reaches the writer as "Quill can't save". A folder that really
 // refuses writes still fails, and is still explained.
 const sleepSync = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 function renameIntoPlace(from, to) {
@@ -914,7 +914,7 @@ ipcMain.handle('cover:read', (_e, bookId, fname) => {
 });
 
 // ---------------------------------------------------------------------------
-// Painted covers: once a story passes a thousand words, NEO reads it and
+// Painted covers: once a story passes a thousand words, Quill reads it and
 // paints an abstract cover (art.js). The API key lives encrypted in the
 // app's own data folder — never in the library, which gets synced and
 // backed up as plain files.
@@ -1242,7 +1242,7 @@ async function renderPDF(html, print) {
   // book in Russian or Chinese gets there far sooner, because every letter
   // becomes six to nine characters. Past that the export (and ⌘E) saved
   // nothing at all.
-  const tmp = path.join(app.getPath('temp'), `neo-print-${process.pid}-${Date.now()}.html`);
+  const tmp = path.join(app.getPath('temp'), `quill-print-${process.pid}-${Date.now()}.html`);
   fs.writeFileSync(tmp, html, 'utf8');
   const pdfWin = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
   const options = print === 'screenplay' ? SCREENPLAY_PRINT : {
@@ -1364,7 +1364,7 @@ ipcMain.handle('export:save', async (_e, { format, defaultName, content, zipEntr
     }
   } catch (err) {
     // Main-process export failures used to vanish: the renderer saw a bare
-    // rejection and nothing reached neo-errors.log. Log it here, and hand the
+    // rejection and nothing reached quill-errors.log. Log it here, and hand the
     // renderer a sentence it can show the writer.
     logError('export save', err);
     throw new Error('Could not write the file (' + ((err && err.message) || err) + ')');
@@ -1379,7 +1379,7 @@ ipcMain.handle('export:save', async (_e, { format, defaultName, content, zipEntr
 // and prints both files.
 // ---------------------------------------------------------------------------
 
-// KDP's trim sizes NEO offers (inches), its paper (spine thickness per page),
+// KDP's trim sizes Quill offers (inches), its paper (spine thickness per page),
 // and its minimum inside margin by page count. kdp.amazon.com, Oct 2026.
 const KDP_TRIMS = { '5x8': [5, 8], '5.25x8': [5.25, 8], '5.5x8.5': [5.5, 8.5], '6x9': [6, 9] };
 const KDP_PAPER = { white: 0.002252, cream: 0.0025, groundwood: 0.00235 };
@@ -1387,7 +1387,7 @@ const KDP_MAX_PAGES = { white: 828, cream: 776, groundwood: 812 };
 function kdpGutterMin(pages) {
   return pages <= 150 ? 0.375 : pages <= 300 ? 0.5 : pages <= 500 ? 0.625 : pages <= 700 ? 0.75 : 0.875;
 }
-// the inside margin NEO sets: KDP's minimum plus a quarter inch, so words
+// the inside margin Quill sets: KDP's minimum plus a quarter inch, so words
 // never run into the fold
 function kdpGutter(pages) { return kdpGutterMin(pages) + 0.25; }
 
@@ -1449,7 +1449,7 @@ function hyphenateHtml(html, lang) {
 // offscreen one is): Paged.js steps through animation frames, and a hidden
 // window stops them, which would leave the book a page short.
 async function renderPaged(html, { width, height, plain = false }) {
-  const tmp = path.join(app.getPath('temp'), `neo-paged-${process.pid}-${Date.now()}.html`);
+  const tmp = path.join(app.getPath('temp'), `quill-paged-${process.pid}-${Date.now()}.html`);
   const paged = plain ? '' : fs.readFileSync(path.join(__dirname, 'print', 'paged.polyfill.js'), 'utf8').replace(/<\/script/gi, '<\\/script');
   // (a page drawn as it stands, like the cover template, isn't laid out).
   // Spliced in by position, not by replace(): the library's own code holds
@@ -1461,9 +1461,9 @@ async function renderPaged(html, { width, height, plain = false }) {
   // number is set on it outright, which Chromium follows where Paged.js's
   // own counter reset doesn't carry past that page)
   if (plain) {
-    page = splice(page, '</body>', '<script>window.__neoPages = 1;</script>', true);
+    page = splice(page, '</body>', '<script>window.__quillPages = 1;</script>', true);
   } else {
-    page = splice(page, '</body>', '<script>window.PagedPolyfill.preview().then(() => { const pp = [...document.querySelectorAll(".pagedjs_page")]; const s = pp.findIndex((p) => p.querySelector(".pg1:not([data-split-from])")); if (s >= 0) pp.forEach((p, i) => { p.style.counterReset = "page " + (i >= s ? i - s + 1 : 0); p.style.counterIncrement = "none"; }); window.__neoPages = pp.length; }, (e) => { window.__neoPagedError = String(e && e.stack || e); });</script>', true);
+    page = splice(page, '</body>', '<script>window.PagedPolyfill.preview().then(() => { const pp = [...document.querySelectorAll(".pagedjs_page")]; const s = pp.findIndex((p) => p.querySelector(".pg1:not([data-split-from])")); if (s >= 0) pp.forEach((p, i) => { p.style.counterReset = "page " + (i >= s ? i - s + 1 : 0); p.style.counterIncrement = "none"; }); window.__quillPages = pp.length; }, (e) => { window.__quillPagedError = String(e && e.stack || e); });</script>', true);
     page = splice(page, '</head>', '<script>window.PagedConfig = { auto: false };</script><script>' + paged + '</script>', false);
   }
   fs.writeFileSync(tmp, page, 'utf8');
@@ -1482,7 +1482,7 @@ async function renderPaged(html, { width, height, plain = false }) {
     // a long novel takes Paged.js a while: up to ten minutes before giving up
     while (Date.now() - started < 10 * 60 * 1000) {
       if (win.isDestroyed() || win.webContents.isCrashed()) throw new Error('Page layout stopped');
-      const st = await within(60000, win.webContents.executeJavaScript('[window.__neoPages || 0, window.__neoPagedError || ""]'));
+      const st = await within(60000, win.webContents.executeJavaScript('[window.__quillPages || 0, window.__quillPagedError || ""]'));
       if (st[1]) throw new Error('Page layout failed: ' + st[1].split('\n')[0]);
       if (st[0]) { pages = st[0]; break; }
       await new Promise((resolve) => setTimeout(resolve, 150));
@@ -1518,7 +1518,7 @@ function exactPageBox(pdf, widthIn, heightIn) {
 
 // One window does all the laying out of an export (the passes and the
 // cover): an offscreen window opened right after another one closed can
-// fail to load. It's closed when the export is done, so it never keeps NEO
+// fail to load. It's closed when the export is done, so it never keeps Quill
 // running or stands in for the writing window.
 let printWin = null;
 function closePrintWindow() {
@@ -1591,7 +1591,7 @@ ${spine > 0.3 ? box(spineX, bleed, spine, th, 'vert', esc(t('SPINE'))) : ''}
 }
 
 // The window hands over the book's HTML with the inside margin left as a
-// mark (__NEO_GUTTER__), since it depends on the page count. The book is
+// mark (__Quill_GUTTER__), since it depends on the page count. The book is
 // laid out, the count checked against the margin it was set with (and laid
 // out again if it crossed into another of KDP's bands), evened up to end on
 // a left-hand page, then saved with its cover template beside it.
@@ -1620,8 +1620,8 @@ async function makePaperback({ html, trim, paper, pagesGuess, title, author, def
   let pad = false;
   let settled = false;
   for (let pass = 0; pass < 10 && !settled; pass++) {
-    const page = hyphenated.replace(/__NEO_GUTTER__/g, gutter.toFixed(3) + 'in')
-      .replace('</body>', pad ? '<div class="neo-pad"></div></body>' : '</body>');
+    const page = hyphenated.replace(/__Quill_GUTTER__/g, gutter.toFixed(3) + 'in')
+      .replace('</body>', pad ? '<div class="quill-pad"></div></body>' : '</body>');
     result = await renderPaged(page, { width: tw, height: th });
     if (kdpGutter(result.pages) > gutter) gutter = kdpGutter(result.pages);
     // an odd count ends on a right-hand page: one blank page in (or out) evens it
@@ -1815,7 +1815,7 @@ function docxParagraphToMarkdown(p, styles = {}) {
   return { text, pageBreak, heading, title };
 }
 
-// Headings that are only NEO's own numbering, in the languages NEO speaks
+// Headings that are only Quill's own numbering, in the languages Quill speaks
 const CHAPTER_WORDS = new RegExp('^(' + [
   'chapter', 'prologue', 'epilogue', 'part',                       // en
   'chapitre', 'épilogue', 'partie',                                // fr
@@ -1879,7 +1879,7 @@ async function importFile(fp) {
     paras = [...xml.matchAll(/<w:p[ >][\s\S]*?<\/w:p>/g)]
       .map((m) => docxParagraphToMarkdown(m[0], styles))
       // a line break inside a Word paragraph (a poem, an address) becomes
-      // a paragraph of its own: NEO's lines are paragraphs
+      // a paragraph of its own: Quill's lines are paragraphs
       .flatMap((p) => !p.text.includes('\n') ? [p]
         : p.text.split('\n').map((text, i) => ({ ...p, text: text.trim(), pageBreak: p.pageBreak && i === 0, heading: p.heading && i === 0, title: p.title && i === 0 })));
   } else {
@@ -1900,7 +1900,7 @@ async function importFile(fp) {
 
   // Chapterize: page breaks and heading lines start new chapters. Headings
   // include "Chapter N" styles plus bare chapter numbers — "7", "VII",
-  // "Seven" — which get stripped so NEO's own numbering doesn't duplicate them.
+  // "Seven" — which get stripped so Quill's own numbering doesn't duplicate them.
   const SPELLED = /^(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\.?$/i;
   const isNumeralish = (t) => /^\d{1,3}\.?$/.test(t) || /^[IVXLC]{1,7}\.?$/.test(t) || SPELLED.test(t);
   // Bare numbers only count as chapter markers when there's a ladder of them —
@@ -1911,8 +1911,8 @@ async function importFile(fp) {
   // A markdown heading: one or more "#" then text — any "size" (depth) counts.
   const isMdHeading = (t) => /^#{1,6}\s+\S/.test(t);
   const mdTitleOf = (t) => t.replace(/^#{1,6}\s*/, '').trim();
-  // A heading that is purely NEO's own numbering ("Chapter 2", "Prologue",
-  // bare "7") carries no title — NEO numbers chapters itself. A line that
+  // A heading that is purely Quill's own numbering ("Chapter 2", "Prologue",
+  // bare "7") carries no title — Quill numbers chapters itself. A line that
   // only opens with one of those words and reads as a sentence ("Part of me
   // wanted to run.", "Часть денег пропала.") is prose: it stays in the text.
   const readsAsSentence = (t) => /[.!?…][”’"'»)]*$/.test(t) && t.trim().split(/\s+/).length > 2;
@@ -1966,7 +1966,7 @@ async function importFile(fp) {
         const h = (p.text || '').replace(/^#{1,6}\s*/, '').trim();
         curRole = PROLOGUE_WORDS.test(h) ? 'prologue' : EPILOGUE_WORDS.test(h) ? 'epilogue' : null;
         curTitle = titleOf(p.text || ''); lastWasHeading = true; continue;
-      } // the heading line is replaced by NEO's numbering
+      } // the heading line is replaced by Quill's numbering
       lastWasHeading = false;
       if (isBreak(p.text)) { cur.push({ scene: true }); continue; }
       if (p.text) { cur.push({ text: p.text }); seenProse = true; }
@@ -1998,7 +1998,7 @@ async function importFile(fp) {
   // open ordinary sentences ("Par une nuit…", "Von Anfang an"), so outside
   // English the rest must look like a name: capitalized words (name
   // particles aside), no sentence punctuation.
-  const bylineOf = (s) => {
+  const byliquillf = (s) => {
     const en = s.match(/^by\s+(.{2,60})$/i);
     if (en) return en[1];
     // Romanian "de Ion Creangă" is lowercase on a title page; a capital "De"
@@ -2015,14 +2015,14 @@ async function importFile(fp) {
     const t1 = first.paras.length > 1 ? (first.paras[1].text || '').trim() : '';
     const titleish = t0 && t0.length < 90 && !/[.!?]$/.test(t0) && (
       (norm(t0).length > 3 && norm(name).includes(norm(t0))) ||
-      !!bylineOf(t1) ||
+      !!byliquillf(t1) ||
       (t0 === t0.toUpperCase() && /\p{Lu}.*\p{Lu}/u.test(t0) && t0.length < 60)
     );
     if (titleish) {
       title = bare(t0);
       first.paras.shift();
     }
-    const bl = first.paras.length ? bylineOf((first.paras[0].text || '').trim()) : null;
+    const bl = first.paras.length ? byliquillf((first.paras[0].text || '').trim()) : null;
     if (bl) {
       author = bare(bl);
       first.paras.shift();
@@ -2077,7 +2077,7 @@ ipcMain.handle('import:pick', async () => {
 // ---------------------------------------------------------------------------
 // Robustness: error log, daily backups, single instance
 // ---------------------------------------------------------------------------
-const ERROR_LOG = () => path.join(LIBRARY_DIR, 'neo-errors.log');
+const ERROR_LOG = () => path.join(LIBRARY_DIR, 'quill-errors.log');
 
 function logError(source, err) {
   const line = `[${new Date().toISOString()}] [${source}] ${err && err.stack ? err.stack : String(err)}\n`;
@@ -2085,9 +2085,9 @@ function logError(source, err) {
     ensureLibrary();
     fs.appendFileSync(ERROR_LOG(), line);
   } catch {
-    // the library can't be written (the very case worth logging): NEO's own
+    // the library can't be written (the very case worth logging): Quill's own
     // app folder takes the line instead
-    try { fs.appendFileSync(path.join(app.getPath('userData'), 'neo-errors.log'), line); } catch { /* never let logging crash the app */ }
+    try { fs.appendFileSync(path.join(app.getPath('userData'), 'quill-errors.log'), line); } catch { /* never let logging crash the app */ }
   }
 }
 
@@ -2103,7 +2103,7 @@ async function dailyBackup() {
     const backupsDir = path.join(LIBRARY_DIR, 'Backups');
     if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir, { recursive: true });
     const today = new Date().toISOString().slice(0, 10);
-    const target = path.join(backupsDir, `neo-backup-${today}.zip`);
+    const target = path.join(backupsDir, `quill-backup-${today}.zip`);
     if (fs.existsSync(target)) return;
     backupRunning = true;
 
@@ -2119,7 +2119,7 @@ async function dailyBackup() {
       try { names = fs.readdirSync(dir); } catch (err) { missed.push(`${rel || '.'} (${err.code || err.message})`); return; }
       for (const name of names) {
         if (rel === '' && skip.has(name)) continue;
-        // only NEO's own things: a library kept in a busy folder (Dropbox,
+        // only Quill's own things: a library kept in a busy folder (Dropbox,
         // Documents) doesn't zip everything else in there every day
         if (rel === '' && !(name.startsWith('book-') || name.startsWith('library.json') || name === '_catalog.txt')) continue;
         // a book's snapshots stay out: the zip stays the size of the books,
@@ -2149,11 +2149,11 @@ async function dailyBackup() {
     writeFileDurable(target, data);
 
     // prune old backups
-    const backups = fs.readdirSync(backupsDir).filter((f) => /^neo-backup-.*\.zip$/.test(f)).sort();
+    const backups = fs.readdirSync(backupsDir).filter((f) => /^quill-backup-.*\.zip$/.test(f)).sort();
     while (backups.length > 14) fs.unlinkSync(path.join(backupsDir, backups.shift()));
   } catch (err) {
     logError('backup', err);
-    try { fs.unlinkSync(path.join(LIBRARY_DIR, 'Backups', `neo-backup-${new Date().toISOString().slice(0, 10)}.zip.tmp`)); } catch { /* none */ }
+    try { fs.unlinkSync(path.join(LIBRARY_DIR, 'Backups', `quill-backup-${new Date().toISOString().slice(0, 10)}.zip.tmp`)); } catch { /* none */ }
   } finally {
     backupRunning = false;
   }
@@ -2205,7 +2205,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       // The engine is available, but every editable element starts with
-      // spellcheck="false" — NEO never nags. A spellcheck pass is a
+      // spellcheck="false" — Quill never nags. A spellcheck pass is a
       // deliberate act (Edit → Spellcheck Pass), not a klaxon.
       spellcheck: true
     }
@@ -2214,7 +2214,7 @@ function createWindow() {
   // The menu bar follows the real full-screen state, whoever changed it.
   // Electron only puts the bar back after a full screen it entered itself,
   // so once a window manager's own full-screen key had been used (Sway, i3),
-  // NEO's toggle left the bar hidden for good. Run a tick later, after
+  // Quill's toggle left the bar hidden for good. Run a tick later, after
   // Electron's own show/hide, so this has the last word.
   const fullScreenChanged = (full) => setImmediate(() => {
     if (win.isDestroyed()) return;
@@ -2243,8 +2243,8 @@ function createWindow() {
 
   // Right-click on text: Cut, Copy, Paste, Select All — and nothing else.
   // Handing macOS the frame (where the selection sits) is what invites it to
-  // add Writing Tools, and NEO carries no generative-AI tools, ever, so the
-  // frame stays out. NEO's own right-click menus (shelves, covers, chapter
+  // add Writing Tools, and Quill carries no generative-AI tools, ever, so the
+  // frame stays out. Quill's own right-click menus (shelves, covers, chapter
   // headings, flagged words) cancel the event first, so this never comes up
   // over them.
   win.webContents.on('context-menu', (_e, params) => {
@@ -2264,13 +2264,13 @@ function createWindow() {
     Menu.buildFromTemplate(items).popup({ window: win });
   });
 
-  // NEO does its own spellchecking (see spell:* handlers) — the engine's
+  // Quill does its own spellchecking (see spell:* handlers) — the engine's
   // checker proved unreliable at scanning existing text, so it stays off
   win.webContents.session.setSpellCheckerEnabled(false);
 }
 
 // ---------------------------------------------------------------------------
-// Spellcheck: NEO's own bundled Hunspell dictionaries, checked by Hunspell
+// Spellcheck: Quill's own bundled Hunspell dictionaries, checked by Hunspell
 // itself (WebAssembly, in spell-worker.js), identical
 // on every platform. The renderer paints the squiggles and asks for
 // suggestions. Edit → Spellcheck Language picks the dictionary; the choice
@@ -2324,7 +2324,7 @@ function spellRequest(msg) {
 function startSpellProcess() {
   if (spellChild) return;
   try {
-    spellChild = utilityProcess.fork(path.join(__dirname, 'spell-worker.js'), [], { serviceName: 'NEO spellcheck' });
+    spellChild = utilityProcess.fork(path.join(__dirname, 'spell-worker.js'), [], { serviceName: 'Quill spellcheck' });
     spellChild.on('message', (m) => {
       const done = spellWaiting.get(m.id);
       if (done) { spellWaiting.delete(m.id); done(m); }
@@ -2358,7 +2358,7 @@ async function loadSpellDictionary(code) {
 
 // One rule for every language: a dictionary picked in Edit → Spellcheck
 // Language wins. Until there is one, spellcheck follows the interface
-// language when NEO has its dictionary (fr-CA → fr), else US English.
+// language when Quill has its dictionary (fr-CA → fr), else US English.
 // Nothing is saved on the writer's behalf, so switching the interface back
 // takes the dictionary (and the typed quotes) along with it.
 function chosenSpellLanguage() {
@@ -2369,7 +2369,7 @@ function chosenSpellLanguage() {
 function defaultSpellLanguage() {
   const ui = String(uiLanguage || 'en');
   if (SPELL_LANGUAGES[ui]) return ui;
-  // NEO's Portuguese interface is Brazilian; the dictionary is too. The
+  // Quill's Portuguese interface is Brazilian; the dictionary is too. The
   // European interface (pt-PT) leaves the choice to the writer.
   if (ui === 'pt' || ui === 'pt-BR') return 'pt-BR';
   const base = ui.split('-')[0];
@@ -2521,19 +2521,19 @@ function buildMenu() {
       : ['Gelasio', 'TeX Gyre Pagella', 'Libre Baskerville', 'Alegreya', 'Source Serif Pro', 'Jost', 'iA Writer Quattro'];
   const template = [
     // appMenu exists only on macOS — including it on Windows throws,
-    // which is exactly what kept NEO from ever opening a window there
+    // which is exactly what kept Quill from ever opening a window there
     ...(isMac ? [{
       role: 'appMenu',
       submenu: [
-        { role: 'about', label: t('About NEO') },
+        { role: 'about', label: t('About Quill') },
         { type: 'separator' },
         { role: 'services', label: t('Services') },
         { type: 'separator' },
-        { role: 'hide', label: t('Hide NEO') },
+        { role: 'hide', label: t('Hide Quill') },
         { role: 'hideOthers', label: t('Hide Others') },
         { role: 'unhide', label: t('Show All') },
         { type: 'separator' },
-        { role: 'quit', label: t('Quit NEO') }
+        { role: 'quit', label: t('Quit Quill') }
       ]
     }] : []),
     {
@@ -2607,7 +2607,7 @@ function buildMenu() {
       // hideSystemEditItems() hides them again (see below)
       label: t('Edit'),
       submenu: [
-        // standard items carry their own labels, so they follow NEO's language
+        // standard items carry their own labels, so they follow Quill's language
         { role: 'undo', label: t('Undo') }, { role: 'redo', label: t('Redo') },
         { type: 'separator' },
         { role: 'cut', label: t('Cut') }, { role: 'copy', label: t('Copy') }, { role: 'paste', label: t('Paste') },
@@ -2851,11 +2851,11 @@ function buildMenu() {
   editMenuState.edit = null; // the old menu bar is going: forget its Edit menu first
   Menu.setApplicationMenu(menu);
   if (isMac) {
-    // macOS adds its items as the menu opens: NEO hears each addition
+    // macOS adds its items as the menu opens: Quill hears each addition
     // (watchEditMenu) and looks again whenever the menu opens
     const edit = menu.items.find((it) => it.submenu && it.label === t('Edit'));
     if (edit) {
-      // NEO's own Edit items in order; null stands for a separator
+      // Quill's own Edit items in order; null stands for a separator
       editMenuState.index = menu.items.indexOf(edit);
       editMenuState.ours = edit.submenu.items.map((it) => (it.type === 'separator' ? null : menuTitle(it.label)));
       watchEditMenu();
@@ -2865,18 +2865,18 @@ function buildMenu() {
   }
 }
 
-// No generative-AI tools in NEO — not now, not later.
+// No generative-AI tools in Quill — not now, not later.
 //
 // macOS inserts "Writing Tools" (Apple Intelligence) and "AutoFill" into
 // any app's Edit menu while the menu is opening, and Electron has no
 // switch for either. Deleting them doesn't last (macOS puts them back);
-// hiding them does. NEO reaches the real menu through the Objective-C
+// hiding them does. Quill reaches the real menu through the Objective-C
 // runtime (koffi, a small FFI library) and listens for the notice AppKit
 // sends whenever an item is added to or changed in a menu. The moment
-// anything lands in the Edit menu, NEO walks the menu alongside the one it
+// anything lands in the Edit menu, Quill walks the menu alongside the one it
 // built and hides every item that isn't its own, in any language. Should
 // anything here fail, the menu is left as macOS made it: this never stops
-// NEO from working.
+// Quill from working.
 let objc = null;
 function objcRuntime() {
   if (objc) return objc;
@@ -2923,14 +2923,14 @@ function nativeEditMenu() {
   const item = o.objAt(bar, S('itemAtIndex:'), i);
   return item ? o.obj(item, S('submenu')) : null;
 }
-// hide what isn't NEO's; returns the menu as seen, for the log
+// hide what isn't Quill's; returns the menu as seen, for the log
 function hideForeignItems(edit) {
   const o = objc;
   const S = (name) => o.sel(name);
   const ours = editMenuState.ours;
   const n = o.count(edit, S('numberOfItems'));
   const seen = [];
-  let j = 0; // the next of NEO's own items to find, in order
+  let j = 0; // the next of Quill's own items to find, in order
   for (let i = 0; i < n; i++) {
     const item = o.objAt(edit, S('itemAtIndex:'), i);
     if (!item) continue;
@@ -2941,12 +2941,12 @@ function hideForeignItems(edit) {
     if (mine) j++;
     else {
       // a safety net: whatever happens to titles, an item Electron made
-      // for NEO is never the one hidden
+      // for Quill is never the one hidden
       const act = sep ? null : o.actionOf(item, S('action'));
       const electrons = act && ELECTRON_ACTIONS.has(o.selName(act));
       if (!electrons && !o.flag(item, S('isHidden'))) o.setFlag(item, S('setHidden:'), true);
     }
-    seen.push((mine ? '' : '[not NEO\'s] ') + (sep ? '—' : title));
+    seen.push((mine ? '' : '[not Quill\'s] ') + (sep ? '—' : title));
   }
   return seen;
 }
@@ -2983,16 +2983,16 @@ function watchEditMenu() {
         logError('edit menu', err);
       }
     }, o.koffi.pointer(o.NoteIMP));
-    let cls = o.allocClass(o.cls('NSObject'), 'NEOEditMenuWatcher', 0);
+    let cls = o.allocClass(o.cls('NSObject'), 'QuillEditMenuWatcher', 0);
     if (cls) {
-      o.addMethod(cls, S('neoMenuChanged:'), imp, 'v@:@');
+      o.addMethod(cls, S('quillMenuChanged:'), imp, 'v@:@');
       o.registerClass(cls);
-    } else cls = o.cls('NEOEditMenuWatcher');
+    } else cls = o.cls('QuillEditMenuWatcher');
     const watcher = o.obj(o.obj(cls, S('alloc')), S('init'));
     const center = o.obj(o.cls('NSNotificationCenter'), S('defaultCenter'));
     for (const name of ['NSMenuDidAddItemNotification', 'NSMenuDidChangeItemNotification']) {
       const nsName = o.objStr(o.cls('NSString'), S('stringWithUTF8String:'), name);
-      o.observe(center, S('addObserver:selector:name:object:'), watcher, S('neoMenuChanged:'), nsName, null);
+      o.observe(center, S('addObserver:selector:name:object:'), watcher, S('quillMenuChanged:'), nsName, null);
     }
   } catch (err) {
     logError('edit menu', err);
@@ -3020,9 +3020,9 @@ ipcMain.handle('app:version', () => app.getVersion());
 // Updating
 //
 // Packaged builds keep themselves current without being asked: a few seconds
-// after launch (and every few hours after that) NEO looks at the latest
+// after launch (and every few hours after that) Quill looks at the latest
 // GitHub release, and if it's newer, electron-updater starts downloading it
-// straight away, quietly. The new version goes in the next time NEO quits
+// straight away, quietly. The new version goes in the next time Quill quits
 // and opens again. Help → Check for Update… shows where that stands — most
 // often it's already downloaded, and the window offers "Restart to update"
 // (the page saves itself first). A build that can't self-update — `npm
@@ -3079,8 +3079,8 @@ function lookForUpdate() {
 
 // what's on GitHub, for the fallback path and the release link
 async function latestReleaseFromGitHub() {
-  const res = await fetch('https://api.github.com/repos/hughhowey/neo/releases/latest', {
-    headers: { 'User-Agent': 'NEO-App' }
+  const res = await fetch('https://api.github.com/repos/hughhowey/quill/releases/latest', {
+    headers: { 'User-Agent': 'Quill-App' }
   });
   if (!res.ok) throw new Error('GitHub API returned ' + res.status);
   const data = await res.json();
@@ -3139,7 +3139,7 @@ ipcMain.handle('update:openRelease', () => {
   return true;
 });
 
-// Two copies of NEO editing the same library is how words get eaten
+// Two copies of Quill editing the same library is how words get eaten
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
@@ -3153,8 +3153,8 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 // The background look: a few seconds after launch, every hour after that
-// for a writer who leaves NEO open for days, and whenever the computer
-// wakes (a laptop lid is how most NEO sessions end and begin). Nothing pops
+// for a writer who leaves Quill open for days, and whenever the computer
+// wakes (a laptop lid is how most Quill sessions end and begin). Nothing pops
 // up; any failure is logged and swallowed, so an offline machine or an
 // unsigned build never notices.
 const UPDATE_EVERY = 60 * 60 * 1000;
@@ -3190,7 +3190,7 @@ app.whenReady().then(() => {
   try {
     // the real Documents folder (handles OneDrive-redirected Windows setups)
     try {
-      LIBRARY_DIR = path.join(app.getPath('documents'), 'NEO Library');
+      LIBRARY_DIR = path.join(app.getPath('documents'), 'Quill Library');
       // …unless the writer chose their own folder (File → Library Folder…)
       const chosen = readSettings().libraryDir;
       if (chosen) LIBRARY_DIR = awaitChosenLibrary(chosen);
@@ -3200,7 +3200,7 @@ app.whenReady().then(() => {
     }
 
     // macOS press-and-hold accent picker can open invisibly inside Chromium
-    // and re-emit swallowed keys as phantom repeated letters. Within NEO,
+    // and re-emit swallowed keys as phantom repeated letters. Within Quill,
     // held keys simply repeat — which is what writers expect anyway.
     if (process.platform === 'darwin') {
       try {
@@ -3212,7 +3212,7 @@ app.whenReady().then(() => {
         systemPreferences.setUserDefault('NSDisabledCharacterPaletteMenuItem', 'boolean', true);
         // AutoFill (contacts, passwords) has no business on a manuscript page
         systemPreferences.setUserDefault('NSAutoFillHeuristicControllerEnabled', 'boolean', false);
-        // …and "Enter Full Screen" into the View menu, next to NEO's own
+        // …and "Enter Full Screen" into the View menu, next to Quill's own
         // Full Screen item (⇧⌘F): one is enough
         systemPreferences.setUserDefault('NSFullScreenMenuItemEverywhere', 'boolean', false);
       } catch (err) {
@@ -3228,7 +3228,7 @@ app.whenReady().then(() => {
     try { initSpell(); } catch (err) { logError('spell', err); }
     try { buildMenu(); } catch (err) { logError('menu', err); }
     try { dailyBackup(); } catch (err) { logError('backup', err); }
-    // NEO left open for days still makes each day's backup (and retries one
+    // Quill left open for days still makes each day's backup (and retries one
     // that failed); an existing day's zip makes this a no-op
     setInterval(() => { dailyBackup().catch(() => {}); }, 60 * 60 * 1000).unref?.();
     try { checkForUpdates(); } catch (err) { logError('updater', err); }
@@ -3237,7 +3237,7 @@ app.whenReady().then(() => {
     logError('startup', err);
     try {
       dialog.showErrorBox(t('Quill failed to start'),
-        t('Please report this at github.com/hughhowey/neo/issues:') + '\n\n' + String((err && err.stack) || err));
+        t('Please report this at github.com/hughhowey/quill/issues:') + '\n\n' + String((err && err.stack) || err));
     } catch { /* nothing left to try */ }
   }
   app.on('activate', () => {

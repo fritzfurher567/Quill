@@ -1,8 +1,8 @@
 'use strict';
 
-// A power cut while NEO saves (#219). The real main.js runs against a
+// A power cut while Quill saves (#219). The real main.js runs against a
 // temporary library; each test leaves a file the way an interrupted write
-// can, and checks that the book is still there when NEO next reads it.
+// can, and checks that the book is still there when Quill next reads it.
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -58,7 +58,7 @@ const main = loadMain();
 
 // a library with one book, saved twice (so a .bak exists), on its shelf
 function libraryWithBook() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'neo-power-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'quill-power-'));
   main.pointAt(dir);
   const lib = main.call('library:read');
   const book = main.call('book:create', { title: 'The Long Night' });

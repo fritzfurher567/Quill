@@ -23,7 +23,7 @@ test('words joined by a cut or Backspace across paragraphs are saved without the
   assert.equal(saved(brk), '<p>Gulls.***</p>');
 });
 
-test('NEO\'s own placeholder flags stay, and so does everything inside them', () => {
+test('Quill\'s own placeholder flags stay, and so does everything inside them', () => {
   const page = '<p>She found <span class="ph-mark" data-note="check the date">[TK]</span> in the <span style="font-size: 18px;">drawer</span>.</p>';
   assert.equal(saved(page), '<p>She found <span class="ph-mark" data-note="check the date">[TK]</span> in the drawer.</p>');
   // a flag inside a junk span, and a junk span inside a flag

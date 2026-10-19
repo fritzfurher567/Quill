@@ -29,7 +29,7 @@ test('a short line in capitals is a character; a shout or a sentence is not', ()
   for (const s of ['BOOM!', 'FADE IN:', 'Kim walks in.', 'THE WHOLE BUILDING SHAKES AND THEN STOPS', '', '1984']) assert.ok(!sp.spLooksLikeCharacter(s), s);
   assert.ok(sp.spLooksLikeTransition('CUT TO:'));
   assert.ok(sp.spLooksLikeTransition('FADE OUT.'));
-  assert.ok(sp.spLooksLikeTransition('Cut to:'), 'the usual ones as typed (NEO capitalizes the first word)');
+  assert.ok(sp.spLooksLikeTransition('Cut to:'), 'the usual ones as typed (Quill capitalizes the first word)');
   assert.ok(!sp.spLooksLikeTransition('He points to:'));
   assert.ok(!sp.spLooksLikeTransition('FADE IN:'));
 });

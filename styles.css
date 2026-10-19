@@ -1,4 +1,4 @@
-/* ============================= NEO ============================= */
+/* ============================= Quill ============================= */
 /* Dark surround, white page. The writing is the interface.        */
 
 :root {
@@ -122,33 +122,33 @@ button { font: inherit; cursor: pointer; }
    to run the tile's full width — the title is the design, not a caption.
    cv-light / cv-dark pick the ink from the art's brightness; cv-scrim adds a
    veil where the art is busy. */
-@font-face { font-family: 'NEO Anton'; src: url('fonts/anton-latin-400-normal.woff2') format('woff2'); font-weight: 400; }
-@font-face { font-family: 'NEO Bebas'; src: url('fonts/bebas-neue-latin-400-normal.woff2') format('woff2'); font-weight: 400; }
-@font-face { font-family: 'NEO Oswald'; src: url('fonts/oswald-latin-700-normal.woff2') format('woff2'); font-weight: 700; }
-@font-face { font-family: 'NEO Abril'; src: url('fonts/abril-fatface-latin-400-normal.woff2') format('woff2'); font-weight: 400; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-latin-900-normal.woff2') format('woff2'); font-weight: 900; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-latin-900-italic.woff2') format('woff2'); font-weight: 900; font-style: italic; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-latin-700-normal.woff2') format('woff2'); font-weight: 700; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-latin-400-italic.woff2') format('woff2'); font-weight: 400; font-style: italic; }
-@font-face { font-family: 'NEO Cinzel'; src: url('fonts/cinzel-latin-900-normal.woff2') format('woff2'); font-weight: 900; }
-@font-face { font-family: 'NEO Josefin'; src: url('fonts/josefin-sans-latin-700-normal.woff2') format('woff2'); font-weight: 700; }
-@font-face { font-family: 'NEO Josefin'; src: url('fonts/josefin-sans-latin-600-normal.woff2') format('woff2'); font-weight: 600; }
-@font-face { font-family: 'NEO Baskerville'; src: url('fonts/libre-baskerville-latin-700-normal.woff2') format('woff2'); font-weight: 700; }
+@font-face { font-family: 'Quill Anton'; src: url('fonts/anton-latin-400-normal.woff2') format('woff2'); font-weight: 400; }
+@font-face { font-family: 'Quill Bebas'; src: url('fonts/bebas-neue-latin-400-normal.woff2') format('woff2'); font-weight: 400; }
+@font-face { font-family: 'Quill Oswald'; src: url('fonts/oswald-latin-700-normal.woff2') format('woff2'); font-weight: 700; }
+@font-face { font-family: 'Quill Abril'; src: url('fonts/abril-fatface-latin-400-normal.woff2') format('woff2'); font-weight: 400; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-latin-900-normal.woff2') format('woff2'); font-weight: 900; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-latin-900-italic.woff2') format('woff2'); font-weight: 900; font-style: italic; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-latin-700-normal.woff2') format('woff2'); font-weight: 700; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-latin-400-italic.woff2') format('woff2'); font-weight: 400; font-style: italic; }
+@font-face { font-family: 'Quill Cinzel'; src: url('fonts/cinzel-latin-900-normal.woff2') format('woff2'); font-weight: 900; }
+@font-face { font-family: 'Quill Josefin'; src: url('fonts/josefin-sans-latin-700-normal.woff2') format('woff2'); font-weight: 700; }
+@font-face { font-family: 'Quill Josefin'; src: url('fonts/josefin-sans-latin-600-normal.woff2') format('woff2'); font-weight: 600; }
+@font-face { font-family: 'Quill Baskerville'; src: url('fonts/libre-baskerville-latin-700-normal.woff2') format('woff2'); font-weight: 700; }
 /* Hungarian ő and ű (and the rest of Latin Extended-A) for the cover and
    drop-cap faces, from Fontsource's "latin-ext" subset. The Latin files
    above keep drawing everything else. */
-@font-face { font-family: 'NEO Anton'; src: url('fonts/anton-latin-ext-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Bebas'; src: url('fonts/bebas-neue-latin-ext-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Oswald'; src: url('fonts/oswald-latin-ext-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Abril'; src: url('fonts/abril-fatface-latin-ext-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-latin-ext-900-normal.woff2') format('woff2'); font-weight: 900; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-latin-ext-900-italic.woff2') format('woff2'); font-weight: 900; font-style: italic; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-latin-ext-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-latin-ext-400-italic.woff2') format('woff2'); font-weight: 400; font-style: italic; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Cinzel'; src: url('fonts/cinzel-latin-ext-900-normal.woff2') format('woff2'); font-weight: 900; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Josefin'; src: url('fonts/josefin-sans-latin-ext-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Josefin'; src: url('fonts/josefin-sans-latin-ext-600-normal.woff2') format('woff2'); font-weight: 600; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: 'NEO Baskerville'; src: url('fonts/libre-baskerville-latin-ext-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Anton'; src: url('fonts/anton-latin-ext-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Bebas'; src: url('fonts/bebas-neue-latin-ext-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Oswald'; src: url('fonts/oswald-latin-ext-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Abril'; src: url('fonts/abril-fatface-latin-ext-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-latin-ext-900-normal.woff2') format('woff2'); font-weight: 900; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-latin-ext-900-italic.woff2') format('woff2'); font-weight: 900; font-style: italic; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-latin-ext-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-latin-ext-400-italic.woff2') format('woff2'); font-weight: 400; font-style: italic; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Cinzel'; src: url('fonts/cinzel-latin-ext-900-normal.woff2') format('woff2'); font-weight: 900; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Josefin'; src: url('fonts/josefin-sans-latin-ext-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Josefin'; src: url('fonts/josefin-sans-latin-ext-600-normal.woff2') format('woff2'); font-weight: 600; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Quill Baskerville'; src: url('fonts/libre-baskerville-latin-ext-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 
 /* Body faces for Linux. macOS and Windows use system fonts; these are the
    names the Format menu and the first-run picker show on Linux. */
@@ -195,9 +195,9 @@ button { font: inherit; cursor: pointer; }
    faces, so they are the ones tried first for Cyrillic. The range is
    Fontsource's "cyrillic" subset. Alegreya, Source Serif Pro and Jost have
    Russian letters of their own. */
-@font-face { font-family: 'NEO Oswald'; src: url('fonts/oswald-cyrillic-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-cyrillic-900-normal.woff2') format('woff2'); font-weight: 900; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
-@font-face { font-family: 'NEO Playfair'; src: url('fonts/playfair-display-cyrillic-900-italic.woff2') format('woff2'); font-weight: 900; font-style: italic; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'Quill Oswald'; src: url('fonts/oswald-cyrillic-700-normal.woff2') format('woff2'); font-weight: 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-cyrillic-900-normal.woff2') format('woff2'); font-weight: 900; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'Quill Playfair'; src: url('fonts/playfair-display-cyrillic-900-italic.woff2') format('woff2'); font-weight: 900; font-style: italic; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
 /* Linux body faces: Gelasio → Merriweather, TeX Gyre Pagella → Lora,
    Libre Baskerville → Old Standard TT */
 @font-face { font-family: 'Gelasio'; src: url('fonts/merriweather-cyrillic-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 87.4%; ascent-override: 106.2%; descent-override: 39.1%; line-gap-override: 0.0%; }
@@ -216,13 +216,13 @@ button { font: inherit; cursor: pointer; }
 @font-face { font-family: 'TeX Gyre Chorus'; src: url('fonts/marck-script-cyrillic-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 106.4%; ascent-override: 96.5%; descent-override: 27.1%; line-gap-override: 0.0%; }
 /* cover titles: Anton → Russo One, Bebas Neue → Oswald Medium, Abril Fatface →
    Playfair Display Black, Cinzel → Forum */
-@font-face { font-family: 'NEO Anton'; src: url('fonts/russo-one-cyrillic-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 122.8%; ascent-override: 95.8%; descent-override: 26.8%; line-gap-override: 0.0%; }
-@font-face { font-family: 'NEO Bebas'; src: url('fonts/oswald-cyrillic-500-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 86.4%; ascent-override: 104.1%; descent-override: 34.7%; line-gap-override: 0.0%; }
-@font-face { font-family: 'NEO Abril'; src: url('fonts/playfair-display-cyrillic-900-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 91.7%; ascent-override: 115.4%; descent-override: 31.7%; line-gap-override: 0.0%; }
-@font-face { font-family: 'NEO Cinzel'; src: url('fonts/forum-cyrillic-400-normal.woff2') format('woff2'); font-weight: 900; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 106.1%; ascent-override: 92.0%; descent-override: 35.1%; line-gap-override: 0.0%; }
+@font-face { font-family: 'Quill Anton'; src: url('fonts/russo-one-cyrillic-400-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 122.8%; ascent-override: 95.8%; descent-override: 26.8%; line-gap-override: 0.0%; }
+@font-face { font-family: 'Quill Bebas'; src: url('fonts/oswald-cyrillic-500-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 86.4%; ascent-override: 104.1%; descent-override: 34.7%; line-gap-override: 0.0%; }
+@font-face { font-family: 'Quill Abril'; src: url('fonts/playfair-display-cyrillic-900-normal.woff2') format('woff2'); font-weight: 400; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 91.7%; ascent-override: 115.4%; descent-override: 31.7%; line-gap-override: 0.0%; }
+@font-face { font-family: 'Quill Cinzel'; src: url('fonts/forum-cyrillic-400-normal.woff2') format('woff2'); font-weight: 900; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 106.1%; ascent-override: 92.0%; descent-override: 35.1%; line-gap-override: 0.0%; }
 /* Josefin Sans (the band cover, every author line) → Jost */
-@font-face { font-family: 'NEO Josefin'; src: url('fonts/jost-latin-700-normal.ttf') format('truetype'); font-weight: 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 105.1%; ascent-override: 71.3%; descent-override: 23.8%; line-gap-override: 0.0%; }
-@font-face { font-family: 'NEO Josefin'; src: url('fonts/jost-latin-700-normal.ttf') format('truetype'); font-weight: 600; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 104.0%; ascent-override: 72.1%; descent-override: 24.0%; line-gap-override: 0.0%; }
+@font-face { font-family: 'Quill Josefin'; src: url('fonts/jost-latin-700-normal.ttf') format('truetype'); font-weight: 700; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 105.1%; ascent-override: 71.3%; descent-override: 23.8%; line-gap-override: 0.0%; }
+@font-face { font-family: 'Quill Josefin'; src: url('fonts/jost-latin-700-normal.ttf') format('truetype'); font-weight: 600; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; size-adjust: 104.0%; ascent-override: 72.1%; descent-override: 24.0%; line-gap-override: 0.0%; }
 
 .book .b-text {
   position: absolute; left: 8px; right: 8px; z-index: 2;
@@ -231,7 +231,7 @@ button { font: inherit; cursor: pointer; }
 .book .b-title { display: flex; flex-direction: column; align-items: center; }
 .book .b-line { display: block; white-space: nowrap; line-height: 1; }
 .book .b-author {
-  font-family: 'NEO Josefin', 'Helvetica Neue', sans-serif; font-weight: 600;
+  font-family: 'Quill Josefin', 'Helvetica Neue', sans-serif; font-weight: 600;
   font-size: 7.5px; text-transform: uppercase; letter-spacing: 1.6px; text-align: center;
   margin-top: 7px; opacity: 0.9;
 }
@@ -258,7 +258,7 @@ button { font: inherit; cursor: pointer; }
 
 /* stack — Anton: a tower of condensed caps from the top, author at the foot */
 .book.cv-stack .b-text { top: 10px; bottom: 9px; justify-content: space-between; }
-.book.cv-stack .b-title { font-family: 'NEO Anton', Impact, sans-serif; align-items: stretch; text-align: left; }
+.book.cv-stack .b-title { font-family: 'Quill Anton', Impact, sans-serif; align-items: stretch; text-align: left; }
 .book.cv-stack .b-line { line-height: 0.9; letter-spacing: 0.3px; }
 .book.cv-stack .b-line.b-small { line-height: 1.4; letter-spacing: 2px; }
 .book.cv-stack .b-author { text-align: left; }
@@ -267,29 +267,29 @@ button { font: inherit; cursor: pointer; }
 
 /* bebas — tall condensed caps, centred, with tracked-out connectors */
 .book.cv-bebas .b-text { top: 12px; bottom: 12px; justify-content: center; }
-.book.cv-bebas .b-title { font-family: 'NEO Bebas', Impact, sans-serif; }
+.book.cv-bebas .b-title { font-family: 'Quill Bebas', Impact, sans-serif; }
 .book.cv-bebas .b-line { line-height: 0.88; letter-spacing: 0.5px; }
 .book.cv-bebas .b-line.b-small { line-height: 1.5; letter-spacing: 3px; }
 .book.cv-bebas.cv-scrim::after { top: 18%; bottom: 18%; }
 
 /* black — Playfair Black, the connectors in a whispered italic */
 .book.cv-black .b-text { top: 12px; bottom: 12px; justify-content: center; }
-.book.cv-black .b-title { font-family: 'NEO Playfair', Georgia, serif; font-weight: 900; }
+.book.cv-black .b-title { font-family: 'Quill Playfair', Georgia, serif; font-weight: 900; }
 .book.cv-black .b-line { line-height: 0.98; }
 .book.cv-black .b-line.b-ital { font-style: italic; font-weight: 900; line-height: 1.4; }
 .book.cv-black.cv-scrim::after { top: 18%; bottom: 18%; }
 
 /* fat — Abril Fatface, the block sitting low over the author line */
 .book.cv-fat .b-text { bottom: 10px; justify-content: flex-end; }
-.book.cv-fat .b-title { font-family: 'NEO Abril', 'NEO Playfair', Georgia, serif; }
+.book.cv-fat .b-title { font-family: 'Quill Abril', 'Quill Playfair', Georgia, serif; }
 .book.cv-fat .b-line { line-height: 0.98; }
-.book.cv-fat .b-line.b-ital { font-family: 'NEO Playfair', Georgia, serif; font-style: italic; font-weight: 900; line-height: 1.4; }
+.book.cv-fat .b-line.b-ital { font-family: 'Quill Playfair', Georgia, serif; font-style: italic; font-weight: 900; line-height: 1.4; }
 .book.cv-fat.cv-scrim::after { top: 30%; bottom: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.65)); }
 .book.cv-dark.cv-fat.cv-scrim::after { background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.7)); }
 
 /* cinzel — heavy inscriptional caps inside a thin frame */
 .book.cv-cinzel .b-text { top: 16px; bottom: 14px; justify-content: center; }
-.book.cv-cinzel .b-title { font-family: 'NEO Cinzel', Georgia, serif; font-weight: 900; }
+.book.cv-cinzel .b-title { font-family: 'Quill Cinzel', Georgia, serif; font-weight: 900; }
 .book.cv-cinzel .b-line { line-height: 1.05; letter-spacing: 0.5px; }
 .book.cv-cinzel .b-line.b-small { line-height: 1.6; letter-spacing: 2.5px; }
 .book.cv-cinzel::before {
@@ -301,7 +301,7 @@ button { font: inherit; cursor: pointer; }
 
 /* band — a solid ribbon across the middle, always legible */
 .book.cv-band .b-text { top: 50%; transform: translateY(-50%); left: 0; right: 0; padding: 9px 8px 8px; }
-.book.cv-band .b-title { font-family: 'NEO Josefin', 'Helvetica Neue', sans-serif; font-weight: 700; }
+.book.cv-band .b-title { font-family: 'Quill Josefin', 'Helvetica Neue', sans-serif; font-weight: 700; }
 .book.cv-band .b-line { line-height: 1.05; letter-spacing: 0.8px; }
 .book.cv-band .b-title::after { content: ''; display: block; width: 16px; height: 1.5px; background: currentColor; margin: 6px auto 0; opacity: 0.7; }
 .book.cv-band .b-author { margin-top: 5px; }
@@ -314,7 +314,7 @@ button { font: inherit; cursor: pointer; }
 
 /* oswald — bold left-set caps under a thick rule, author at the foot */
 .book.cv-oswald .b-text { top: 10px; bottom: 9px; justify-content: space-between; }
-.book.cv-oswald .b-title { font-family: 'NEO Oswald', 'NEO Anton', sans-serif; font-weight: 700; align-items: stretch; text-align: left; }
+.book.cv-oswald .b-title { font-family: 'Quill Oswald', 'Quill Anton', sans-serif; font-weight: 700; align-items: stretch; text-align: left; }
 .book.cv-oswald .b-title::before { content: ''; display: block; width: 26px; height: 4px; background: currentColor; margin-bottom: 7px; }
 .book.cv-oswald .b-line { line-height: 0.95; }
 .book.cv-oswald .b-line.b-small { line-height: 1.4; letter-spacing: 2px; }
@@ -331,14 +331,14 @@ button { font: inherit; cursor: pointer; }
 .st-advanced[open] summary::before { content: '\25BE '; }
 .st-advanced input { width: 150px; }
 
-/* NEO is painting a cover from the text: a slow shimmer along the spine */
+/* Quill is painting a cover from the text: a slow shimmer along the spine */
 .book.cv-painting::before { animation: none; }
 .book .b-painting {
   position: absolute; inset: 0; z-index: 3; pointer-events: none; border-radius: inherit;
   background: linear-gradient(110deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0) 70%);
-  background-size: 250% 100%; animation: neo-shimmer 1.8s linear infinite;
+  background-size: 250% 100%; animation: quill-shimmer 1.8s linear infinite;
 }
-@keyframes neo-shimmer { from { background-position: 120% 0; } to { background-position: -130% 0; } }
+@keyframes quill-shimmer { from { background-position: 120% 0; } to { background-position: -130% 0; } }
 
 .drop-indicator {
   width: 3px; height: 140px; align-self: flex-end; margin-bottom: 5px;
@@ -426,10 +426,10 @@ button { font: inherit; cursor: pointer; }
 .part-seam:hover .ps-plus { border-color: var(--accent); }
 .part-seam:hover .ps-line { border-left-color: var(--accent); }
 /* the moment of binding: the tiles settle in and the thread runs along the shelf */
-.shelf.just-bound .shelf-books > * { animation: neo-settle 0.45s ease backwards; animation-delay: calc(var(--i, 0) * 45ms); }
-.shelf.just-bound .shelf-books::after { animation: neo-stitch 1.1s ease 0.25s backwards; }
-@keyframes neo-settle { from { opacity: 0; transform: translateY(10px); } }
-@keyframes neo-stitch { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+.shelf.just-bound .shelf-books > * { animation: quill-settle 0.45s ease backwards; animation-delay: calc(var(--i, 0) * 45ms); }
+.shelf.just-bound .shelf-books::after { animation: quill-stitch 1.1s ease 0.25s backwards; }
+@keyframes quill-settle { from { opacity: 0; transform: translateY(10px); } }
+@keyframes quill-stitch { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 
 /* ---------------- A page, open as it will print ---------------- */
 .page-sheet-backdrop { background: rgba(12,12,12,0.66); bottom: var(--kb, 0px); } /* above Pocket's keyboard */
@@ -596,9 +596,9 @@ body.light .print-modal select, body.light .print-modal textarea { background: #
 
 /* ========================= EDITOR ========================= */
 
-#editor-view { position: absolute; inset: 0; animation: neo-fade 0.25s ease; }
-#bookshelf-view { animation: neo-fade 0.25s ease; }
-@keyframes neo-fade { from { opacity: 0; } to { opacity: 1; } }
+#editor-view { position: absolute; inset: 0; animation: quill-fade 0.25s ease; }
+#bookshelf-view { animation: quill-fade 0.25s ease; }
+@keyframes quill-fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* --- Night page: dark paper for midnight sessions --- */
 body.night {
@@ -634,10 +634,10 @@ body.night #aux-editor * { color: inherit; }
 }
 
 /* Search highlights — no DOM mutation, no focus theft */
-::highlight(neo-search) { background: rgba(201, 168, 106, 0.35); }
-::highlight(neo-search-current) { background: #c9a86a; color: #1c1c1c; }
+::highlight(quill-search) { background: rgba(201, 168, 106, 0.35); }
+::highlight(quill-search-current) { background: #c9a86a; color: #1c1c1c; }
 /* the sentence Read Aloud is on (⌘⇧U) */
-::highlight(neo-speak) { background: rgba(201, 168, 106, 0.28); }
+::highlight(quill-speak) { background: rgba(201, 168, 106, 0.28); }
 
 /* Each page of the book is its own sheet of paper */
 #paper {
@@ -647,13 +647,13 @@ body.night #aux-editor * { color: inherit; }
 /* typewriter scrolling: room below the last line so it can sit mid-screen
    (app.js works out how much the last page doesn't already give) */
 body.typewriter #paper { margin-bottom: var(--typewriter-room, 60vh); }
-/* focus mode: the manuscript fades back, the neo-focus highlight (set in
+/* focus mode: the manuscript fades back, the quill-focus highlight (set in
    app.js) repaints the current sentence / paragraph / scene at full ink */
 .chapter-body, .chapter-head { transition: color 0.25s ease; }
 body.focus-mode .chapter-body,
 body.focus-mode .chapter-head { color: color-mix(in srgb, var(--ink) 28%, var(--paper)); }
-::highlight(neo-focus) { color: #1c1c1c; }
-body.night ::highlight(neo-focus) { color: #d6d2c6; }
+::highlight(quill-focus) { color: #1c1c1c; }
+body.night ::highlight(quill-focus) { color: #d6d2c6; }
 /* selected text stays readable at full ink, even where the focus has moved on
    (dragging a selection into the next paragraph moves the focus with it) */
 body.focus-mode .sheet ::selection { color: #1c1c1c; }
@@ -758,8 +758,8 @@ body:not(.no-dropcap) .chapter-body:not(.cap-off):not(.no-cap):not(.opens-dialog
   font-size: 3.4em; float: left; line-height: 0.8;
   padding: 4px 8px 0 0; font-family: var(--dropcap-font);
 }
-/* NEO's spellcheck pass: flagged words, painted like search matches */
-::highlight(neo-spell) {
+/* Quill's spellcheck pass: flagged words, painted like search matches */
+::highlight(quill-spell) {
   text-decoration: underline wavy #cf5c56;
   text-decoration-skip-ink: none;
   background-color: rgba(207, 92, 86, 0.12);
@@ -1209,8 +1209,8 @@ body.focus-mode .walk-note { opacity: 0.6; }
 .nav-item.nav-page .nav-note { cursor: pointer; font-style: italic; }
 .nav-note.nav-peek:empty::before { content: attr(data-ph); }
 /* a new box opens in place */
-.nav-item.just-added { animation: neo-grow 0.32s ease; overflow: hidden; }
-@keyframes neo-grow { from { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; } to { max-height: 90px; opacity: 1; } }
+.nav-item.just-added { animation: quill-grow 0.32s ease; overflow: hidden; }
+@keyframes quill-grow { from { max-height: 0; opacity: 0; padding-top: 0; padding-bottom: 0; } to { max-height: 90px; opacity: 1; } }
 
 /* a small menu where the pointer is (right-click a box, the + between them) */
 .pop-menu {
@@ -1935,7 +1935,7 @@ body.light.bright .show-scrollbar::-webkit-scrollbar-thumb:hover { background-co
 
 /* ===== Greek typography =====
    Greek glyph-safe fonts for titles, authors and drop caps.
-   The original NEO display fonts are Latin-only subsets. */
+   The original Quill display fonts are Latin-only subsets. */
 html[lang^="el"] {
   --dropcap-font: Georgia, "Times New Roman", serif;
 }
@@ -2260,7 +2260,7 @@ body.light .snap-ch:hover { color: #1c1a17; }
 .snap-chapter.same .snap-body { opacity: 0.55; }
 .snap-body { user-select: text; cursor: text; }
 .snap-body p.snap-gone { background: rgba(192, 57, 43, 0.14); box-shadow: -6px 0 0 rgba(192, 57, 43, 0.14), 6px 0 0 rgba(192, 57, 43, 0.14); }
-::highlight(neo-snap-gone) { background-color: rgba(192, 57, 43, 0.24); }
+::highlight(quill-snap-gone) { background-color: rgba(192, 57, 43, 0.24); }
 
 /* the Outline's cards for where the caret is, atop the right-hand pane (#340) */
 #side-cards { display: flex; flex-direction: column; gap: 10px; padding: 0 12px; }
@@ -2309,12 +2309,12 @@ body.light .btn-gold, body.light .stats-row button { background: #2b2926; color:
 /* what the writer sees ON the page: selection, find matches, read-aloud */
 .sheet ::selection, #aux-paper ::selection { background: rgba(80, 92, 120, 0.26); }
 body.night .sheet ::selection, body.night #aux-paper ::selection { background: rgba(190, 205, 235, 0.3); }
-::highlight(neo-search) { background: rgba(80, 92, 120, 0.26); }
-::highlight(neo-search-current) { background: #2c3446; color: #f4f1e8; }
-::highlight(neo-speak) { background: rgba(80, 92, 120, 0.2); }
-body.night ::highlight(neo-search) { background: rgba(190, 205, 235, 0.28); }
-body.night ::highlight(neo-search-current) { background: #e7e2d4; color: #1c1c1c; }
-body.night ::highlight(neo-speak) { background: rgba(190, 205, 235, 0.2); }
+::highlight(quill-search) { background: rgba(80, 92, 120, 0.26); }
+::highlight(quill-search-current) { background: #2c3446; color: #f4f1e8; }
+::highlight(quill-speak) { background: rgba(80, 92, 120, 0.2); }
+body.night ::highlight(quill-search) { background: rgba(190, 205, 235, 0.28); }
+body.night ::highlight(quill-search-current) { background: #e7e2d4; color: #1c1c1c; }
+body.night ::highlight(quill-speak) { background: rgba(190, 205, 235, 0.2); }
 
 /* the Outline's cards and the progress chart */
 #outline-board { --card-mark: #6b6558; }

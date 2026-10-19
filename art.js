@@ -1,6 +1,6 @@
-// NEO — painted covers (main process)
+// Quill — painted covers (main process)
 //
-// Once a story passes a thousand words, NEO reads it and paints a textless
+// Once a story passes a thousand words, Quill reads it and paints a textless
 // cover for the shelf in the manner of a real jacket: a committed style, a
 // scene from the book, dramatic light. Two calls to the writer's chosen
 // provider: a language model turns the manuscript into an art director's

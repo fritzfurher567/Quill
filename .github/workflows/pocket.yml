@@ -1,4 +1,4 @@
-# Builds the NEO Pocket Android APK, signed with one stable key so every
+# Builds the Quill Pocket Android APK, signed with one stable key so every
 # build installs straight over the previous one — no uninstalling.
 #
 # Runs on every push to main that touches Pocket (or the desktop files it
@@ -14,7 +14,7 @@
 # Without them the build still runs but falls back to a debug-signed APK,
 # which will NOT install over a properly signed one.
 
-name: Build NEO Pocket
+name: Build Quill Pocket
 
 on:
   push:
@@ -78,7 +78,7 @@ jobs:
           KEYSTORE_B64: ${{ secrets.POCKET_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/neo-pocket.jks"
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/quill-pocket.jks"
             echo "Signing key restored."
           else
             echo "::warning::No POCKET_KEYSTORE_BASE64 secret — falling back to debug signing."
@@ -88,40 +88,40 @@ jobs:
         env:
           POCKET_VERSION_CODE: ${{ steps.ver.outputs.code }}
           POCKET_VERSION_NAME: ${{ steps.ver.outputs.name }}
-          POCKET_KEYSTORE_FILE: ${{ runner.temp }}/neo-pocket.jks
+          POCKET_KEYSTORE_FILE: ${{ runner.temp }}/quill-pocket.jks
           POCKET_KEYSTORE_PASSWORD: ${{ secrets.POCKET_KEYSTORE_PASSWORD }}
         run: |
           cd pocket/android
           chmod +x gradlew
           ./gradlew assembleRelease
-          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/neo-pocket.apk"
-          ls -la "$RUNNER_TEMP/neo-pocket.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/quill-pocket.apk"
+          ls -la "$RUNNER_TEMP/quill-pocket.apk"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: neo-pocket-apk
-          path: ${{ runner.temp }}/neo-pocket.apk
+          name: quill-pocket-apk
+          path: ${{ runner.temp }}/quill-pocket.apk
 
       - name: Refresh the rolling pocket-latest release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: pocket-latest
-          name: NEO Pocket — latest build
+          name: Quill Pocket — latest build
           prerelease: true
           body: |
-            NEO Pocket is an early alpha. It's an Android companion to NEO for writing on the go.
+            Quill Pocket is an early alpha. It's an Android companion to Quill for writing on the go.
 
             This is a rolling build from `main`, and it updates itself every time Pocket changes, so this link is always the newest.
 
-            To try it on your Android phone, download `neo-pocket.apk` below and open it (Android will warn about installing outside the Play Store). On first launch, Pocket asks for All files access so it can read the NEO Library folder. Your books live in `Documents/NEO Library`; to share them with desktop NEO, sync that folder with [Syncthing](https://syncthing.net). Updates install straight over the old version.
+            To try it on your Android phone, download `quill-pocket.apk` below and open it (Android will warn about installing outside the Play Store). On first launch, Pocket asks for All files access so it can read the Quill Library folder. Your books live in `Documents/Quill Library`; to share them with desktop Quill, sync that folder with [Syncthing](https://syncthing.net). Updates install straight over the old version.
 
-            Meant for a hardware keyboard; the on-screen keyboard stays down (long-press ☰ to open it). Swipe from the left edge for chapters, from the right for Notes & Comments. It's rough; please report bugs in [Issues](https://github.com/hughhowey/neo/issues).
-          files: ${{ runner.temp }}/neo-pocket.apk
+            Meant for a hardware keyboard; the on-screen keyboard stays down (long-press ☰ to open it). Swipe from the left edge for chapters, from the right for Notes & Comments. It's rough; please report bugs in [Issues](https://github.com/hughhowey/quill/issues).
+          files: ${{ runner.temp }}/quill-pocket.apk
 
       - name: Publish numbered release for this tag
         if: startsWith(github.ref, 'refs/tags/pocket-v')
         uses: softprops/action-gh-release@v2
         with:
-          name: NEO Pocket ${{ steps.ver.outputs.name }}
+          name: Quill Pocket ${{ steps.ver.outputs.name }}
           prerelease: true
-          files: ${{ runner.temp }}/neo-pocket.apk
+          files: ${{ runner.temp }}/quill-pocket.apk

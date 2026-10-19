@@ -2141,7 +2141,7 @@
 
 						if (left >= end || top >= vEnd) {
 							offset = letter.startOffset;
-							// NEO: a word that broke across the page at one of
+							// Quill: a word that broke across the page at one of
 							// its soft hyphens breaks there; the letter after a
 							// soft hyphen can still measure on the line above
 							// (car\u00ADr | ied instead of car | ried)
@@ -12423,7 +12423,7 @@
 		animationType: "eachOfShorthandPropertiesExceptUnicodeBiDiAndDirection",
 		percentages: "no",
 		groups: [
-			"CSS Miscellaneous"
+			"CSS Miscellaquillus"
 		],
 		initial: "noPracticalInitialValue",
 		appliesto: "allElements",
@@ -14808,7 +14808,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthZeroIfBorderStyleNoneOrHidden",
+		computed: "absoluteLengthZeroIfBorderStyleNoquillrHidden",
 		order: "uniqueOrder",
 		status: "nonstandard"
 	},
@@ -15768,7 +15768,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthZeroIfBorderStyleNoneOrHidden",
+		computed: "absoluteLengthZeroIfBorderStyleNoquillrHidden",
 		order: "uniqueOrder",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/border-block-width"
@@ -15844,7 +15844,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthZeroIfBorderStyleNoneOrHidden",
+		computed: "absoluteLengthZeroIfBorderStyleNoquillrHidden",
 		order: "uniqueOrder",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/border-block-end-width"
@@ -15920,7 +15920,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthZeroIfBorderStyleNoneOrHidden",
+		computed: "absoluteLengthZeroIfBorderStyleNoquillrHidden",
 		order: "uniqueOrder",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/border-block-start-width"
@@ -16043,7 +16043,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthOr0IfBorderBottomStyleNoneOrHidden",
+		computed: "absoluteLengthOr0IfBorderBottomStyleNoquillrHidden",
 		order: "uniqueOrder",
 		alsoAppliesTo: [
 			"::first-letter"
@@ -16241,7 +16241,7 @@
 		],
 		initial: "none",
 		appliesto: "allElementsExceptTableElementsWhenCollapse",
-		computed: "noneOrImageWithAbsoluteURI",
+		computed: "noquillrImageWithAbsoluteURI",
 		order: "uniqueOrder",
 		alsoAppliesTo: [
 			"::first-letter"
@@ -16363,7 +16363,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthZeroIfBorderStyleNoneOrHidden",
+		computed: "absoluteLengthZeroIfBorderStyleNoquillrHidden",
 		order: "uniqueOrder",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/border-inline-width"
@@ -16411,7 +16411,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthZeroIfBorderStyleNoneOrHidden",
+		computed: "absoluteLengthZeroIfBorderStyleNoquillrHidden",
 		order: "uniqueOrder",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/border-inline-end-width"
@@ -16487,7 +16487,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthZeroIfBorderStyleNoneOrHidden",
+		computed: "absoluteLengthZeroIfBorderStyleNoquillrHidden",
 		order: "uniqueOrder",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/border-inline-start-width"
@@ -16572,7 +16572,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthOr0IfBorderLeftStyleNoneOrHidden",
+		computed: "absoluteLengthOr0IfBorderLeftStyleNoquillrHidden",
 		order: "uniqueOrder",
 		alsoAppliesTo: [
 			"::first-letter"
@@ -16694,7 +16694,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthOr0IfBorderRightStyleNoneOrHidden",
+		computed: "absoluteLengthOr0IfBorderRightStyleNoquillrHidden",
 		order: "uniqueOrder",
 		alsoAppliesTo: [
 			"::first-letter"
@@ -16903,7 +16903,7 @@
 		],
 		initial: "medium",
 		appliesto: "allElements",
-		computed: "absoluteLengthOr0IfBorderTopStyleNoneOrHidden",
+		computed: "absoluteLengthOr0IfBorderTopStyleNoquillrHidden",
 		order: "uniqueOrder",
 		alsoAppliesTo: [
 			"::first-letter"
@@ -17367,7 +17367,7 @@
 		],
 		initial: "medium",
 		appliesto: "multicolElements",
-		computed: "absoluteLength0IfColumnRuleStyleNoneOrHidden",
+		computed: "absoluteLength0IfColumnRuleStyleNoquillrHidden",
 		order: "perGrammar",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/column-rule-width"
@@ -18726,7 +18726,7 @@
 		],
 		initial: "none",
 		appliesto: "listItems",
-		computed: "noneOrImageWithAbsoluteURI",
+		computed: "noquillrImageWithAbsoluteURI",
 		order: "uniqueOrder",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/list-style-image"
@@ -20079,7 +20079,7 @@
 		initial: "50% 50%",
 		appliesto: "transformableElements",
 		computed: "forLengthAbsoluteValueOtherwisePercentage",
-		order: "oneOrTwoValuesLengthAbsoluteKeywordsPercentages",
+		order: "oquillrTwoValuesLengthAbsoluteKeywordsPercentages",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/perspective-origin"
 	},
@@ -21217,7 +21217,7 @@
 		animationType: "discrete",
 		percentages: "no",
 		groups: [
-			"CSS Miscellaneous"
+			"CSS Miscellaquillus"
 		],
 		initial: "auto",
 		appliesto: "textElements",
@@ -21367,7 +21367,7 @@
 		initial: "50% 50% 0",
 		appliesto: "transformableElements",
 		computed: "forLengthAbsoluteValueOtherwisePercentage",
-		order: "oneOrTwoValuesLengthAbsoluteKeywordsPercentages",
+		order: "oquillrTwoValuesLengthAbsoluteKeywordsPercentages",
 		status: "standard",
 		mdn_url: "https://developer.mozilla.org/docs/Web/CSS/transform-origin"
 	},

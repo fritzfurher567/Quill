@@ -61,7 +61,7 @@ function loadMain() {
 const main = loadMain();
 
 function tempLibrary() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'neo-library-fs-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'quill-library-fs-'));
   main.pointAt(dir);
   return dir;
 }
@@ -232,7 +232,7 @@ describe('filesystem', { concurrency: 1 }, () => {
   });
 
   test('a rejected name creates nothing outside the temp library', () => {
-    const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'neo-library-fs-'));
+    const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'quill-library-fs-'));
     const dir = path.join(rootDir, 'library');
     fs.mkdirSync(dir);
     main.pointAt(dir);

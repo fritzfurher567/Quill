@@ -1,7 +1,7 @@
-// NEO — interface translations
+// Quill — interface translations
 //
 // One tiny helper shared by the main process (require) and the window
-// (window.NeoI18n). The English text itself is the key, so the code stays
+// (window.QuillI18n). The English text itself is the key, so the code stays
 // readable and a missing translation simply shows the English original:
 //
 //   t('Sprint complete — {n} words. Well earned.', { n: 1200 })
@@ -20,7 +20,7 @@
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.NeoI18n = api;
+  else root.QuillI18n = api;
 })(typeof self !== 'undefined' ? self : this, function () {
   let locale = 'en';
   let dict = {};      // the chosen language

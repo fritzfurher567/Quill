@@ -394,7 +394,7 @@
      all U.S. Government End Users acquire Covered Code with only those
      rights set forth herein.
 
-11. MISCELLANEOUS.
+11. MISCELLAQuillUS.
 
      This License represents the complete agreement concerning subject
      matter hereof. If any provision of this License is held to be

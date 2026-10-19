@@ -1,6 +1,6 @@
-# Translating NEO
+# Translating Quill
 
-NEO currently speaks:
+Quill currently speaks:
 
 | Code | Language | Status |
 |---|---|---|
@@ -26,17 +26,17 @@ NEO currently speaks:
 
 Spellchecking (Edit → Spellcheck Language) covers English, French, Spanish, German, Dutch, Polish, Brazilian Portuguese, Romanian, Russian, Hungarian and Swedish. The engine is Hunspell itself, compiled to WebAssembly, so every dictionary loads in well under a second. Italian is left out because the only Hunspell dictionary on npm is GPL-3.0-only, which does not sit well in an MIT app. The Brazilian Portuguese interface starts with the Brazilian dictionary; the European Portuguese interface leaves the choice to the writer, since spellings differ.
 
-Spellcheck starts off on every launch. Choosing a dictionary does not turn it on. If the interface starts in Romanian and the library has no saved spellcheck language, NEO selects and saves Romanian. Explicit dictionary choices survive interface-language changes. Other interface languages keep their existing defaults.
+Spellcheck starts off on every launch. Choosing a dictionary does not turn it on. If the interface starts in Romanian and the library has no saved spellcheck language, Quill selects and saves Romanian. Explicit dictionary choices survive interface-language changes. Other interface languages keep their existing defaults.
 
 Romanian lookup accepts standard diacritics, legacy `ş/ţ`, and decomposed Unicode accents without changing manuscript text. Suggestions use standard Romanian spelling. This checks spelling, not grammar: both `sa` and `să` are words. See [the Romanian evaluation](scripts/romanian-spellcheck.md) and [the Portuguese evaluation](scripts/portuguese-spellcheck.md) for performance and licensing details.
 
-The Swedish dictionary (`sv`, **Svenska** in Edit → Spellcheck Language) is Göran Andersson's LibreOffice dictionary, pinned as `dictionary-sv` 4.0.0. Its data is LGPL 3.0, separately from NEO's MIT license. Desktop and Pocket distribute the unmodified `.aff`/`.dic` source files with attribution and the full LGPL/GPL license texts (`licenses/dictionary-sv`). This adds spellchecking only, not a Swedish interface translation.
+The Swedish dictionary (`sv`, **Svenska** in Edit → Spellcheck Language) is Göran Andersson's LibreOffice dictionary, pinned as `dictionary-sv` 4.0.0. Its data is LGPL 3.0, separately from Quill's MIT license. Desktop and Pocket distribute the unmodified `.aff`/`.dic` source files with attribution and the full LGPL/GPL license texts (`licenses/dictionary-sv`). This adds spellchecking only, not a Swedish interface translation.
 
 The Hungarian dictionary is LibreOffice's Magyar Ispell 1.9, kept in `dictionaries/hu` (the npm `dictionary-hu` package rejected common accusatives like *könyvet*). They are underlined in blue; right-click shows the fix and why. Each rule is a plain pattern run on the writer's computer, and fires only where a mistake is very likely.
 
 If you speak one of these and something reads oddly, a pull request that fixes a line is the most welcome contribution there is.
 
-NEO's interface can be shown in any language. Each language is a single file in `locales/`, and adding one needs no programming.
+Quill's interface can be shown in any language. Each language is a single file in `locales/`, and adding one needs no programming.
 
 ## Add a language
 
@@ -45,11 +45,11 @@ NEO's interface can be shown in any language. Each language is a single file in 
 3. Fill in each empty value with the translation of its English key. Anything left empty simply stays in English, so a partial translation is fine to start with.
 4. Check your work: `node scripts/i18n.js check <code>`. It lists what is missing, and any `{placeholder}` that went astray.
 
-The new language appears in **View → Language** the next time NEO starts.
+The new language appears in **View → Language** the next time Quill starts.
 
 ## Regional variants
 
-Language codes follow [BCP 47](https://www.rfc-editor.org/info/bcp47): a language (`fr`), optionally followed by a region (`fr-CA`, `fr-BE`, `fr-CH`). NEO also accepts the POSIX spelling (`fr_CA`) when reading a system or saved setting.
+Language codes follow [BCP 47](https://www.rfc-editor.org/info/bcp47): a language (`fr`), optionally followed by a region (`fr-CA`, `fr-BE`, `fr-CH`). Quill also accepts the POSIX spelling (`fr_CA`) when reading a system or saved setting.
 
 A language's base file (`fr.json`) serves every region. A regional file (`fr-CA.json`) holds **only the strings that differ** there, and everything else comes from the base file, then from English:
 
@@ -63,7 +63,7 @@ So `fr-CA.json` is short: in Quebec, "courriel" instead of "e-mail", and no spac
 
 ## The rules of the file
 
-- **Placeholders** in braces, like `{title}` or `{n}`, are filled in by NEO. Keep them, spelled exactly the same; you can move them anywhere in the sentence.
+- **Placeholders** in braces, like `{title}` or `{n}`, are filled in by Quill. Keep them, spelled exactly the same; you can move them anywhere in the sentence.
 - **Plurals.** When a string counts something with `{n}`, you can give one form per plural category instead of a single string:
 
   ```json
@@ -73,19 +73,19 @@ So `fr-CA.json` is short: in Quebec, "courriel" instead of "e-mail", and no spac
   The categories are those of your language in [Unicode's plural rules](https://www.unicode.org/cldr/charts/latest/supplemental/language_plural_rules.html) (`one`, `few`, `many`, `other`…). `other` is always required.
 - **Numbers** are formatted for the language automatically (`1,234` in English, `1 234` in French).
 - **`&amp;`** appears in a few help strings that are shown as HTML. Keep it as `&amp;` (or rephrase without an ampersand).
-- **Keyboard keys** such as `⌘`, `⇧` or `Ctrl` are added by NEO; translate the words around them.
+- **Keyboard keys** such as `⌘`, `⇧` or `Ctrl` are added by Quill; translate the words around them.
 
 ## Typing in each language
 
-While writing, NEO sets the quotation marks of the language being written: the spellcheck language when one is chosen, otherwise NEO's own language. « » for French (with narrow no-break spaces), Spanish, Italian, European Portuguese and Russian; „ “ for German; „ ” for Polish, Romanian and Hungarian; “ ” for English, Dutch and Brazilian Portuguese; ” ” for Swedish. Swedish books set in »…» keep that style. The apostrophe is always ’. French also gets a narrow no-break space before ; : ! ? (before : only in Canadian French). The table is `QUOTE_STYLES` in `app.js`.
+While writing, Quill sets the quotation marks of the language being written: the spellcheck language when one is chosen, otherwise Quill's own language. « » for French (with narrow no-break spaces), Spanish, Italian, European Portuguese and Russian; „ “ for German; „ ” for Polish, Romanian and Hungarian; “ ” for English, Dutch and Brazilian Portuguese; ” ” for Swedish. Swedish books set in »…» keep that style. The apostrophe is always ’. French also gets a narrow no-break space before ; : ! ? (before : only in Canadian French). The table is `QUOTE_STYLES` in `app.js`.
 
-A book that has settled on other guillemets keeps them: in a German novel set in »…«, or Swiss writing in «…», type the first mark by hand and NEO carries on in that style (`bookQuotes` in `app.js`).
+A book that has settled on other guillemets keeps them: in a German novel set in »…«, or Swiss writing in «…», type the first mark by hand and Quill carries on in that style (`bookQuotes` in `app.js`).
 
 Imports recognize chapter headings in all these languages (`CHAPTER_WORDS` in `main.js`), and cover titles treat each language's small words like "of" and "the" (`CONNECTORS` in `covers.js`).
 
 ## Fonts in other alphabets
 
-Most fonts NEO bundles (the body fonts on Linux, the drop caps and the cover titles, in `fonts/`) have Latin letters only. For Russian, each has a companion under the same font name in `styles.css` that supplies the Cyrillic letters, so Latin text looks exactly as before. A language with letters of its own needs the same check: every bundled font, companions included, must carry them.
+Most fonts Quill bundles (the body fonts on Linux, the drop caps and the cover titles, in `fonts/`) have Latin letters only. For Russian, each has a companion under the same font name in `styles.css` that supplies the Cyrillic letters, so Latin text looks exactly as before. A language with letters of its own needs the same check: every bundled font, companions included, must carry them.
 
 ## For developers
 

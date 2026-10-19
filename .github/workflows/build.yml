@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+        node-version: 24
 
       # `npm ci` needs a package-lock.json; fall back to `npm install` without one
       - name: Install dependencies
@@ -29,8 +29,23 @@ jobs:
 
       # Assumes package.json has a "dist" script (e.g. "electron-builder").
       # Change this line to whatever your build script is called.
+
       - name: Build installer
-        run: npm run dist
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            npm run package:win
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            npm run package:mac
+          elif [ "$RUNNER_OS" = "Linux" ]; then
+            npm run package:linux
+          else
+            echo "Unsupported operating system: $RUNNER_OS"
+            exit 1
+          fi
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
         env:
           # unsigned builds: stops electron-builder hunting for a Mac signing identity
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
@@ -48,4 +63,4 @@ jobs:
             release/*.dmg
             release/*.AppImage
             release/*.deb
-          if-no-files-found: warn
+          if-no-files-found: error

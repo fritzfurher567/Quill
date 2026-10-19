@@ -1,4 +1,4 @@
-// NEO's spellchecker, in its own process. main.js forks this with
+// Quill's spellchecker, in its own process. main.js forks this with
 // Electron's utilityProcess and talks to it with plain messages: load,
 // check, suggest, add.
 //
@@ -36,8 +36,8 @@ async function load(msg) {
   const normalize = romanian ? normalizeRomanianWord : (word) => word;
   const n = ++mounts;
   const files = [
-    factory.mountBuffer(aff, `neo-${n}.aff`),
-    factory.mountBuffer(dic, `neo-${n}.dic`)
+    factory.mountBuffer(aff, `quill-${n}.aff`),
+    factory.mountBuffer(dic, `quill-${n}.dic`)
   ];
   let hunspell;
   try {

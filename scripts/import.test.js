@@ -31,7 +31,7 @@ vm.runInContext(source, vm.createContext({
   __dirname: root, process: { platform: process.platform, on() {} }, console
 }), { filename: path.join(root, 'main.js') });
 
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'neo-import-'));
+const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'quill-import-'));
 async function importOne(name, data) {
   const fp = path.join(dir, name);
   fs.writeFileSync(fp, data);

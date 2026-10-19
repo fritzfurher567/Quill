@@ -1,29 +1,29 @@
-# NEO
+# Quill
 
 **A distraction-free word processor for authors, by a wannabe author.**
 
-NEO understands from the moment you install it that you are writing *books* and nothing else. No bloat, no distractions, with manuscripts that look like books as you write them.
+Quill understands from the moment you install it that you are writing *books* and nothing else. No bloat, no distractions, with manuscripts that look like books as you write them.
 
-NEO runs locally. WIPs are saved in plain files on your disk. No accounts or subscriptions. And it's free!
+Quill runs locally. WIPs are saved in plain files on your disk. No accounts or subscriptions. And it's free!
 
 ## Download
 
 Get the latest installer from the **[Releases page](../../releases)**:
 
-- **macOS** — download the `.dmg` for older Intel machines or the arm64 file for Mac silicon. Open it and drag NEO to Applications.
-- **Windows** — get `NEO-Setup` (the installer, which keeps itself up to date) and run it, or the `portable` `.exe`, which runs without installing.
+- **macOS** — download the `.dmg` for older Intel machines or the arm64 file for Mac silicon. Open it and drag Quill to Applications.
+- **Windows** — get `Quill-Setup` (the installer, which keeps itself up to date) and run it, or the `portable` `.exe`, which runs without installing.
 
-  Your library lives in `Documents\NEO Library`. If OneDrive backs up your Documents folder, that puts your books in OneDrive too; File → Library Folder… moves the library anywhere you like. If Windows Security's *Controlled folder access* is on, Windows won't let NEO save in Documents: NEO says so when it starts, and you can allow NEO there or pick another folder.
+  Your library lives in `Documents\Quill Library`. If OneDrive backs up your Documents folder, that puts your books in OneDrive too; File → Library Folder… moves the library anywhere you like. If Windows Security's *Controlled folder access* is on, Windows won't let Quill save in Documents: Quill says so when it starts, and you can allow Quill there or pick another folder.
 - **Linux** — download the `.AppImage`, make it executable, and run it:
 
   ```
-  chmod +x NEO-*.AppImage
-  ./NEO-*.AppImage
+  chmod +x Quill-*.AppImage
+  ./Quill-*.AppImage
   ```
 
-  If it complains about a sandbox (common on Ubuntu 24.04 and newer), run it as `./NEO-*.AppImage --no-sandbox`. Your library lives in `~/Documents/NEO Library`; File → Library Folder… moves it anywhere you like.
+  If it complains about a sandbox (common on Ubuntu 24.04 and newer), run it as `./Quill-*.AppImage --no-sandbox`. Your library lives in `~/Documents/Quill Library`; File → Library Folder… moves it anywhere you like.
 
-## Why NEO?
+## Why Quill?
 
 **The bookshelf** 
 
@@ -53,7 +53,7 @@ The Outline tab lays your book out as index cards, set like a page: they read le
 
 **Cover Art** 
 
-Every book gets a cover! New books are dressed in a seeded abstract (six art styles, six type templates, typefaces bundled with NEO) so no two stories on the shelf look alike. Once a story passes 1,000 words, NEO can read it and paint an abstract cover from the text. This is a bit more work but totally worth it. Get an OpenAI API key from their website and paste it into **File → Cover Art…**. The art is generated in the background for about a penny a picture. (These are not meant for publication, just writing inspiration!) The API key is stored encrypted in NEO's own settings, never in your library folder. The title and author are always set in real type on top, so the lettering is never left to a gen-AI model. The ↻ on any book re-rolls its type and colors, or paints it again. And you can always switch back and forth from the seeded modern look to the painted variety.
+Every book gets a cover! New books are dressed in a seeded abstract (six art styles, six type templates, typefaces bundled with Quill) so no two stories on the shelf look alike. Once a story passes 1,000 words, Quill can read it and paint an abstract cover from the text. This is a bit more work but totally worth it. Get an OpenAI API key from their website and paste it into **File → Cover Art…**. The art is generated in the background for about a penny a picture. (These are not meant for publication, just writing inspiration!) The API key is stored encrypted in Quill's own settings, never in your library folder. The title and author are always set in real type on top, so the lettering is never left to a gen-AI model. The ↻ on any book re-rolls its type and colors, or paints it again. And you can always switch back and forth from the seeded modern look to the painted variety.
 
 **Goals and momentum** 
 
@@ -69,7 +69,7 @@ A lot of you have asked for this feature, so here it is! Right-click the + on an
 
 You never have to pick a formatting element. Start a line with INT. or EXT. and it's a scene heading. Type a name in capitals, hit Enter, and the next line is dialogue. Hit Enter twice after a speech and you're on the next speaker, with whoever is being answered already there in gray. Tab or Enter fills it in. ⌘1 through ⌘7 will let you pick an element yourself, the same keys Final Draft uses. The left panel lists your scenes and how long each one runs, in eighths of a page. Drag a scene to move it. (CONT'D) happens automatically. The Outline tab lays every scene out as an index card: its heading, its length, who's in it, and a note you can write on it. Drag the cards to restructure the script, or start a script as a stack of cards and write it from there.
 
-Export an industry-format PDF, or a Fountain or Final Draft (.fdx) file. Drop a .fountain or .fdx file on a shelf to import a script. Notes, Darlings, placeholders, sprints, and NEO Pocket all work the same as they do for books.
+Export an industry-format PDF, or a Fountain or Final Draft (.fdx) file. Drop a .fountain or .fdx file on a shelf to import a script. Notes, Darlings, placeholders, sprints, and Quill Pocket all work the same as they do for books.
 
 **Exports** 
 
@@ -81,15 +81,15 @@ Bring in existing .docx, .txt, and .md manuscripts; chapters and scene breaks ar
 
 **Backups** 
 
-Continuous autosave, daily zip backups kept for two weeks, everything stored as plain files. Set up your NEO library folder on your iCloud if you want for extra safety. You can also email copies of your WIP to yourself with a keystroke: ⌘E.
+Continuous autosave, daily zip backups kept for two weeks, everything stored as plain files. Set up your Quill library folder on your iCloud if you want for extra safety. You can also email copies of your WIP to yourself with a keystroke: ⌘E.
 
 ## Your files
 
-Everything lives in `~/Documents/NEO Library` — one folder per book, chapters as readable HTML, metadata as JSON. Open them in your favorite text editor.
+Everything lives in `~/Documents/Quill Library` — one folder per book, chapters as readable HTML, metadata as JSON. Open them in your favorite text editor.
 
 ## Languages
 
-NEO speaks English, French, Spanish, Portuguese, German, Italian, Dutch, Polish, Romanian and Russian. Pick one under **View → Language**; on first launch NEO follows your system language when it has it. Adding a language is a single file, no programming needed: see [TRANSLATING.md](TRANSLATING.md).
+Quill speaks English, French, Spanish, Portuguese, German, Italian, Dutch, Polish, Romanian and Russian. Pick one under **View → Language**; on first launch Quill follows your system language when it has it. Adding a language is a single file, no programming needed: see [TRANSLATING.md](TRANSLATING.md).
 
 ## Building from source (for the eggheads):
 
@@ -102,11 +102,11 @@ npm install
 npm start
 ```
 
-**View → Keyboard Shortcuts…** opens the shortcut reference. You can also press `Cmd+/` on macOS or `Ctrl+/` on Windows and Linux, or use **Help → NEO Shortcuts**.
+**View → Keyboard Shortcuts…** opens the shortcut reference. You can also press `Cmd+/` on macOS or `Ctrl+/` on Windows and Linux, or use **Help → Quill Shortcuts**.
 
 To build installers: `npm install electron-builder --save-dev`, then `npm run package` (macOS, also `npm run package:mac`), `npm run package:win` (Windows), or `npm run package:all`. Output lands in `dist/`.
 
-The app is very simple: an Electron shell (`main.js`), a preload bridge (`preload.js`), and a renderer (`app.js` + `styles.css` + `index.html`). If you know JavaScript, you can change NEO. Have at it.
+The app is very simple: an Electron shell (`main.js`), a preload bridge (`preload.js`), and a renderer (`app.js` + `styles.css` + `index.html`). If you know JavaScript, you can change Quill. Have at it.
 
 ## Roadmap (things I'm dreaming up but may never get to):
 
@@ -114,7 +114,7 @@ Chapter version history · manuscript format for agent submissions (Times New Ro
 
 ## Contributing
 
-Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Fair warning: NEO is opinionated by design, and bloat killed every writing app I've ever tried. If you want complex, try Scrivener. It really is a great application beloved by many! There are so many wonderful writing apps out there! Nobody needs to use this but me.
+Issues and pull requests are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Fair warning: Quill is opinionated by design, and bloat killed every writing app I've ever tried. If you want complex, try Scrivener. It really is a great application beloved by many! There are so many wonderful writing apps out there! Nobody needs to use this but me.
 
 ## License
 

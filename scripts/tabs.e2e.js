@@ -13,20 +13,20 @@ const path = require('path');
 // the process is gone, so a run can't remove its own; it removes those of
 // earlier runs whose process has ended instead, leaving any still running.
 for (const name of fs.readdirSync(os.tmpdir())) {
-  const pid = /^neo-tabs-test-(\d+)-/.exec(name);
+  const pid = /^quill-tabs-test-(\d+)-/.exec(name);
   if (!pid || +pid[1] === process.pid) continue;
   try { process.kill(+pid[1], 0); continue; } catch (err) { if (err.code === 'EPERM') continue; }
   fs.rmSync(path.join(os.tmpdir(), name), { recursive: true, force: true });
 }
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `neo-tabs-test-${process.pid}-`));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `quill-tabs-test-${process.pid}-`));
 app.setPath('userData', path.join(tmp, 'app'));
 app.setPath('documents', tmp);
-fs.mkdirSync(path.join(tmp, 'NEO Library'));
-fs.writeFileSync(path.join(tmp, 'NEO Library', 'library.json'), JSON.stringify({
+fs.mkdirSync(path.join(tmp, 'Quill Library'));
+fs.writeFileSync(path.join(tmp, 'Quill Library', 'library.json'), JSON.stringify({
   authorName: '', penNames: [], firstRunDone: true, pageTheme: 'night',
   shelves: [{ id: 'shelf-1', name: 'Works in Progress', bookIds: [] }]
 }));
-// run from scripts/, NEO's window would look for scripts/index.html
+// run from scripts/, Quill's window would look for scripts/index.html
 const loadFile = BrowserWindow.prototype.loadFile;
 BrowserWindow.prototype.loadFile = function (file, opts) {
   return loadFile.call(this, path.resolve(__dirname, '..', file), opts);

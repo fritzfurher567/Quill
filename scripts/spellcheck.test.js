@@ -113,7 +113,7 @@ test('worker checks Romanian, suggests, learns and switches languages', async ()
   }
   assert.equal((await send({ type: 'add', word: 'Nerțulică'.normalize('NFD') })).ok, true);
   await check(['Nerțulică', 'Nerţulică', 'Nerţulică'.normalize('NFD')], true);
-  assert.equal((await send({ type: 'load', language: 'en-US', dir: '/no-such-neo-dictionary' })).ok, false);
+  assert.equal((await send({ type: 'load', language: 'en-US', dir: '/no-such-quill-dictionary' })).ok, false);
   await check(['şcoală', 'trebui'], true); // failed load keeps the previous dictionary and normalization
   await load('en-US', 'dictionary-en-us', ['Zorţilă']);
   await check(['This', 'sentence', 'should', 'be', 'correct', 'Zorţilă'], true);
@@ -160,7 +160,7 @@ test('learning a Romanian word removes cached Unicode-variant underlines across 
     $: () => editors['aux-editor'], t: (text) => text, tk: (text) => text, toast() {},
     currentTab: 'manuscript', currentChapterId: 'ch-test', library: {},
     captureMenu: (_x, _y, _word, _suggestions, callbacks) => { actions = callbacks; },
-    window: { neo: {
+    window: { quill: {
       spellCheckWords: async (words) => (await send({ type: 'check', words })).result,
       spellSuggest: async (word) => (await send({ type: 'suggest', word })).result,
       spellLearn: async (word) => (await send({ type: 'add', word })).ok,
@@ -168,15 +168,15 @@ test('learning a Romanian word removes cached Unicode-variant underlines across 
     } }
   });
   // app.js saves the library through its own writeLibrary(), which counts
-  // writes before handing them to window.neo
-  context.writeLibrary = (lib) => context.window.neo.writeLibrary(lib);
+  // writes before handing them to window.quill
+  context.writeLibrary = (lib) => context.window.quill.writeLibrary(lib);
   const app = source('app.js');
   // Use the real scanner, cache and context-menu learn callback. Only DOM
   // primitives and IPC transport are replaced; the worker loads Hunspell.
   vm.runInContext(app.slice(app.indexOf('let spellOn = false;'), app.indexOf('let typewriterEnabled = false;')), context);
   vm.runInContext('spellOn = true; showSpellMenu = captureMenu;', context);
   await vm.runInContext('Promise.all([spellScanEl(spellElFor("ch-test"), "ch-test"), spellScanEl(spellElFor("aux-notes"), "aux-notes")])', context);
-  const flagged = () => [...highlights.get('neo-spell')].map((range) => range.toString());
+  const flagged = () => [...highlights.get('quill-spell')].map((range) => range.toString());
   assert.deepEqual(flagged(), [variants[0], variants[1], 'frgament', variants[2], 'coretc']);
   await contextmenu({ target: editors['ch-test'], clientX: 0, clientY: 0, preventDefault() {} });
   assert.ok(actions);
@@ -188,7 +188,7 @@ test('learning a Romanian word removes cached Unicode-variant underlines across 
   assert.deepEqual(Object.values(editors).map((el) => el.node.data), originalText);
   assert.equal(vm.runInContext('spellOn', context), true);
   vm.runInContext('toggleSpellcheck();', context);
-  assert.equal(highlights.has('neo-spell'), false);
+  assert.equal(highlights.has('quill-spell'), false);
   vm.runInContext('toggleSpellcheck();', context);
   await new Promise(setImmediate);
   assert.deepEqual(flagged(), ['frgament']);
@@ -236,7 +236,7 @@ function mainContext(temp, systemLocale, settings = {}, library = {}, raw = null
 }
 
 test('spellcheck follows the interface until a dictionary is picked; nothing is saved for the writer', async (t) => {
-  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'neo-spell-test-'));
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'quill-spell-test-'));
   t.after(() => fs.rmSync(temp, { recursive: true, force: true }));
   const fresh = mainContext(temp, 'ro_RO', {}, { authorName: 'Autor', customWords: ['Zorțilă'] });
   assert.equal(fresh.read().spellLanguage, undefined); // not saved on the writer's behalf
@@ -252,7 +252,7 @@ test('spellcheck follows the interface until a dictionary is picked; nothing is 
   assert.equal(fresh.read().spellLanguage, undefined);
   await Promise.resolve();
 
-  // the same rule for every language: its own dictionary when NEO has one
+  // the same rule for every language: its own dictionary when Quill has one
   for (const [locale, code] of [['ru_RU', 'ru'], ['fr-CA', 'fr'], ['de', 'de'], ['pl', 'pl'], ['en-US', 'en-US'], ['it', 'en-US'], ['pt-BR', 'pt-BR'], ['pt-PT', 'en-US']]) {
     const ui = mainContext(temp, locale);
     assert.equal(ui.loads[0].language, code, locale);
@@ -311,13 +311,13 @@ test('hyphenated words: the whole word first, then only the wrong pieces', async
     },
     NodeFilter: { SHOW_TEXT: 4 }, Range: TextRange, Highlight: Set, CSS: { highlights },
     $: () => null, t: (text) => text, tk: (text) => text, toast() {},
-    window: { neo: { spellCheckWords: async (words) => (await send({ type: 'check', words })).result } }
+    window: { quill: { spellCheckWords: async (words) => (await send({ type: 'check', words })).result } }
   });
   const app = source('app.js');
   vm.runInContext(app.slice(app.indexOf('let spellOn = false;'), app.indexOf('let typewriterEnabled = false;')), context);
   context.el = el;
   await vm.runInContext('spellOn = true; spellScanEl(el, "ch-test")', context);
-  assert.deepEqual([...highlights.get('neo-spell')].map((r) => r.toString()), ['knwon']);
+  assert.deepEqual([...highlights.get('quill-spell')].map((r) => r.toString()), ['knwon']);
 });
 
 test('a hyphenated word underlined whole opens the menu; a stammer is no misspelling', async () => {
@@ -347,7 +347,7 @@ test('a hyphenated word underlined whole opens the menu; a stammer is no misspel
     captureMenu: (_x, _y, word, suggestions, actions) => { menu = { word, suggestions, actions }; },
     window: {
       getSelection: () => ({ removeAllRanges() {}, addRange: (r) => { selected = r; } }),
-      neo: {
+      quill: {
         spellCheckWords: async (words) => (await send({ type: 'check', words })).result,
         spellSuggest: async (word) => (await send({ type: 'suggest', word })).result
       }
@@ -357,7 +357,7 @@ test('a hyphenated word underlined whole opens the menu; a stammer is no misspel
   vm.runInContext(app.slice(app.indexOf('let spellOn = false;'), app.indexOf('let typewriterEnabled = false;')), context);
   context.el = editor;
   await vm.runInContext('spellOn = true; showSpellMenu = captureMenu; spellScanEl(el, "ch-test")', context);
-  assert.deepEqual([...highlights.get('neo-spell')].map((r) => r.toString()), ['auto-estima']);
+  assert.deepEqual([...highlights.get('quill-spell')].map((r) => r.toString()), ['auto-estima']);
   await contextmenu({ target: editor, clientX: 0, clientY: 0, preventDefault() {} });
   assert.equal(menu && menu.word, 'auto-estima');
   assert.ok(menu.suggestions.includes('autoestima'));

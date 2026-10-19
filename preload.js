@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
-contextBridge.exposeInMainWorld('neo', {
+contextBridge.exposeInMainWorld('quill', {
   platform: process.platform,
   // macOS: the system dictionary panel for the selected word (#179)
   lookUpText: () => ipcRenderer.invoke('app:lookUp'),

@@ -23,7 +23,7 @@ const say = (msg) => console.log('→ ' + msg);
 const branch = git('rev-parse', '--abbrev-ref', 'HEAD');
 if (branch !== 'main') stop(`You're on "${branch}", not main. Type: git checkout main   then try again.`);
 const changed = git('status', '--porcelain', '--untracked-files=no');
-if (changed) stop('Some NEO files have changes that aren\'t committed yet:\n' + changed + '\nAsk Claude what to do with them before releasing.');
+if (changed) stop('Some Quill files have changes that aren\'t committed yet:\n' + changed + '\nAsk Claude what to do with them before releasing.');
 
 // 2. up to date with GitHub
 say('Getting the latest from GitHub…');
@@ -52,7 +52,7 @@ const tag = 'v' + next;
 const newer = (x, y) => { const p = x.split('.').map(Number), q = y.split('.').map(Number); for (let i = 0; i < 3; i++) if (p[i] !== q[i]) return p[i] > q[i]; return false; };
 // the version may already be set (a release that stopped halfway): carry on from there
 const alreadySet = current === next;
-if (!alreadySet && !newer(next, current)) stop(`${next} isn't newer than ${current}. NEO's updater would never offer it.`);
+if (!alreadySet && !newer(next, current)) stop(`${next} isn't newer than ${current}. Quill's updater would never offer it.`);
 if (git('ls-remote', '--tags', 'origin', tag)) stop(`${tag} already exists on GitHub. To release again, run:  npm run release   (it picks the next number).`);
 
 // 4. what's in it, since the last release

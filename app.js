@@ -1,4 +1,4 @@
-/* =============================== NEO =============================== */
+/* =============================== Quill =============================== */
 
 'use strict';
 
@@ -6,15 +6,15 @@
 // The English text is the key: t('Cancel') shows the translation when the
 // chosen language has one, and the English original otherwise.
 (() => {
-  const l = (window.neo && window.neo.i18n) || {};
-  NeoI18n.setLocale(l.locale || 'en', l.dict || {}, l.base || {});
+  const l = (window.quill && window.quill.i18n) || {};
+  QuillI18n.setLocale(l.locale || 'en', l.dict || {}, l.base || {});
 })();
-const { t, fmtNum, fmtDate } = NeoI18n;
+const { t, fmtNum, fmtDate } = QuillI18n;
 
 // index.html marks its words with data-i18n (text), data-i18n-title,
 // data-i18n-placeholder and data-i18n-ph (the empty-field hints)
 function applyStaticI18n(root = document) {
-  document.documentElement.lang = NeoI18n.getLocale();
+  document.documentElement.lang = QuillI18n.getLocale();
   root.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.textContent.replace(/\s+/g, ' ').trim()); });
   root.querySelectorAll('[data-i18n-title]').forEach((el) => { if (el.title) el.title = t(el.title); });
   root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.placeholder); });
@@ -65,7 +65,7 @@ const BACK_KINDS = ['epilogue', 'acknowledgments', 'about'];
 function chapterKind(chId, meta = book) {
   const k = meta && meta.chapterKinds && meta.chapterKinds[chId];
   if (k && CHAPTER_KINDS.includes(k)) return k;
-  // NEO 1.0 kept a prologue and an epilogue as roles of the first and last
+  // Quill 1.0 kept a prologue and an epilogue as roles of the first and last
   // chapters (a book not opened since reads that way until it is)
   const order = (meta && meta.chapterOrder) || [];
   if (order.length >= 2) {
@@ -162,7 +162,7 @@ function soloStory(meta = book) {
   const story = meta.chapterOrder.filter((c) => isStory(c, meta) || chapterKind(c, meta) === 'part');
   return story.length === 1 && chapterKind(story[0], meta) === 'chapter' ? story[0] : null;
 }
-// NEO 1.0's roles become kinds the first time a book opens here, and a kind
+// Quill 1.0's roles become kinds the first time a book opens here, and a kind
 // whose entry is gone is let go
 function settleChapterKinds() {
   let changed = false;
@@ -217,17 +217,17 @@ function writeLibrary(lib = library) {
   rememberDeviceLook(lib);
   libraryGeneration++;
   libraryWritesPending++;
-  return new Promise((resolve) => resolve(window.neo.writeLibrary(lib)))
+  return new Promise((resolve) => resolve(window.quill.writeLibrary(lib)))
     .finally(() => { libraryWritesPending--; });
 }
 
-// How NEO looks is each device's own: dark on the iPad, light on the PC.
+// How Quill looks is each device's own: dark on the iPad, light on the PC.
 // These settings are kept on the device as well as in library.json. The
 // library's copy is the last device's, so a device opening the library for
 // the first time starts out the way the writer last had it, and from then on
 // keeps its own.
 const DEVICE_LOOK = ['pageTheme', 'background', 'uiBright', 'uiBrightAside', 'uiZoom', 'editorFontSize', 'typewriter', 'focus', 'posMode', 'outlineView', 'vimKeys'];
-const DEVICE_LOOK_KEY = 'neo-device-look';
+const DEVICE_LOOK_KEY = 'quill-device-look';
 function deviceLookOf(lib) {
   const out = {};
   for (const k of DEVICE_LOOK) if (lib && lib[k] !== undefined) out[k] = lib[k];
@@ -271,7 +271,7 @@ const IS_MAC = navigator.platform.toLowerCase().includes('mac');
 const IS_LINUX = !IS_MAC && /linux/i.test(navigator.platform) && !window.Capacitor;
 // a touch screen (Pocket): nothing to hover, no right button
 const NO_HOVER = !!(window.matchMedia && window.matchMedia('(hover: none)').matches) || !!window.Capacitor;
-// NEO Pocket (the Android and iOS shell)
+// Quill Pocket (the Android and iOS shell)
 const IS_POCKET = !!window.Capacitor;
 
 // Touch has no right-click: a long press on a book, a shelf name or a chapter
@@ -334,8 +334,8 @@ const KHELP = K('⌘/', 'Ctrl+/');
 // it). Touch screens scroll with a finger and never show them.
 function showScrollbar(el, ms = 1200) {
   el.classList.add('show-scrollbar');
-  clearTimeout(el._neoSbHide);
-  if (ms) el._neoSbHide = setTimeout(() => { if (!el._neoSbHeld && !el._neoSbNear) el.classList.remove('show-scrollbar'); }, ms);
+  clearTimeout(el._quillSbHide);
+  if (ms) el._quillSbHide = setTimeout(() => { if (!el._quillSbHeld && !el._quillSbNear) el.classList.remove('show-scrollbar'); }, ms);
 }
 document.addEventListener('scroll', (e) => {
   const el = e.target;
@@ -361,17 +361,17 @@ document.addEventListener('mousemove', (e) => {
     sbFrame = 0;
     const el = scrollbarUnder(e);
     if (el === sbNear) return;
-    if (sbNear) { sbNear._neoSbNear = false; showScrollbar(sbNear); }
+    if (sbNear) { sbNear._quillSbNear = false; showScrollbar(sbNear); }
     sbNear = el;
-    if (el) { el._neoSbNear = true; showScrollbar(el, 0); }
+    if (el) { el._quillSbNear = true; showScrollbar(el, 0); }
   });
 }, { passive: true });
 document.addEventListener('mousedown', (e) => {
   const el = scrollbarUnder(e);
   if (!el) return;
-  el._neoSbHeld = true;
+  el._quillSbHeld = true;
   showScrollbar(el, 0);
-  const up = () => { el._neoSbHeld = false; showScrollbar(el); window.removeEventListener('mouseup', up, true); };
+  const up = () => { el._quillSbHeld = false; showScrollbar(el); window.removeEventListener('mouseup', up, true); };
   window.addEventListener('mouseup', up, true);
 }, true);
 
@@ -726,10 +726,10 @@ function coverUrl(meta) {
 }
 
 async function loadLibrary() {
-  libraryDirPath = await window.neo.libraryPath();
+  libraryDirPath = await window.quill.libraryPath();
   applyShelfZoom();
-  library = applyDeviceLook(await window.neo.readLibrary());
-  // A first shelf is named in the language NEO had when it was made. If the
+  library = applyDeviceLook(await window.quill.readLibrary());
+  // A first shelf is named in the language Quill had when it was made. If the
   // writer never renamed it, it follows a change of language.
   const DEFAULT_SHELF = 'Works in Progress';
   const own = t(DEFAULT_SHELF);
@@ -737,7 +737,7 @@ async function loadLibrary() {
   const untouched = (library.shelves || []).filter((s) => s.name === DEFAULT_SHELF && own !== DEFAULT_SHELF);
   for (const s of untouched) s.name = own;
   if (untouched.length) await writeLibrary(library);
-  if (window.neo.writingStyleState) window.neo.writingStyleState(library.writingStyle);
+  if (window.quill.writingStyleState) window.quill.writingStyleState(library.writingStyle);
   if (!library.firstRunDone) {
     showFirstRun();
   }
@@ -752,7 +752,7 @@ function showFirstRun() {
   // Swift); first run only picks sensible defaults and gets out of the way.
   const finish = async (thenSettings) => {
     library.writingStyle = library.writingStyle || 'pantser';
-    if (window.neo.writingStyleState) window.neo.writingStyleState(library.writingStyle);
+    if (window.quill.writingStyleState) window.quill.writingStyleState(library.writingStyle);
     library.fonts = library.fonts || { body: Object.keys(BODY_FONTS)[0] || 'Georgia', dropcap: 'literary' };
     library.penNames = library.penNames || [];
     library.firstRunDone = true;
@@ -764,8 +764,8 @@ function showFirstRun() {
       await writeLibrary(library);
     } catch (err) {
       library.firstRunDone = false;
-      window.neo.logError('first run: ' + ((err && err.message) || err));
-      note.textContent = t('NEO can\'t save in {dir}. File → Library Folder… lets you choose a folder it can write to; then press Start writing again.', { dir: libraryDirPath });
+      window.quill.logError('first run: ' + ((err && err.message) || err));
+      note.textContent = t('Quill can\'t save in {dir}. File → Library Folder… lets you choose a folder it can write to; then press Start writing again.', { dir: libraryDirPath });
       note.hidden = false;
       return;
     }
@@ -780,7 +780,7 @@ function showFirstRun() {
 }
 
 // Pen names: each author owns a set of shelves. Books all live in the one
-// NEO Library folder on disk regardless of name — switching or deleting a
+// Quill Library folder on disk regardless of name — switching or deleting a
 // pen name never touches files.
 function currentAuthor() {
   if (!library.authors || !library.authors.length) {
@@ -808,20 +808,20 @@ function displayAuthor() {
 const bookMetaCache = new Map();
 async function shelfMeta(bookId) {
   if (bookMetaCache.has(bookId)) return bookMetaCache.get(bookId);
-  const meta = await window.neo.readBookMeta(bookId);
+  const meta = await window.quill.readBookMeta(bookId);
   if (meta) bookMetaCache.set(bookId, meta);
   return meta;
 }
 // Saves a book's meta and drops the cached copy. This used to be done by
-// replacing window.neo.writeBookMeta, but on desktop that object is
+// replacing window.quill.writeBookMeta, but on desktop that object is
 // read-only, so the assignment threw and app.js stopped loading.
 function writeBookMeta(bookId, meta) {
   bookMetaCache.delete(bookId);
-  return window.neo.writeBookMeta(bookId, meta);
+  return window.quill.writeBookMeta(bookId, meta);
 }
 
 async function renderShelves() {
-  await NeoCovers.ready; // display faces, so titles measure true
+  await QuillCovers.ready; // display faces, so titles measure true
   const view = $('#bookshelf-view');
   const keepScroll = view.scrollTop; // re-rendering must not move the page
   $('#author-chip').textContent = displayAuthor();
@@ -833,7 +833,7 @@ async function renderShelves() {
   if (!wrap.dataset.dndWired) {
     wrap.dataset.dndWired = '1';
     wrap.addEventListener('dragover', (e) => {
-    if (!e.dataTransfer.types.includes('application/x-neo-shelf')) return;
+    if (!e.dataTransfer.types.includes('application/x-quill-shelf')) return;
     e.preventDefault();
     let ind = wrap.querySelector('.shelf-drop-ind');
     if (!ind) {
@@ -852,7 +852,7 @@ async function renderShelves() {
       if (!placed) wrap.appendChild(ind);
     });
     wrap.addEventListener('drop', async (e) => {
-      const shelfId = e.dataTransfer.getData('application/x-neo-shelf');
+      const shelfId = e.dataTransfer.getData('application/x-quill-shelf');
       if (!shelfId) return;
       e.preventDefault();
       const ind = wrap.querySelector('.shelf-drop-ind');
@@ -892,7 +892,7 @@ async function renderShelves() {
     grip.title = t('Drag to reorder shelves');
     grip.draggable = true;
     grip.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('application/x-neo-shelf', shelf.id);
+      e.dataTransfer.setData('application/x-quill-shelf', shelf.id);
       sec.classList.add('dragging');
     });
     grip.addEventListener('dragend', () => {
@@ -987,7 +987,7 @@ async function renderShelves() {
         row.classList.add('drag-over');
         return;
       }
-      if (!e.dataTransfer.types.includes('application/x-neo-book')) return;
+      if (!e.dataTransfer.types.includes('application/x-quill-book')) return;
       e.preventDefault();
       row.classList.add('drag-over');
       const ind = dropIndicator();
@@ -1015,16 +1015,16 @@ async function renderShelves() {
       if (e.dataTransfer.files && e.dataTransfer.files.length) {
         e.preventDefault();
         const paths = [...e.dataTransfer.files]
-          .map((f) => { try { return window.neo.pathForFile(f); } catch { return null; } })
+          .map((f) => { try { return window.quill.pathForFile(f); } catch { return null; } })
           .filter(Boolean);
         if (!paths.length) return;
         toast(t('Importing…'));
-        const results = await window.neo.importFiles(paths);
+        const results = await window.quill.importFiles(paths);
         if (!results.length) { toast(t('No .docx, .txt, or .md files in that drop')); return; }
         await addImportedBooks(results, shelf);
         return;
       }
-      const bookId = e.dataTransfer.getData('application/x-neo-book');
+      const bookId = e.dataTransfer.getData('application/x-quill-book');
       if (!bookId) return;
       e.preventDefault();
       // insertion index = how many (non-dragged) books sit before the indicator
@@ -1201,7 +1201,7 @@ async function createPageBook(shelf, kind) {
   const written = PAGE_WRITTEN.includes(kind);
   // a prologue opens in the editor as "Prologue", under the book's name
   const title = kind === 'cover' || written ? (written ? pageKindName(kind) : shelf.name) : pageKindName(kind) + ' — ' + shelf.name;
-  const meta = await window.neo.createBook({ author: shelfAuthorName(shelf), title });
+  const meta = await window.quill.createBook({ author: shelfAuthorName(shelf), title });
   meta.title = title;
   meta.kind = kind;
   meta.shelfId = shelf.id; // which bound book it belongs to, for anyone reading the folder
@@ -1217,7 +1217,7 @@ async function createPageBook(shelf, kind) {
     meta.chapterOrder = [];
   } else {
     const chId = 'ch-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
-    await window.neo.writeChapter(meta.id, chId, PAGE_STARTERS[kind] ? PAGE_STARTERS[kind](shelf) : '<p><br></p>');
+    await window.quill.writeChapter(meta.id, chId, PAGE_STARTERS[kind] ? PAGE_STARTERS[kind](shelf) : '<p><br></p>');
     meta.chapterOrder = [chId];
   }
   await writeBookMeta(meta.id, meta);
@@ -1417,13 +1417,13 @@ function pageTile(shelf, meta, label) {
       {
         label: t('Remove page'),
         desc: window.Capacitor
-          ? t('Moves the book folder to Deleted Books in your NEO Library, where you can recover it.')
+          ? t('Moves the book folder to Deleted Books in your Quill Library, where you can recover it.')
           : t('Sends the page to your system trash, where you can recover it.'),
         danger: true, value: 'remove'
       }
     ]);
     if (choice === 'open') openPage(shelf, meta, label);
-    else if (choice === 'remove' && await window.neo.deleteBook(meta.id, label)) {
+    else if (choice === 'remove' && await window.quill.deleteBook(meta.id, label)) {
       shelf.bookIds = shelf.bookIds.filter((b) => b !== meta.id);
       await writeLibrary(library);
       renderShelves();
@@ -1513,7 +1513,7 @@ const PAGE_PLACEHOLDERS = {
   part: () => t('Title')
 };
 
-// Whatever the editing engine left, a page is stored as NEO's plain
+// Whatever the editing engine left, a page is stored as Quill's plain
 // paragraphs: loose text and <div>s become <p>s, stray <br>s go
 function normalizePageBody(body) {
   let cur = null;
@@ -1555,14 +1555,14 @@ function sheetBackdrop(kind, label, inner) {
 const ATTRIBUTED_PAGES = ['dedication', 'epigraph', 'part'];
 
 async function openPageSheet(shelf, meta, label) {
-  const live = (await window.neo.readBookMeta(meta.id)) || meta;
+  const live = (await window.quill.readBookMeta(meta.id)) || meta;
   let chId = (live.chapterOrder || [])[0];
   if (!chId) {
     chId = 'ch-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
     live.chapterOrder = [chId];
     await writeBookMeta(live.id, live);
   }
-  const html = await window.neo.readChapter(live.id, chId);
+  const html = await window.quill.readChapter(live.id, chId);
   const bd = sheetBackdrop(live.kind, label, '<div class="ps-label" hidden></div><div class="ps-body" contenteditable="true" role="textbox" aria-multiline="true"></div>');
   const lab = bd.querySelector('.ps-label');
   if (live.kind === 'part') { lab.hidden = false; lab.textContent = label; }
@@ -1589,7 +1589,7 @@ async function openPageSheet(shelf, meta, label) {
     out.querySelectorAll('[data-attr]').forEach((p) => p.removeAttribute('data-attr'));
     if (out.innerHTML === saved) return;
     saved = out.innerHTML;
-    await window.neo.writeChapter(live.id, chId, saved);
+    await window.quill.writeChapter(live.id, chId, saved);
   };
   body.addEventListener('input', () => {
     settle();
@@ -1636,7 +1636,7 @@ function caretToEnd(el) {
 // The cover opens to the title page: the book's title (the shelf's name),
 // a subtitle, and the name it goes out under. One line each; Enter moves on.
 async function openTitlePage(shelf, coverMeta) {
-  const live = (await window.neo.readBookMeta(coverMeta.id)) || coverMeta;
+  const live = (await window.quill.readBookMeta(coverMeta.id)) || coverMeta;
   const bd = sheetBackdrop('title', t('Title Page'), `
     <div class="tp-field tp-t" contenteditable="true" role="textbox" spellcheck="false"></div>
     <div class="tp-field tp-s" contenteditable="true" role="textbox" spellcheck="false"></div>
@@ -1745,7 +1745,7 @@ function dropIndicator() {
 }
 
 // Covers are two layers the shelf composites live: art (a seeded abstract,
-// an image the writer chose, or one NEO painted from the text) and type.
+// an image the writer chose, or one Quill painted from the text) and type.
 // See covers.js. Painted art is read once and downsampled to tile size so
 // forty books on a shelf cost about as much as forty small PNGs.
 const artCache = new Map(); // bookId/file -> { url, canvas }
@@ -1756,20 +1756,20 @@ async function paintedArt(meta) {
   const key = meta.id + '/' + art.file;
   if (artCache.has(key)) return artCache.get(key);
   try {
-    const data = await window.neo.readCover(meta.id, art.file);
-    if (!data) { window.neo.logError('painted cover missing on disk: ' + key); return null; }
-    const entry = await NeoCovers.fitImage(key, `data:${data.mime};base64,${data.base64}`);
-    if (!entry) { window.neo.logError('painted cover would not decode: ' + key); return null; }
+    const data = await window.quill.readCover(meta.id, art.file);
+    if (!data) { window.quill.logError('painted cover missing on disk: ' + key); return null; }
+    const entry = await QuillCovers.fitImage(key, `data:${data.mime};base64,${data.base64}`);
+    if (!entry) { window.quill.logError('painted cover would not decode: ' + key); return null; }
     artCache.set(key, entry);
     return entry;
   } catch (err) {
-    window.neo.logError('painted cover: ' + (err && err.stack || err));
+    window.quill.logError('painted cover: ' + (err && err.stack || err));
     return null;
   }
 }
 
 // Which layers a book has to show, and which one is showing. Nothing is
-// ever thrown away by switching: the writer's image, NEO's painting, and the
+// ever thrown away by switching: the writer's image, Quill's painting, and the
 // abstract all stay available, and coverMode just picks one.
 const hasPainting = (meta) => !!(meta.coverArt && meta.coverArt.status === 'done' && meta.coverArt.file);
 function coverMode(meta) {
@@ -1796,10 +1796,10 @@ function dressTile(el, meta) {
   // The tile may not be on the page yet when the art arrives, so the only
   // staleness check is whether this tile has been dressed again since.
   const cached = mode === 'painted' && artCache.get(meta.id + '/' + meta.coverArt.file);
-  NeoCovers.dress(el, NeoCovers.plan(meta, cached || undefined));
+  QuillCovers.dress(el, QuillCovers.plan(meta, cached || undefined));
   if (mode !== 'painted' || cached) return;
   paintedArt(meta).then((art) => {
-    if (art && el._dressToken === token) NeoCovers.dress(el, NeoCovers.plan(meta, art));
+    if (art && el._dressToken === token) QuillCovers.dress(el, QuillCovers.plan(meta, art));
   });
 }
 
@@ -1837,7 +1837,7 @@ function bookTile(meta, opts = {}) {
   const refresh = el.querySelector('.b-refresh');
   if (refresh) refresh.setAttribute('aria-hidden', 'true'); // the book's right-click menu offers the same
   el.addEventListener('dragstart', (e) => {
-    e.dataTransfer.setData('application/x-neo-book', meta.id);
+    e.dataTransfer.setData('application/x-quill-book', meta.id);
     // the ghost that rides under the cursor is a faded, smaller cover, held
     // by its top-left corner so it never sits on top of a drop target's label
     el.style.opacity = '0.45';
@@ -1859,10 +1859,10 @@ function bookTile(meta, opts = {}) {
     e.preventDefault();
     e.stopPropagation();
     let p = null;
-    try { p = window.neo.pathForFile(e.dataTransfer.files[0]); } catch { /* no path */ }
+    try { p = window.quill.pathForFile(e.dataTransfer.files[0]); } catch { /* no path */ }
     if (!p) return;
     if (/\.(png|jpe?g|webp)$/i.test(p) && !isScript(meta)) {
-      const fname = await window.neo.setCover(meta.id, p);
+      const fname = await window.quill.setCover(meta.id, p);
       if (fname) {
         meta.coverImage = fname;
         meta.coverMode = 'image';
@@ -1871,7 +1871,7 @@ function bookTile(meta, opts = {}) {
       }
     } else if (/\.(docx|txt|md|fountain|fdx)$/i.test(p)) {
       const homeShelf = library.shelves.find((s) => s.bookIds.includes(meta.id)) || library.shelves[0];
-      const results = await window.neo.importFiles([p]);
+      const results = await window.quill.importFiles([p]);
       if (results.length) await addImportedBooks(results, homeShelf);
     }
   });
@@ -1890,7 +1890,7 @@ function bookTile(meta, opts = {}) {
     const script = isScript(meta);
     const trashLabel = window.Capacitor ? t('Delete book')
       : navigator.platform.toLowerCase().includes('win') ? t('Move to Recycle Bin') : t('Move to Trash');
-    const canCopy = !!window.neo.duplicateBook && !isPageMeta(meta);
+    const canCopy = !!window.quill.duplicateBook && !isPageMeta(meta);
     // the cover's own choices, gathered in one place
     const coverItems = script ? [] : [
       ...(NO_HOVER ? [] : [{ label: meta.coverImage ? t('Replace cover art…') : t('Set cover art…'), value: 'cover' }]),
@@ -1910,8 +1910,8 @@ function bookTile(meta, opts = {}) {
       if (coverItems.length) options.push({ label: t('Cover'), desc: t('A new cover, your own art, or a saved image.'), value: 'coverMenu' });
       options.push(
         { label: t('Set word goal…'), desc: t('Adds the subtle progress bar to the cover.'), value: 'goal' },
-        { label: t('Remove from bookshelf'), desc: t('Takes it off your shelves. The files stay safe in your NEO Library folder on disk.'), value: 'remove' },
-        { label: trashLabel, desc: window.Capacitor ? t('Moves the book folder to Deleted Books in your NEO Library, where you can recover it.') : t('Sends the book folder to your system trash, where you can recover it.'), danger: true, value: 'trash' }
+        { label: t('Remove from bookshelf'), desc: t('Takes it off your shelves. The files stay safe in your Quill Library folder on disk.'), value: 'remove' },
+        { label: trashLabel, desc: window.Capacitor ? t('Moves the book folder to Deleted Books in your Quill Library, where you can recover it.') : t('Sends the book folder to your system trash, where you can recover it.'), danger: true, value: 'trash' }
       );
       choice = await optionModal(t('“{title}”', { title: escHtml(shownTitle(meta.title)) }), null, options);
       if (choice === 'coverMenu') choice = await optionModal(t('Cover'), null, coverItems.filter((x) => x !== '-'));
@@ -1958,9 +1958,9 @@ function bookTile(meta, opts = {}) {
         await exportFromShelf(meta.id, fmt);
       }
     } else if (choice === 'cover') {
-      const src = await window.neo.pickCover();
+      const src = await window.quill.pickCover();
       if (!src) return;
-      const fname = await window.neo.setCover(meta.id, src);
+      const fname = await window.quill.setCover(meta.id, src);
       if (fname) {
         meta.coverImage = fname;
         meta.coverMode = 'image';
@@ -1972,7 +1972,7 @@ function bookTile(meta, opts = {}) {
     } else if (choice === 'saveCover') {
       await saveCoverImage(meta);
     } else if (choice === 'uncover') {
-      await window.neo.removeCover(meta.id);
+      await window.quill.removeCover(meta.id);
       meta.coverImage = null;
       await writeBookMeta(meta.id, meta);
       renderShelves();
@@ -1987,9 +1987,9 @@ function bookTile(meta, opts = {}) {
       for (const s of library.shelves) s.bookIds = s.bookIds.filter((b) => b !== meta.id);
       await writeLibrary(library);
       renderShelves();
-      toast(t('“{title}” removed from the shelves — its files are still in your NEO Library', { title: shownTitle(meta.title) }));
+      toast(t('“{title}” removed from the shelves — its files are still in your Quill Library', { title: shownTitle(meta.title) }));
     } else if (choice === 'trash') {
-      const ok = await window.neo.deleteBook(meta.id, meta.title);
+      const ok = await window.quill.deleteBook(meta.id, meta.title);
       if (ok) {
         for (const s of library.shelves) s.bookIds = s.bookIds.filter((b) => b !== meta.id);
         await writeLibrary(library);
@@ -2012,9 +2012,9 @@ async function duplicateBook(meta) {
   }
   let copy;
   try {
-    copy = await window.neo.duplicateBook(meta.id, t('{title} (copy)', { title: meta.title }));
+    copy = await window.quill.duplicateBook(meta.id, t('{title} (copy)', { title: meta.title }));
   } catch (err) {
-    window.neo.logError('duplicate: ' + (err && err.stack || err));
+    window.quill.logError('duplicate: ' + (err && err.stack || err));
     toast(t('Couldn’t copy the book: {error}', { error: plainError(err) }), 8000);
     return;
   }
@@ -2038,27 +2038,27 @@ async function duplicateBook(meta) {
 
 // The cover as a picture file: the writer's own image just as they gave it;
 // otherwise the abstract at full size (1600×2560, KDP's ratio) with the
-// title and author set on it. A painted cover never leaves NEO, here as in
+// title and author set on it. A painted cover never leaves Quill, here as in
 // the exports, so a book showing one saves its abstract.
 async function saveCoverImage(meta) {
   const defaultName = safeName(meta.title) + '-cover';
   let payload = null;
   if (coverMode(meta) === 'image') {
-    const c = await window.neo.readCover(meta.id, meta.coverImage);
+    const c = await window.quill.readCover(meta.id, meta.coverImage);
     if (c) payload = { format: c.ext, defaultName, content: c.base64, base64: true };
   }
   if (!payload) {
-    await NeoCovers.ready;
+    await QuillCovers.ready;
     // JPEG: what KDP asks for, and a tenth the size of a PNG of all that grain
-    const url = NeoCovers.renderFull(meta, {}).toDataURL('image/jpeg', 0.92);
+    const url = QuillCovers.renderFull(meta, {}).toDataURL('image/jpeg', 0.92);
     payload = { format: 'jpg', defaultName, content: url.split(',')[1], base64: true };
   }
-  const saved = await window.neo.exportSave(payload);
+  const saved = await window.quill.exportSave(payload);
   if (saved) toast(t('Saved: {file}', { file: saved.split(/[\\/]/).pop() }));
 }
 
 /* ---- painted covers ----
-   At a thousand words a story has a shape, so NEO reads it and paints an
+   At a thousand words a story has a shape, so Quill reads it and paints an
    abstract cover to sit under the type. The writer's own cover (coverImage)
    always wins; the abstract is the fallback; painting never blocks typing. */
 
@@ -2083,11 +2083,11 @@ function bookPlainText() {
 // Paint the open book, or a book on the shelf (text is read from disk then).
 async function requestPaint(meta, text) {
   const provider = coverProvider();
-  if (!(await window.neo.hasSecret(provider))) {
+  if (!(await window.quill.hasSecret(provider))) {
     if (!library.coverArtNudged) {
       library.coverArtNudged = true;
       await writeLibrary(library);
-      toast(t('This story just passed {n} words — add an API key under File → Cover Art… and NEO will paint it a cover.', { n: PAINT_AT }), 8000);
+      toast(t('This story just passed {n} words — add an API key under File → Cover Art… and Quill will paint it a cover.', { n: PAINT_AT }), 8000);
     }
     return;
   }
@@ -2096,11 +2096,11 @@ async function requestPaint(meta, text) {
   else await writeBookMeta(meta.id, meta);
   markPainting(meta.id, true);
   if (text == null) {
-    const m = await window.neo.readBookMeta(meta.id);
+    const m = await window.quill.readBookMeta(meta.id);
     const parts = [];
     for (const chId of (m && m.chapterOrder) || []) {
       const holder = document.createElement('div');
-      holder.innerHTML = await window.neo.readChapter(meta.id, chId);
+      holder.innerHTML = await window.quill.readChapter(meta.id, chId);
       holder.querySelectorAll('.darling-anchor, .ph-mark, .ghost').forEach((n) => n.remove());
       parts.push(holder.innerText);
     }
@@ -2110,20 +2110,20 @@ async function requestPaint(meta, text) {
   const mine = (cs.models && cs.models[provider]) || {};
   let res = null;
   try {
-    res = await window.neo.paintCover(meta.id, text, { provider, textModel: mine.text, imageModel: mine.image, quality: cs.quality });
+    res = await window.quill.paintCover(meta.id, text, { provider, textModel: mine.text, imageModel: mine.image, quality: cs.quality });
   } catch (err) {
-    window.neo.logError('paint request: ' + (err && err.stack || err));
+    window.quill.logError('paint request: ' + (err && err.stack || err));
     res = { error: String((err && err.message) || err) };
   }
   // the writer may have moved on — write to whichever copy of the meta is live
-  const live = (book && book.id === meta.id) ? book : (await window.neo.readBookMeta(meta.id)) || meta;
+  const live = (book && book.id === meta.id) ? book : (await window.quill.readBookMeta(meta.id)) || meta;
   if (res && res.file) {
     live.coverArt = { status: 'done', file: res.file, brief: res.brief, words: meta.wordCount || 0, at: new Date().toISOString() };
     if (!live.coverImage) live.coverMode = 'painted';
     artCache.delete(meta.id + '/' + res.file);
   } else {
     live.coverArt = { status: 'failed', error: (res && res.error) || 'unknown', at: new Date().toISOString() };
-    toast(t('NEO couldn’t paint that cover: {error}', { error: live.coverArt.error }), 7000);
+    toast(t('Quill couldn’t paint that cover: {error}', { error: live.coverArt.error }), 7000);
   }
   if (live === book) scheduleMetaSave();
   else await writeBookMeta(meta.id, live);
@@ -2147,7 +2147,7 @@ async function refreshCover(meta, el) {
   const mode = coverMode(meta);
   const enough = (meta.wordCount || 0) >= PAINT_AT;
   // a bound book's cover has no text of its own to paint from
-  const hasKey = meta.kind !== 'cover' && await window.neo.hasSecret(coverProvider());
+  const hasKey = meta.kind !== 'cover' && await window.quill.hasSecret(coverProvider());
   const options = [];
   if (meta.coverImage && mode !== 'image') options.push({ label: t('Show your cover art'), desc: t('The image you gave this book.'), value: 'image' });
   if (hasPainting(meta) && mode !== 'painted') options.push({ label: t('Show Quill’s painting'), desc: t('The cover painted from the text.'), value: 'painted' });
@@ -2179,7 +2179,7 @@ async function refreshCover(meta, el) {
 }
 
 async function createBookOnShelf(shelf) {
-  const meta = await window.neo.createBook({ author: displayAuthor() });
+  const meta = await window.quill.createBook({ author: displayAuthor() });
   meta.tabNames = {
     notes: (library.tabDefaults && library.tabDefaults.notes) || 'Notes',
     outline: (library.tabDefaults && library.tabDefaults.outline) || 'Outline'
@@ -2250,7 +2250,7 @@ $('#add-shelf-btn').onclick = async () => {
   let rack = null;
   let hideTimer = null;
   const otherAuthors = () => (library.authors || []).filter((a) => a.id !== currentAuthor().id);
-  const isBookDrag = (e) => e.dataTransfer && e.dataTransfer.types.includes('application/x-neo-book');
+  const isBookDrag = (e) => e.dataTransfer && e.dataTransfer.types.includes('application/x-quill-book');
 
   function showRack() {
     if (rack) return;
@@ -2275,7 +2275,7 @@ $('#add-shelf-btn').onclick = async () => {
         if (!isBookDrag(e)) return;
         e.preventDefault();
         e.stopPropagation();
-        const bookId = e.dataTransfer.getData('application/x-neo-book');
+        const bookId = e.dataTransfer.getData('application/x-quill-book');
         hideRack();
         await moveBookToAuthor(bookId, a.id);
       });
@@ -2313,7 +2313,7 @@ async function moveBookToAuthor(bookId, authorId) {
   const target = (library.authors || []).find((a) => a.id === authorId);
   const shelf = target && shelvesFor(target.id)[0];
   if (!shelf) return;
-  const meta = await window.neo.readBookMeta(bookId);
+  const meta = await window.quill.readBookMeta(bookId);
   if (!meta) return;
   const from = library.shelves.find((s) => s.bookIds.includes(bookId));
   lastShelfMove = {
@@ -2336,7 +2336,7 @@ async function undoShelfMove() {
   const home = library.shelves.find((s) => s.id === m.shelfId) || shelvesFor(m.authorId)[0] || library.shelves[0];
   for (const s of library.shelves) s.bookIds = s.bookIds.filter((b) => b !== m.bookId);
   home.bookIds.splice(Math.min(m.index, home.bookIds.length), 0, m.bookId);
-  const meta = await window.neo.readBookMeta(m.bookId);
+  const meta = await window.quill.readBookMeta(m.bookId);
   if (meta) { meta.author = m.author; await writeBookMeta(m.bookId, meta); }
   await writeLibrary(library);
   renderShelves();
@@ -2356,7 +2356,7 @@ document.addEventListener('keydown', (e) => {
 // File → Reshelve a Book…: a book taken off the shelves is still on disk;
 // this puts it back, on the current name's first shelf
 async function reshelveBook() {
-  const all = await window.neo.listBooks();
+  const all = await window.quill.listBooks();
   const shelved = new Set(library.shelves.flatMap((s) => [...s.bookIds, ...((s.binding && s.binding.parked) || []).map((p) => p.id)]));
   // a bound book's pages aren't books to write in
   const loose = all.filter((b) => !shelved.has(b.id) && !b.kind).sort((a, b) => (b.modified || '').localeCompare(a.modified || ''));
@@ -2436,15 +2436,15 @@ async function openBook(bookId) {
   // second book opened while this one loads (a double click, a slow cloud
   // read) never ends up with a mix of the two.
   const gen = ++openGeneration;
-  const meta = await window.neo.readBookMeta(bookId);
+  const meta = await window.quill.readBookMeta(bookId);
   if (!meta || gen !== openGeneration) return;
   const html = {};
   for (const chId of meta.chapterOrder) {
-    html[chId] = await window.neo.readChapter(bookId, chId);
+    html[chId] = await window.quill.readChapter(bookId, chId);
     if (gen !== openGeneration) return;
   }
-  const sideStickies = await window.neo.readJSON(bookId, 'stickies', []);
-  const sideDarlings = await window.neo.readJSON(bookId, 'darlings', []);
+  const sideStickies = await window.quill.readJSON(bookId, 'stickies', []);
+  const sideDarlings = await window.quill.readJSON(bookId, 'darlings', []);
   if (gen !== openGeneration) return;
   tabPlaces = {}; // a fresh book starts with fresh places
   book = meta;
@@ -2458,7 +2458,7 @@ async function openBook(bookId) {
   savedHTML = { ...html };
   for (const chId of Object.keys(html)) knowDisk(bookId, chId, html[chId]);
   diskStamps = {};
-  savedMetaSig = metaSig(book); // what disk holds; NEO's own defaults don't count as edits
+  savedMetaSig = metaSig(book); // what disk holds; Quill's own defaults don't count as edits
   stickies = sideStickies;
   darlings = sideDarlings;
   sidecarBase[bookId + '/stickies'] = JSON.stringify(stickies);
@@ -2602,7 +2602,7 @@ function renderChapters() {
     body.setAttribute('aria-multiline', 'true');
     if (chId === solo) body.setAttribute('aria-label', book.title ? shownTitle(book.title) : t('The story'));
     else body.setAttribute('aria-labelledby', head.id);
-    body.spellcheck = false; // NEO runs its own spellcheck pass
+    body.spellcheck = false; // Quill runs its own spellcheck pass
     if (!story) body.classList.add('no-cap');
     // a script's lines are set as they print (styles.css, SCREENPLAYS)
     if (isScript()) body.classList.add('script-body', $('#paper').classList.contains('narrow') ? 'sp-narrow' : 'sp-geom', 'no-cap');
@@ -2753,7 +2753,7 @@ function copyrightStarter() {
 /*  EDITOR — typing                                                    */
 /* ================================================================== */
 
-// a drag that began on NEO's own page (moving words within the book)
+// a drag that began on Quill's own page (moving words within the book)
 let dragFromInside = false;
 document.addEventListener('dragstart', () => { dragFromInside = true; }, true);
 document.addEventListener('dragend', () => { dragFromInside = false; }, true);
@@ -2799,7 +2799,7 @@ function wireChapterBody(body, chId) {
   });
   // Text dragged in from another app (a browser, Word) is cleaned the same
   // way as a paste, instead of landing with its fonts, colours and links.
-  // A drag within NEO's own pages is left to the engine.
+  // A drag within Quill's own pages is left to the engine.
   body.addEventListener('drop', (e) => {
     if (dragFromInside || isScript() || !e.dataTransfer || (e.dataTransfer.files && e.dataTransfer.files.length)) return;
     const types = [...(e.dataTransfer.types || [])];
@@ -2855,7 +2855,7 @@ function wireChapterBody(body, chId) {
   body.addEventListener('keydown', (e) => {
     // An input method mid-word owns the keys. Its marker (keyCode 229) also
     // rides on Enter with nothing being composed, as on GNOME (Wayland, IBus),
-    // where it kept ⇧Enter and ⌘⇧Enter from ever reaching NEO.
+    // where it kept ⇧Enter and ⌘⇧Enter from ever reaching Quill.
     if (composing || e.isComposing || (e.keyCode === 229 && e.key !== 'Enter')) return;
     // count consecutive Enters — the double/triple rhythm works mid-sentence
     if (e.key === 'Enter' && !e.shiftKey) enterRun++;
@@ -2989,7 +2989,7 @@ function wireChapterBody(body, chId) {
     if (ghost && e.inputType && e.inputType.startsWith('insert')) selectGhost(ghost);
     writeOverGhost();
   });
-  // NEO's own typing aids (smart quotes, capitals) write without a
+  // Quill's own typing aids (smart quotes, capitals) write without a
   // beforeinput: a key that types a letter over a ghost selects it whole and
   // makes it prose first (an input method's first key reads Process)
   body.addEventListener('keydown', (e) => {
@@ -3095,7 +3095,7 @@ function emptyChapterBackspace(e, body, chId) {
 }
 
 // ⌘B / ⌘I applied by hand: the engine's native handling scrolls the
-// selection "into view" and mis-measures NEO's transformed page column,
+// selection "into view" and mis-measures Quill's transformed page column,
 // throwing the reader to the top of the screen. Style, don't scroll.
 function styleKeepScroll(e) {
   if (!(e.metaKey || e.ctrlKey) || e.altKey) return false;
@@ -3190,7 +3190,7 @@ function caretRect() {
 // line stays at the height it had in the window, so the page doesn't jump:
 // caretHeight() before the change, keepCaretHeight(it) after.
 // (The browser's own scroll anchoring is paused meanwhile: it moves the page
-// to make up for what changed above the window, after NEO has already put
+// to make up for what changed above the window, after Quill has already put
 // the line back, and the page landed a line or two off.)
 function caretHeight() {
   const sc = $('#paper-scroll');
@@ -3204,7 +3204,7 @@ function keepCaretHeight(was) {
   const sc = $('#paper-scroll');
   const rect = caretRect();
   if (was != null && rect) sc.scrollTop += rect.top - sc.getBoundingClientRect().top - was;
-  // anchoring back on once the page has settled where NEO put it
+  // anchoring back on once the page has settled where Quill put it
   clearTimeout(caretHeight.t);
   caretHeight.t = setTimeout(() => { sc.style.overflowAnchor = ''; }, 300);
 }
@@ -3297,8 +3297,8 @@ function chapterStartBackspace(e, body, chId) {
     await persistChapter(prevId);
     if (!book || book.id !== bookId) return;
     await saveMeta();
-    await window.neo.deleteChapter(bookId, chId);
-  })().catch((err) => window.neo.logError('merge: ' + (err && err.message || err)));
+    await window.quill.deleteChapter(bookId, chId);
+  })().catch((err) => window.quill.logError('merge: ' + (err && err.message || err)));
   renderChapters();
   renderStickies();
   restoreCaret({ chId: prevId, pIdx: prevCount, off: 0, scroll: keepScroll });
@@ -3485,7 +3485,7 @@ function guardMarkerDelete(e, body, chId) {
 
 // The engine wraps text in style-carrying spans during merges and splits
 // ("<span style='text-indent...'>"). They corrupt later edits — unwrap them,
-// keeping only NEO's own marks.
+// keeping only Quill's own marks.
 function stripJunkSpans(el) {
   for (const s of [...el.querySelectorAll('span:not(.ph-mark)')]) {
     while (s.firstChild) s.before(s.firstChild);
@@ -3502,7 +3502,7 @@ function stripJunkSpans(el) {
 // caret is, even mid-sentence. Enter three times: the chapter splits here.
 let enterRun = 0;
 // break operations live outside the engine's undo history; while the most
-// recent edits are breaks, ⌘Z routes to NEO's structural undo, one per press
+// recent edits are breaks, ⌘Z routes to Quill's structural undo, one per press
 let breakRun = 0;
 
 // was: the caret's height in the window before the *** above it went
@@ -3982,7 +3982,7 @@ function captureBody(body) {
 // them (the indent and white-space of the paragraph they came from); taken
 // off the page there and then, they'd break ⌘Z, which puts back what the
 // engine itself took away. So the page keeps them until the chapter is next
-// opened, and the file never has them. NEO's own spans (placeholder flags)
+// opened, and the file never has them. Quill's own spans (placeholder flags)
 // stay.
 function dropJunkSpans(html) {
   if (html.indexOf('<span') < 0) return html;
@@ -4065,14 +4065,14 @@ document.addEventListener('selectionchange', () => {
   }
   // the drop cap steps aside while the caret is in the first paragraph
   const inPoetry = !!(caretP && caretP.classList.contains('poetry'));
-  if (inPoetry !== menuPoetryState && window.neo.poetryState) {
+  if (inPoetry !== menuPoetryState && window.quill.poetryState) {
     menuPoetryState = inPoetry;
-    window.neo.poetryState(inPoetry);
+    window.quill.poetryState(inPoetry);
   }
   const inFlush = !!(caretP && caretP.classList.contains('flush'));
-  if (inFlush !== menuFlushState && window.neo.flushState) {
+  if (inFlush !== menuFlushState && window.quill.flushState) {
     menuFlushState = inFlush;
-    window.neo.flushState(inFlush);
+    window.quill.flushState(inFlush);
   }
   const inFirst = caretP && caretP.parentElement &&
     caretP.hasAttribute('data-first');
@@ -4493,7 +4493,7 @@ function smartKeys(e, body) {
   const french = frenchTypography();
   // French: a narrow no-break space (U+202F) before ; : ! ? replaces the
   // ordinary space typed ahead of them. (The wider U+00A0 is not used: the
-  // editing engine turns it back into a plain space, and NEO heals it away.)
+  // editing engine turns it back into a plain space, and Quill heals it away.)
   // Quebec usage (OQLF) keeps the space before the colon only.
   const spaced = french === 'ca' ? /^:$/ : /^[;:!?]$/;
   if (french && spaced.test(e.key) && /^[ \u00a0]$/.test(prevChars(1))) {
@@ -4561,7 +4561,7 @@ function quoteOpenIn(text, q, straight = '') {
 }
 
 // The quotation marks of the language being written: the spellcheck
-// language when one is set, otherwise NEO's own language.
+// language when one is set, otherwise Quill's own language.
 const QUOTE_STYLES = {
   en: { open: '“', close: '”', singles: true },
   nl: { open: '“', close: '”', singles: true },
@@ -4592,7 +4592,7 @@ function singleQuotes(el) {
   return { open: '‚', close: '‘' };
 }
 function writingLanguage() {
-  return (library && library.spellLanguage) || NeoI18n.getLocale();
+  return (library && library.spellLanguage) || QuillI18n.getLocale();
 }
 function quoteStyle() {
   const code = writingLanguage();
@@ -4678,11 +4678,11 @@ function dashStyle() {
 }
 
 // French typographic rules apply when the book is spellchecked in French,
-// or when NEO itself speaks French. Returns false, 'fr', or 'ca' for Quebec
+// or when Quill itself speaks French. Returns false, 'fr', or 'ca' for Quebec
 // usage (when the interface is set to Canadian French).
 function frenchTypography() {
   if (!writingLanguage().startsWith('fr')) return false;
-  return /^fr-CA$/i.test(NeoI18n.getLocale()) ? 'ca' : 'fr';
+  return /^fr-CA$/i.test(QuillI18n.getLocale()) ? 'ca' : 'fr';
 }
 
 // ⌥⌘→ / ⌥⌘← (Ctrl+Alt on Windows and Linux): the next or previous tab,
@@ -4837,7 +4837,7 @@ document.addEventListener('keydown', (e) => {
     // open, Esc only closes the bar and leaves the caret where it is.
     const inBar = !document.activeElement || document.activeElement === document.body || $('#searchbar').contains(document.activeElement);
     if (!$('#searchbar').hidden) { if (inBar) returnFromSearch(); else closeSearch(); }
-    else window.neo.fullscreenEscape().then((exited) => { if (!exited) backToShelf(); });
+    else window.quill.fullscreenEscape().then((exited) => { if (!exited) backToShelf(); });
   }
 });
 
@@ -4856,7 +4856,7 @@ document.addEventListener('keydown', (e) => {
 // Pocket takes both: a keyboard paired with a phone or an iPad may be a
 // Mac's (⌘ arrives as Meta) or a PC's (Ctrl).
 // Off the Mac, Ctrl+Page Down / Ctrl+Page Up do the same: GNOME keeps
-// Ctrl+Alt+↑↓ for switching workspaces, so NEO never hears them there, and
+// Ctrl+Alt+↑↓ for switching workspaces, so Quill never hears them there, and
 // some Windows graphics drivers turn the screen with them (#254).
 window.addEventListener('keydown', (e) => {
   const arrows = e.key === 'ArrowDown' || e.key === 'ArrowUp';
@@ -4879,7 +4879,7 @@ window.addEventListener('keydown', (e) => {
 /*  opens in it; letters then                                           */
 /*  move instead of type, and i, a, o and friends go back to writing.   */
 /*  Esc while moving stays put, as in vim. Keys with ⌘ or Ctrl keep     */
-/*  their usual jobs, so none of NEO's shortcuts change.                */
+/*  their usual jobs, so none of Quill's shortcuts change.                */
 /*                                                                      */
 /*    h j k l   left, down, up, right      w b e   by word              */
 /*    0 ^ $     start / end of the line    ( )     by sentence          */
@@ -4900,7 +4900,7 @@ let vimPending = '';       // the g of gg, the [ of [[
 function applyVim() {
   if (!vimEnabled) { vimNav = false; vimVisual = false; }
   document.body.classList.toggle('vim-nav', vimNav);
-  if (window.neo.vimState) window.neo.vimState(vimEnabled); // the View menu's tick
+  if (window.quill.vimState) window.quill.vimState(vimEnabled); // the View menu's tick
 }
 function toggleVim() {
   vimEnabled = !vimEnabled;
@@ -5121,7 +5121,7 @@ function vimKey(e) {
   }
   revealCaret();
 }
-// first in line for keys in the page and the notes, ahead of NEO's own
+// first in line for keys in the page and the notes, ahead of Quill's own
 // typing rules, and only while vim keys are on
 window.addEventListener('keydown', (e) => {
   if (!vimEnabled) return;
@@ -5202,7 +5202,7 @@ document.addEventListener('compositionstart', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape' || !$('#editor-view').hidden) return;
   if (document.querySelector('.modal-backdrop:not([hidden])')) return;
-  window.neo.fullscreenEscape();
+  window.quill.fullscreenEscape();
 });
 
 // ⌘Enter (Ctrl+Enter): toggle fullscreen from anywhere
@@ -5210,7 +5210,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter' || !(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
   if (document.querySelector('.modal-backdrop:not([hidden])')) return;
   e.preventDefault();
-  window.neo.fullscreenToggle();
+  window.quill.fullscreenToggle();
 });
 
 function createChapterAt(idx) {
@@ -5247,7 +5247,7 @@ async function deleteChapterQuiet(chId) {
   renderStickies();
   // book.json lets go of the chapter before its file goes
   await saveMeta();
-  if (book && book.id === bookId) await window.neo.deleteChapter(bookId, chId);
+  if (book && book.id === bookId) await window.quill.deleteChapter(bookId, chId);
 }
 
 function focusChapter(chId) {
@@ -5308,7 +5308,7 @@ function spBareName(t) {
   return String(t || '').replace(/\s*\^\s*$/, '').replace(/\s*\([^)]*\)?\s*$/, '').trim().toUpperCase();
 }
 // Fountain's transition: capitals ending in TO:, or a fade out (the usual
-// ones also as typed, "Cut to:", since NEO capitalizes a line's first word)
+// ones also as typed, "Cut to:", since Quill capitalizes a line's first word)
 function spLooksLikeTransition(t) {
   const s = String(t || '').trim();
   if (SP_TRANSITIONS.includes(s.toUpperCase())) return true;
@@ -5533,7 +5533,7 @@ function spToFountain(lines, title = {}) {
 // Fountain (or a plain-text script) into lines: [{type, text}], the text
 // keeping Fountain's *emphasis* for the caller to set. The title page is
 // left out; notes, boneyard, sections, synopses and page breaks too.
-// A speaker's (CONT'D) is NEO's to draw: one typed in, or carried in from
+// A speaker's (CONT'D) is Quill's to draw: one typed in, or carried in from
 // Final Draft or a PDF, comes off the name
 const spDropContd = (t) => String(t || '').replace(/\s*\(\s*cont(?:['’]?d|inued)\s*\)\s*$/i, '').trim();
 // lines a PDF's text carries that aren't the script: page numbers, (MORE),
@@ -5764,7 +5764,7 @@ const SP_NAMES = {
 const spKey = (n) => K('⌘' + n, 'Ctrl+' + n);
 // the screen's own marks on a script's lines, never saved
 const SP_SCREEN_ATTRS = ['data-pg', 'data-fill', 'data-contd', 'data-ghost', 'data-ghost-empty', 'data-scene-note'];
-// characters NEO guessed from a line in capitals, and headings it made of
+// characters Quill guessed from a line in capitals, and headings it made of
 // INT./EXT.: either goes back to action when the guess turns out wrong
 const spGuessed = new WeakSet();
 const spDismissed = new WeakMap(); // a line → its text when Esc sent its suggestion away
@@ -5939,7 +5939,7 @@ function scriptKey(e, body) {
       return true;
     }
     const prev = p.previousElementSibling;
-    // an empty speech under a name NEO guessed: it was action after all
+    // an empty speech under a name Quill guessed: it was action after all
     if (!p.textContent.trim() && spType(p) === 'dialogue' && prev && spType(prev) === 'character' && spGuessed.has(prev)) {
       e.preventDefault();
       spSetClass(prev, 'action');
@@ -6259,14 +6259,14 @@ function spHighlightScene() {
   $$('#nav-list .sp-scene').forEach((el, k) => el.classList.toggle('current', k + 1 === n));
 }
 function spReportState() {
-  if (!window.neo.scriptState) return;
+  if (!window.quill.scriptState) return;
   const on = !!book && isScript() && !$('#editor-view').hidden;
-  window.neo.scriptState({ on, element: on ? spShownElement || 'action' : null, underline: on && spUnderlineOn(), contd: on && spContdOn() });
+  window.quill.scriptState({ on, element: on ? spShownElement || 'action' : null, underline: on && spUnderliquilln(), contd: on && spContdOn() });
 }
 // the Format menu's two script-style items, and Page Break Here
 function spToggleStyle(key) {
   if (!book || !isScript()) return;
-  if (key === 'underline') book.underlineHeadings = !spUnderlineOn();
+  if (key === 'underline') book.underlineHeadings = !spUnderliquilln();
   else book.contd = spContdOn() ? false : undefined;
   if (book.underlineHeadings === false) delete book.underlineHeadings;
   if (book.contd === undefined) delete book.contd;
@@ -6279,16 +6279,16 @@ function spToggleStyle(key) {
 let spContextLine = null;
 document.addEventListener('contextmenu', (e) => {
   spContextLine = null;
-  if (!book || !isScript() || !window.neo.scriptContext) return;
+  if (!book || !isScript() || !window.quill.scriptContext) return;
   const body = e.target.closest && e.target.closest('.chapter-body.script-body');
-  if (!body) { window.neo.scriptContext(null); return; }
+  if (!body) { window.quill.scriptContext(null); return; }
   const at = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null;
   let el = at ? at.startContainer : e.target;
   if (el && el.nodeType === Node.TEXT_NODE) el = el.parentElement;
   const p = el && el.closest ? el.closest('p') : null;
   // (the first line of a script already starts its first page)
   spContextLine = p && body.contains(p) && spParas()[0] !== p ? p : null;
-  window.neo.scriptContext(spContextLine ? { pageBreak: spContextLine.hasAttribute('data-newpage') } : null);
+  window.quill.scriptContext(spContextLine ? { pageBreak: spContextLine.hasAttribute('data-newpage') } : null);
 }, true);
 function spTogglePageBreak() {
   const p = spContextLine;
@@ -6336,7 +6336,7 @@ function renderScriptNav() {
     const row = item.querySelector('.n-row');
     row.draggable = true;
     row.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('application/x-neo-scene', String(k));
+      e.dataTransfer.setData('application/x-quill-scene', String(k));
       item.classList.add('dragging');
       $('#nav-pane').classList.add('open');
     });
@@ -6367,7 +6367,7 @@ function renderScriptNav() {
   const list = $('#nav-list');
   if (!list) return;
   list.addEventListener('dragover', (e) => {
-    if (!e.dataTransfer.types.includes('application/x-neo-scene')) return;
+    if (!e.dataTransfer.types.includes('application/x-quill-scene')) return;
     e.preventDefault();
     const ind = navDropInd();
     let placed = false;
@@ -6378,7 +6378,7 @@ function renderScriptNav() {
     if (!placed) list.appendChild(ind);
   });
   list.addEventListener('drop', (e) => {
-    const from = e.dataTransfer.getData('application/x-neo-scene');
+    const from = e.dataTransfer.getData('application/x-quill-scene');
     if (from === '') return;
     e.preventDefault();
     const ind = list.querySelector('.nav-drop-ind');
@@ -6418,7 +6418,7 @@ function spMoveScene(k, to) {
 // A scene card's Delete: the scene's lines leave the script for Darlings
 // (saved there first), its note goes with it, and ⌘Z puts it all back
 async function deleteSceneToDarlings(cell, quiet = false) {
-  const sc = sceneOfCell(cell);
+  const sc = scequillfCell(cell);
   if (!sc || !sc.s.p.isConnected) return;
   const nodes = sceneNodes(sc.s);
   const body = spBodyOf(sc.s.p);
@@ -6451,7 +6451,7 @@ async function deleteSceneToDarlings(cell, quiet = false) {
   syncChapter(body, chId);
   clearTimeout(saveTimers[chId]);
   persistChapter(chId).then(() => saveMeta())
-    .catch((err) => window.neo.logError('scene delete: ' + (err && err.message || err)));
+    .catch((err) => window.quill.logError('scene delete: ' + (err && err.message || err)));
   breakRun++;
   spRepaginate();
   renderNav();
@@ -6520,7 +6520,7 @@ function spEditorMode() {
   // the pane stays open beside a script, unless the writer unpinned it there
   if (!NO_HOVER) {
     let kept = {};
-    try { kept = JSON.parse(localStorage.getItem('neo-pinned-panes') || '{}'); } catch { /* nothing kept */ }
+    try { kept = JSON.parse(localStorage.getItem('quill-pinned-panes') || '{}'); } catch { /* nothing kept */ }
     pinPane('nav', on ? kept.scriptNav !== false : !!kept.nav, on ? 'scriptNav' : 'nav');
   }
 }
@@ -6564,14 +6564,14 @@ function spPaste(e, body, chId) {
 // lower one into it. When the upper line goes entirely (a shot selected and
 // deleted, an empty line Backspaced away from below), what's left is the
 // lower line, so it stays what it was: a scene heading stays a heading, and
-// its card keeps its note. NEO makes that cut itself; ⌘Z puts it back.
+// its card keeps its note. Quill makes that cut itself; ⌘Z puts it back.
 document.addEventListener('beforeinput', (e) => {
   const body = e.target && e.target.closest ? e.target.closest('.script-body') : null;
   if (!body || e.defaultPrevented || !/^delete(Content|Word|SoftLine|HardLine|ByCut)/.test(e.inputType || '')) return;
   const sel = window.getSelection();
   if (!sel.rangeCount) return;
   const r = sel.getRangeAt(0);
-  const lineOf = (n) => {
+  const liquillf = (n) => {
     const el = n && n.nodeType === Node.TEXT_NODE ? n.parentElement : n;
     const p = el && el.closest ? el.closest('p') : null;
     return p && p.parentElement === body ? p : null;
@@ -6579,8 +6579,8 @@ document.addEventListener('beforeinput', (e) => {
   let upper = null;
   let lower = null;
   if (!r.collapsed) {
-    upper = lineOf(r.startContainer);
-    lower = lineOf(r.endContainer);
+    upper = liquillf(r.startContainer);
+    lower = liquillf(r.endContainer);
     if (!upper || !lower || upper === lower) return;
     // the upper line keeps words: the join is the engine's, as usual
     const before = document.createRange();
@@ -6588,11 +6588,11 @@ document.addEventListener('beforeinput', (e) => {
     before.setEnd(r.startContainer, r.startOffset);
     if (before.toString().length) return;
   } else if (/Backward$/.test(e.inputType)) {
-    lower = lineOf(r.startContainer);
+    lower = liquillf(r.startContainer);
     upper = lower && lower.previousElementSibling;
     if (!upper || upper.tagName !== 'P' || upper.textContent.length || !spCaretAtStart(lower)) return;
   } else if (/Forward$/.test(e.inputType)) {
-    upper = lineOf(r.startContainer);
+    upper = liquillf(r.startContainer);
     lower = upper && upper.nextElementSibling;
     if (!lower || lower.tagName !== 'P' || upper.textContent.length) return;
   } else return;
@@ -6678,10 +6678,10 @@ async function importScript(r, shelf) {
   if (!parsed.lines.length) return false;
   const tp = parsed.title || {};
   const title = tp.title || r.name;
-  const meta = await window.neo.createBook({ author: tp.author || displayAuthor(), title });
+  const meta = await window.quill.createBook({ author: tp.author || displayAuthor(), title });
   const chId = 'ch-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
   const html = parsed.lines.map((l) => `<p${l.type === 'action' ? '' : ` class="sp-${l.type}"`}${l.newPage ? ' data-newpage=""' : ''}>${l.runs.map((x) => runHtml(x)).join('') || '<br>'}</p>`).join('');
-  await window.neo.writeChapter(meta.id, chId, html);
+  await window.quill.writeChapter(meta.id, chId, html);
   meta.title = title;
   meta.format = 'screenplay';
   meta.chapterOrder = [chId];
@@ -6698,7 +6698,7 @@ async function importScript(r, shelf) {
   return true;
 }
 
-// ---- out of NEO: the PDF, as the industry prints a script, and Fountain ----
+// ---- out of Quill: the PDF, as the industry prints a script, and Fountain ----
 // The script's lines for the exports: each with its element, its runs of
 // bold/italic/underline, and (CONT'D) where the screen shows it
 function spExportLines() {
@@ -6719,9 +6719,9 @@ function spExportLines() {
 // headings underlined as well as bold, which some studios ask for, and
 // whether a returning speaker gets (CONT'D). Kept in the script's book.json.
 const spContdOn = () => !book || book.contd !== false;
-const spUnderlineOn = () => !!(book && book.underlineHeadings);
+const spUnderliquilln = () => !!(book && book.underlineHeadings);
 function spApplyStyle() {
-  $('#paper').classList.toggle('sp-uline', isScript() && spUnderlineOn());
+  $('#paper').classList.toggle('sp-uline', isScript() && spUnderliquilln());
 }
 const SP_CAPS = ['heading', 'character', 'transition', 'shot'];
 function spRunsHtml(l) {
@@ -6787,7 +6787,7 @@ p.sp-paren { margin-left: 9.6em; width: 15.3em; }
 p.sp-dialogue { margin-left: 6em; width: 21.3em; }
 p.sp-transition { text-align: right; }
 p.sp-heading, p.sp-shot { font-weight: bold; }
-${spUnderlineOn() ? 'p.sp-heading { text-decoration: underline; }' : ''}
+${spUnderliquilln() ? 'p.sp-heading { text-decoration: underline; }' : ''}
 .title { text-align: center; }
 .tp-main { position: absolute; top: 3.5in; left: 1.5in; width: 6in; }
 .tp-main .gap { margin-top: 2em; }
@@ -6875,21 +6875,21 @@ async function spExport(format) {
   try {
     let payload;
     if (format === 'pdf') payload = { format: 'pdf', defaultName, content: await spPdfHtml(), print: 'screenplay' };
-    else if (format === 'fdx') payload = { format: 'fdx', defaultName, content: spToFdx(spExportLines(), { ...spTitleFields(), underlineHeadings: spUnderlineOn() }) };
+    else if (format === 'fdx') payload = { format: 'fdx', defaultName, content: spToFdx(spExportLines(), { ...spTitleFields(), underlineHeadings: spUnderliquilln() }) };
     else payload = { format: 'fountain', defaultName, content: spFountain() };
-    const saved = await window.neo.exportSave(payload);
+    const saved = await window.quill.exportSave(payload);
     if (saved) toast(t('Exported: {file}', { file: saved.split('/').pop() }));
   } catch (err) {
-    window.neo.logError('export ' + format + ': ' + (err && err.stack || err));
+    window.quill.logError('export ' + format + ': ' + (err && err.stack || err));
     toast(t('Couldn’t export: {error}', { error: plainError(err) }), 8000);
   }
 }
 
 // ---- the shelf: a new script, and its tile ----
 async function createScriptOnShelf(shelf) {
-  const meta = await window.neo.createBook({ author: displayAuthor() });
+  const meta = await window.quill.createBook({ author: displayAuthor() });
   const chId = 'ch-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
-  await window.neo.writeChapter(meta.id, chId, '<p><br></p>');
+  await window.quill.writeChapter(meta.id, chId, '<p><br></p>');
   meta.format = 'screenplay';
   meta.chapterOrder = [chId];
   meta.credit = t('Written by');
@@ -7195,7 +7195,7 @@ function renderNav() {
     const rowEl = item.querySelector('.n-row');
     rowEl.draggable = true;
     rowEl.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('application/x-neo-chapter', chId);
+      e.dataTransfer.setData('application/x-quill-chapter', chId);
       chapterDragActive = true;
       $('#nav-pane').classList.add('open');
       item.classList.add('dragging');
@@ -7412,7 +7412,7 @@ function navDropInd() {
   return ind;
 }
 navList.addEventListener('dragover', (e) => {
-  if (!e.dataTransfer.types.includes('application/x-neo-chapter')) return;
+  if (!e.dataTransfer.types.includes('application/x-quill-chapter')) return;
   e.preventDefault();
   const ind = navDropInd();
   const items = [...navList.querySelectorAll('.nav-item:not(.dragging)')];
@@ -7433,7 +7433,7 @@ navList.addEventListener('dragleave', (e) => {
   if (ind) ind.remove();
 });
 navList.addEventListener('drop', async (e) => {
-  const chId = e.dataTransfer.getData('application/x-neo-chapter');
+  const chId = e.dataTransfer.getData('application/x-quill-chapter');
   if (!chId) return;
   e.preventDefault();
   const ind = document.querySelector('.nav-drop-ind');
@@ -7518,16 +7518,16 @@ function pinPane(side, on, key = side) {
   $('#editor-view').classList.toggle(side + '-pinned', on);
   if (on) pane.classList.add('open');
   try {
-    const kept = JSON.parse(localStorage.getItem('neo-pinned-panes') || '{}');
+    const kept = JSON.parse(localStorage.getItem('quill-pinned-panes') || '{}');
     kept[key] = on;
-    localStorage.setItem('neo-pinned-panes', JSON.stringify(kept));
+    localStorage.setItem('quill-pinned-panes', JSON.stringify(kept));
   } catch { /* fine: it just won't be remembered */ }
 }
 $('#side-pin').onclick = () => pinPane('side', $('#side-pane').dataset.pinned !== '1');
 $('#nav-pin').onclick = () => pinPane('nav', $('#nav-pane').dataset.pinned !== '1', book && isScript() ? 'scriptNav' : 'nav');
 if (!NO_HOVER) {
   try {
-    const kept = JSON.parse(localStorage.getItem('neo-pinned-panes') || '{}');
+    const kept = JSON.parse(localStorage.getItem('quill-pinned-panes') || '{}');
     if (kept.nav) pinPane('nav', true);
     if (kept.side) pinPane('side', true);
   } catch { /* nothing kept */ }
@@ -7557,7 +7557,7 @@ $$('.tab').forEach((tab) => {
 // Darlings tab is a drop target for selected text
 const darlingsTab = $('.tab.darlings');
 // The selection usually collapses by the time a drag lands on the Darlings
-// tab, so the range is remembered at dragstart and the cut is made by NEO
+// tab, so the range is remembered at dragstart and the cut is made by Quill
 // itself (dropEffect 'copy' keeps Chromium from moving the text on its own).
 let draggedRange = null;
 document.addEventListener('dragstart', (e) => {
@@ -7720,7 +7720,7 @@ async function moveSelectionToDarlings(html, text) {
   toast(t('Saved to Darlings — kill without remorse ({key} to undo)', { key: KZ }));
 }
 
-// Older versions of NEO planted invisible marker spans at darling cut points,
+// Older versions of Quill planted invisible marker spans at darling cut points,
 // which interfered with Chromium's delete handling. On open, convert each one
 // into a remembered-context position and remove it:
 async function migrateDarlingAnchors() {
@@ -7824,7 +7824,7 @@ function switchTab(name) {
   for (const id of ['#outline-board', '#outline-views', '#outline-board-hint']) { const el = $(id); if (el) el.hidden = true; }
 
   snapShown = null;
-  if (window.CSS && CSS.highlights) CSS.highlights.delete('neo-snap-gone');
+  if (window.CSS && CSS.highlights) CSS.highlights.delete('quill-snap-gone');
   if ($('#snap-view')) { $('#snap-view').hidden = true; $('#snap-view').innerHTML = ''; }
   if (name === 'darlings') {
     $('#aux-title').textContent = t('Darlings');
@@ -7853,7 +7853,7 @@ function switchTab(name) {
     auxEditor.dataset.kind = '';
     auxEditor.dataset.book = '';
     const pending = auxPending[bookId + '/' + name];
-    (pending ? Promise.resolve(pending.html) : window.neo.readAux(bookId, name)).then((html) => {
+    (pending ? Promise.resolve(pending.html) : window.quill.readAux(bookId, name)).then((html) => {
       if (load !== auxLoad || !book || book.id !== bookId || currentTab !== name) return;
       auxEditor.innerHTML = html || '';
       auxEditor.dataset.kind = name;
@@ -7865,7 +7865,7 @@ function switchTab(name) {
       vimRest();
     }, (err) => {
       if (load !== auxLoad) return;
-      window.neo.logError('notes read: ' + (err && err.message || err));
+      window.quill.logError('notes read: ' + (err && err.message || err));
       toast(t('Quill couldn’t read this page from disk'));
     });
   }
@@ -8363,8 +8363,8 @@ function orderSectionNotes(chId) {
 // not chosen yet, which keeps an existing zoom as the default.
 const PAGE_ZOOM_RANGE = { min: 0.75, max: 3 };
 const CARD_ZOOM_RANGE = { min: 0.55, max: 1.5 };
-const CARD_ZOOM_KEY = 'neo.cardZoom';
-const pageZoomKey = () => 'neo.pageZoom.' + (isScript() ? 'script' : 'novel');
+const CARD_ZOOM_KEY = 'quill.cardZoom';
+const pageZoomKey = () => 'quill.pageZoom.' + (isScript() ? 'script' : 'novel');
 
 /** The stored zoom, or the fallback, always inside the range. Split out so a test can hold it. */
 function resolveStoredZoom(raw, fallback, min, max) {
@@ -8394,7 +8394,7 @@ function cardZoom() { return readStoredZoom(CARD_ZOOM_KEY, library.cardZoom || 1
 // The shelf has a size of its own (#336): bigger covers without the page's
 // type growing. ⌘+ and ⌘− (Ctrl), a pinch or Ctrl-scroll, and ⌘0 on the
 // shelf, in steps of a tenth, kept on this device.
-const SHELF_ZOOM_KEY = 'neo.shelfZoom';
+const SHELF_ZOOM_KEY = 'quill.shelfZoom';
 const SHELF_ZOOM_RANGE = { min: 0.8, max: 2 };
 const shelfZoom = () => readStoredZoom(SHELF_ZOOM_KEY, 1, SHELF_ZOOM_RANGE);
 const shelfShowing = () => !$('#bookshelf-view').hidden;
@@ -9306,7 +9306,7 @@ async function deleteSectionToDarlings(chId, segIdx, quiet = false) {
   syncChapter(body, chId);
   clearTimeout(saveTimers[chId]);
   persistChapter(chId).then(() => saveMeta())
-    .catch((err) => window.neo.logError('section delete: ' + (err && err.message || err)));
+    .catch((err) => window.quill.logError('section delete: ' + (err && err.message || err)));
   renderBoard();
   updateCounters();
   if (seg.words && !quiet) toast(t('Section removed — its words are in Darlings, or {key} to undo', { key: KZ }));
@@ -9394,7 +9394,7 @@ function moveSection(fromCh, segIdx, to) {
     clearTimeout(saveTimers[fromCh]);
     clearTimeout(saveTimers[to.ch]);
     persistChapter(to.ch).then(() => persistChapter(fromCh))
-      .catch((err) => window.neo.logError('move section: ' + (err && err.message || err)));
+      .catch((err) => window.quill.logError('move section: ' + (err && err.message || err)));
   }
   repointStickies(seg.ps, to.ch);
   scheduleMetaSave();
@@ -9437,7 +9437,7 @@ function sectionToChapter(chId, segIdx) {
   // chapter it came out of: a failed save never leaves the words nowhere
   clearTimeout(saveTimers[chId]);
   persistChapter(newId, html).then(() => saveMeta()).then(() => persistChapter(chId))
-    .catch((err) => window.neo.logError('section to chapter: ' + (err && err.message || err)));
+    .catch((err) => window.quill.logError('section to chapter: ' + (err && err.message || err)));
   renderChapters();
   renderStickies();
   updateCounters();
@@ -9486,7 +9486,7 @@ async function writtenSectionToLoose(chId, seg) {
   (book.looseCards = book.looseCards || []).push(card);
   // the card that holds the words is on disk before the chapter loses them
   let stamp = null;
-  try { stamp = await writeBookMeta(book.id, book); } catch (err) { window.neo.logError('section to loose: ' + (err && err.message || err)); }
+  try { stamp = await writeBookMeta(book.id, book); } catch (err) { window.quill.logError('section to loose: ' + (err && err.message || err)); }
   if (typeof stamp !== 'string') {
     book.looseCards = book.looseCards.filter((c) => c !== card);
     toast(t('Quill couldn’t save the card, so the section stays where it was'));
@@ -9499,7 +9499,7 @@ async function writtenSectionToLoose(chId, seg) {
   syncChapter(body, chId);
   clearTimeout(saveTimers[chId]);
   saveMeta().then(() => persistChapter(chId))
-    .catch((err) => window.neo.logError('section to loose: ' + (err && err.message || err)));
+    .catch((err) => window.quill.logError('section to loose: ' + (err && err.message || err)));
   renderLooseCards();
   renderBoard();
   updateCounters();
@@ -9531,7 +9531,7 @@ function looseToSection(looseId, to) {
     // the chapter with the words is saved before the card leaves book.json
     clearTimeout(saveTimers[to.ch]);
     persistChapter(to.ch).then(() => saveMeta())
-      .catch((err) => window.neo.logError('loose to section: ' + (err && err.message || err)));
+      .catch((err) => window.quill.logError('loose to section: ' + (err && err.message || err)));
     renderLooseCards();
     updateCounters();
     return;
@@ -9586,7 +9586,7 @@ async function joinChapter(chId, intoCh) {
   orderSectionNotes(intoCh);
   syncChapter(into, intoCh);
   // the words are safe in the other chapter before this one's file goes
-  try { await persistChapter(intoCh); } catch (err) { window.neo.logError('join: ' + (err && err.message || err)); return null; }
+  try { await persistChapter(intoCh); } catch (err) { window.quill.logError('join: ' + (err && err.message || err)); return null; }
   if (book.chapterTitles) delete book.chapterTitles[chId];
   await deleteChapterQuiet(chId);
   updateCounters();
@@ -10049,7 +10049,7 @@ function sceneCard(sc) {
 }
 
 // the scene a card stands for, as the page has it now
-function sceneOfCell(cell) {
+function scequillfCell(cell) {
   return scriptScenes()[Number(cell.dataset.scene)] || null;
 }
 
@@ -10104,7 +10104,7 @@ function saveSceneCard(cell, note, slug) {
     renderNav();
     return;
   }
-  const sc = sceneOfCell(cell);
+  const sc = scequillfCell(cell);
   if (!sc) return;
   const h = sc.s.p;
   // a heading keeps its plain hyphens (the card's typing makes dashes of them)
@@ -10154,7 +10154,7 @@ function looseToScene(looseId, before) {
 }
 
 function goToScene(cell) {
-  const sc = sceneOfCell(cell);
+  const sc = scequillfCell(cell);
   switchTab('manuscript');
   if (!sc) return;
   const p = sc.s.p;
@@ -10304,7 +10304,7 @@ function canSetChapterAside(chId) {
 // book.json with the card in it, or the card taken back out and false
 async function saveHeldCard(card) {
   let stamp = null;
-  try { stamp = await writeBookMeta(book.id, book); } catch (err) { window.neo.logError('loose card: ' + (err && err.message || err)); }
+  try { stamp = await writeBookMeta(book.id, book); } catch (err) { window.quill.logError('loose card: ' + (err && err.message || err)); }
   if (typeof stamp !== 'string') {
     book.looseCards = (book.looseCards || []).filter((c) => c !== card);
     toast(t('Quill couldn’t save the card, so the writing stays where it was'));
@@ -10357,14 +10357,14 @@ function looseToChapter(looseId, index) {
   book.looseCards = book.looseCards.filter((c) => c.id !== looseId);
   // the chapter's file is written before book.json lets the card go
   persistChapter(chId).then(() => saveMeta())
-    .catch((err) => window.neo.logError('loose to chapter: ' + (err && err.message || err)));
+    .catch((err) => window.quill.logError('loose to chapter: ' + (err && err.message || err)));
   renderChapters();
   renderLooseCards();
   updateCounters();
 }
 
 async function sceneToLoose(cell) {
-  const sc = sceneOfCell(cell);
+  const sc = scequillfCell(cell);
   if (!sc || !sc.s.p.isConnected) return;
   const nodes = sceneNodes(sc.s);
   const body = spBodyOf(sc.s.p);
@@ -10389,7 +10389,7 @@ async function sceneToLoose(cell) {
   syncChapter(body, chId);
   clearTimeout(saveTimers[chId]);
   persistChapter(chId).then(() => saveMeta())
-    .catch((err) => window.neo.logError('scene to loose: ' + (err && err.message || err)));
+    .catch((err) => window.quill.logError('scene to loose: ' + (err && err.message || err)));
   breakRun++;
   spRepaginate();
   renderNav();
@@ -10423,7 +10423,7 @@ function heldSceneBack(card, before) {
   syncChapter(dest, chId);
   clearTimeout(saveTimers[chId]);
   persistChapter(chId).then(() => saveMeta())
-    .catch((err) => window.neo.logError('loose to scene: ' + (err && err.message || err)));
+    .catch((err) => window.quill.logError('loose to scene: ' + (err && err.message || err)));
   breakRun++;
   spRepaginate();
   renderNav();
@@ -10716,11 +10716,11 @@ function flushAux() {
     const job = auxPending[key];
     if (job.inFlight) continue;
     job.inFlight = true;
-    Promise.resolve().then(() => window.neo.writeAux(job.bookId, job.kind, job.html)).then(() => {
+    Promise.resolve().then(() => window.quill.writeAux(job.bookId, job.kind, job.html)).then(() => {
       if (auxPending[key] === job) delete auxPending[key];
     }, (err) => {
       job.inFlight = false;
-      window.neo.logError('notes save: ' + (err && err.message || err));
+      window.quill.logError('notes save: ' + (err && err.message || err));
     });
   }
 }
@@ -10753,13 +10753,13 @@ function writeSidecar(bookId, name, data) {
 function runSidecar(key, job) {
   job.inFlight = true;
   const json = JSON.stringify(job.data);
-  return Promise.resolve().then(() => window.neo.writeJSON(job.bookId, job.name, job.data)).then((r) => {
+  return Promise.resolve().then(() => window.quill.writeJSON(job.bookId, job.name, job.data)).then((r) => {
     if (sidecarPending[key] === job) delete sidecarPending[key];
     sidecarBase[key] = json;
     return r;
   }, (err) => {
     job.inFlight = false;
-    window.neo.logError('save ' + job.name + ': ' + (err && err.message || err));
+    window.quill.logError('save ' + job.name + ': ' + (err && err.message || err));
     throw err;
   });
 }
@@ -10903,7 +10903,7 @@ function updateCounters() {
   // cache for the bookshelf progress bar
   if (book.wordCount !== total) {
     // only a true crossing earns a painting — a story that was already long
-    // before NEO could paint keeps its abstract until the writer asks
+    // before Quill could paint keeps its abstract until the writer asks
     const before = typeof book.wordCount === 'number' ? book.wordCount : total;
     book.wordCount = total;
     scheduleMetaSave();
@@ -11070,7 +11070,7 @@ $('#paper-scroll').addEventListener('scroll', () => {
 /*  SAVING                                                             */
 /* ================================================================== */
 
-// One door for chapter writes, so NEO always knows what is on disk. That
+// One door for chapter writes, so Quill always knows what is on disk. That
 // knowledge is what lets it write only what changed (a library shared over
 // iCloud or Syncthing must not be re-written every twenty seconds) and, in
 // refreshFromDisk, tell another device's edits from its own.
@@ -11094,11 +11094,11 @@ function persistChapter(chId, html) {
   // device wrote it since, the write stops and hands that text back, which
   // is kept as its own chapter before this device's words go on
   const run = async () => {
-    let r = await window.neo.writeChapter(bookId, chId, html, diskKnown[key]);
+    let r = await window.quill.writeChapter(bookId, chId, html, diskKnown[key]);
     for (let tries = 0; r && typeof r.conflict === 'string' && tries < 3; tries++) {
       knowDisk(bookId, chId, r.conflict);
       await keepOtherDeviceVersion(bookId, chId, r.conflict);
-      r = await window.neo.writeChapter(bookId, chId, html, r.conflict);
+      r = await window.quill.writeChapter(bookId, chId, html, r.conflict);
     }
     if (r && typeof r.conflict === 'string') throw new Error('chapter keeps changing on disk');
     knowDisk(bookId, chId, html);
@@ -11123,7 +11123,7 @@ function persistChapter(chId, html) {
 // right after, titled to say where it came from. Works for a book that has
 // since been closed too, straight on disk.
 function twinChapterTitle(title) {
-  const when = new Date().toLocaleTimeString(NeoI18n.getLocale(), { hour: 'numeric', minute: '2-digit' });
+  const when = new Date().toLocaleTimeString(QuillI18n.getLocale(), { hour: 'numeric', minute: '2-digit' });
   return ((title || '') + ' ' + t('from other device, {time}', { time: when })).trim();
 }
 async function keepOtherDeviceVersion(bookId, chId, disk) {
@@ -11146,8 +11146,8 @@ async function keepOtherDeviceVersion(bookId, chId, disk) {
     toast(t('This chapter also changed on another device. That version is saved as the chapter after it.'), 8000);
     return;
   }
-  await window.neo.writeChapter(bookId, twinId, disk);
-  const meta = await window.neo.readBookMeta(bookId);
+  await window.quill.writeChapter(bookId, twinId, disk);
+  const meta = await window.quill.readBookMeta(bookId);
   if (!meta || !Array.isArray(meta.chapterOrder)) return;
   const idx = meta.chapterOrder.indexOf(chId);
   meta.chapterOrder.splice(idx < 0 ? meta.chapterOrder.length : idx + 1, 0, twinId);
@@ -11171,7 +11171,7 @@ function scheduleChapterSave(chId) {
 }
 
 // book.json minus the parts every device changes constantly, and minus
-// empty defaults (NEO fills in chapterTitles: {} and friends after opening;
+// empty defaults (Quill fills in chapterTitles: {} and friends after opening;
 // the file on disk may not have them yet — same book either way)
 function metaSig(m) {
   if (!m) return '';
@@ -11223,7 +11223,7 @@ function flushAllSaves(e) {
   const tabScroll = writing ? undefined : $('#paper-scroll').scrollTop;
   const newSpot = spot.chapterId !== prev.chapterId || spot.pIdx !== prev.pIdx;
   const newLetter = newSpot || spot.off !== prev.off;
-  // the regular tick while writing saves a new paragraph; leaving NEO (a
+  // the regular tick while writing saves a new paragraph; leaving Quill (a
   // blur, the app going to the background, closing) saves the exact letter
   const newTab = tab !== (prev.tab || 'manuscript') || (!writing && Math.abs((prev.tabScroll || 0) - tabScroll) > 40);
   const moved = newSpot || newTab || (e !== 'tick' && newLetter) || Math.abs((prev.scroll || 0) - scroll) > 40;
@@ -11248,7 +11248,7 @@ function flushAllSaves(e) {
 
 // ⌘S takes a snapshot of the book: the chapters that changed since the last
 // snapshot, plus the book's shape (order, titles, kinds) and a fingerprint of
-// every chapter. NEO takes one on its own before the first change of each
+// every chapter. Quill takes one on its own before the first change of each
 // writing day. They're listed in the right-hand pane on the Darlings tab;
 // picking one shows the book as it was, read-only, with what has gone since
 // marked, and brings a chapter or the whole book back.
@@ -11260,7 +11260,7 @@ function flushAllSaves(e) {
 // that holds the file. The name carries what the list shows:
 //   20261009T121400Z-k-3-84210-x7q2   when (UTC) · kind · chapters changed · words
 // k: taken with ⌘S (kept until deleted) · d: the start of a writing day ·
-// r: just before a snapshot was brought back. NEO's own (d, r) go after 30
+// r: just before a snapshot was brought back. Quill's own (d, r) go after 30
 // days; a snapshot that goes hands its chapters on to the next one first.
 const SNAP_KEPT = 'k';
 const SNAP_KEEP_DAYS = 30;
@@ -11286,7 +11286,7 @@ function textHash(str) {
   h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36) + ':' + str.length;
 }
-// NEO's own snapshots older than a month go, by their names alone (so every
+// Quill's own snapshots older than a month go, by their names alone (so every
 // device picks the same ones); ⌘S snapshots and the newest one stay
 function snapsToThin(snaps, now) {
   const newest = snaps.reduce((a, s) => (!a || s.at > a.at ? s : a), null);
@@ -11349,15 +11349,15 @@ function snapHolderEl(html) {
 }
 const htmlWords = (html) => countWords(plainText(snapHolderEl(html)));
 const htmlParas = (html) => [...snapHolderEl(html).children].map((p) => p.textContent);
-const snapsCan = () => !!(window.neo && window.neo.snapshotWrite);
-const logSnap = (err) => window.neo.logError('snapshot: ' + ((err && err.message) || err));
+const snapsCan = () => !!(window.quill && window.quill.snapshotWrite);
+const logSnap = (err) => window.quill.logError('snapshot: ' + ((err && err.message) || err));
 
 // The book's snapshots, oldest first: { name, at, kind, changed, words, files: Set }.
 // Only finished ones (snapshot.json written).
 let snapCache = null;
 async function loadSnaps(bookId, fresh) {
   if (!fresh && snapCache && snapCache.bookId === bookId) return snapCache.snaps;
-  const raw = await window.neo.snapshotList(bookId);
+  const raw = await window.quill.snapshotList(bookId);
   const snaps = [];
   for (const r of raw || []) {
     const s = parseSnapName(r.name);
@@ -11371,7 +11371,7 @@ async function loadSnaps(bookId, fresh) {
 }
 async function snapMeta(bookId, s) {
   if (!s.meta) {
-    try { s.meta = JSON.parse(await window.neo.snapshotRead(bookId, s.name, 'snapshot.json')); } catch { s.meta = null; }
+    try { s.meta = JSON.parse(await window.quill.snapshotRead(bookId, s.name, 'snapshot.json')); } catch { s.meta = null; }
   }
   return s.meta;
 }
@@ -11415,25 +11415,25 @@ async function takeSnapshotNow(kind, htmlOf, { ifNoneToday }) {
     order.every((c) => (lastMeta.chapterTitles || {})[c] === titles[c] && (lastMeta.chapterKinds || {})[c] === kinds[c]);
   if (!changed.length && sameShape && (kind !== SNAP_KEPT || last.kind === SNAP_KEPT)) return { snap: last, same: true };
   const name = snapName(now, kind, changed.length, total);
-  for (const c of changed) await window.neo.snapshotWrite(bookId, name, c + '.html', texts[c]);
+  for (const c of changed) await window.quill.snapshotWrite(bookId, name, c + '.html', texts[c]);
   const meta = { v: 1, at: new Date(now).toISOString(), kind, title: book.title || '', chapterOrder: order, chapterTitles: titles, chapterKinds: kinds, hashes, words, changed, total };
-  await window.neo.snapshotWrite(bookId, name, 'snapshot.json', JSON.stringify(meta, null, 1));
+  await window.quill.snapshotWrite(bookId, name, 'snapshot.json', JSON.stringify(meta, null, 1));
   const snap = parseSnapName(name);
   snap.files = new Set([...changed.map((c) => c + '.html'), 'snapshot.json']);
   snap.meta = meta;
   snaps.push(snap);
-  // NEO's own old ones go, each handing its chapters on to the next first
+  // Quill's own old ones go, each handing its chapters on to the next first
   for (const gone of snapsToThin(snaps, now)) {
     const i = snaps.findIndex((s) => s.name === gone);
     const next = snaps[i + 1];
     if (i < 0 || !next) continue;
     for (const f of snaps[i].files) {
       if (!f.endsWith('.html') || next.files.has(f)) continue;
-      const text = await window.neo.snapshotRead(bookId, snaps[i].name, f);
-      await window.neo.snapshotWrite(bookId, next.name, f, text);
+      const text = await window.quill.snapshotRead(bookId, snaps[i].name, f);
+      await window.quill.snapshotWrite(bookId, next.name, f, text);
       next.files.add(f);
     }
-    await window.neo.snapshotRemove(bookId, gone);
+    await window.quill.snapshotRemove(bookId, gone);
     snaps.splice(i, 1);
   }
   renderSnapList();
@@ -11468,14 +11468,14 @@ async function snapshotNow() {
   }
 }
 
-const snapTime = (at) => new Date(at).toLocaleTimeString(NeoI18n.getLocale(), { hour: 'numeric', minute: '2-digit' });
+const snapTime = (at) => new Date(at).toLocaleTimeString(QuillI18n.getLocale(), { hour: 'numeric', minute: '2-digit' });
 function snapWhen(at) {
   const d = new Date(at);
   const today = new Date();
   const time = snapTime(at);
   if (d.toDateString() === today.toDateString()) return t('today at {time}', { time });
   if (d.toDateString() === new Date(today.getTime() - 86400000).toDateString()) return t('yesterday at {time}', { time });
-  return d.toLocaleDateString(NeoI18n.getLocale(), { weekday: 'short', month: 'short', day: 'numeric', year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric' }) + ', ' + time;
+  return d.toLocaleDateString(QuillI18n.getLocale(), { weekday: 'short', month: 'short', day: 'numeric', year: d.getFullYear() === today.getFullYear() ? undefined : 'numeric' }) + ', ' + time;
 }
 function snapWhy(kind) {
   if (kind === SNAP_KEPT) return t('Taken by you');
@@ -11546,7 +11546,7 @@ async function renderSnapList() {
       list.appendChild(g);
       lastGroup = group;
     }
-    const when = group === t('Earlier') ? new Date(s.at).toLocaleDateString(NeoI18n.getLocale(), { month: 'short', day: 'numeric' }) + ', ' + snapTime(s.at) : snapTime(s.at);
+    const when = group === t('Earlier') ? new Date(s.at).toLocaleDateString(QuillI18n.getLocale(), { month: 'short', day: 'numeric' }) + ', ' + snapTime(s.at) : snapTime(s.at);
     const what = i === 0 ? t('The whole book') : s.changed ? t('{n} chapters changed', { n: s.changed }) : t('No chapters changed');
     const on = snapShown && snapShown.name === s.name;
     const b = item(s.kind === SNAP_KEPT ? 'snap-k' : 'snap-a', when, snapWhy(s.kind) + ' · ' + what, on, () => showSnapshot(s.name));
@@ -11613,7 +11613,7 @@ async function snapToDarling(range, text) {
 
 function showDarlingsAgain() {
   snapShown = null;
-  if (window.CSS && CSS.highlights) CSS.highlights.delete('neo-snap-gone');
+  if (window.CSS && CSS.highlights) CSS.highlights.delete('quill-snap-gone');
   const v = $('#snap-view');
   if (v) { v.hidden = true; v.innerHTML = ''; }
   if (currentTab !== 'darlings') return;
@@ -11634,7 +11634,7 @@ async function snapshotBook(bookId, name) {
   const chapters = [];
   for (const chId of meta.chapterOrder) {
     const at = snapHolder(snaps, i, chId);
-    chapters.push({ chId, html: at ? await window.neo.snapshotRead(bookId, at.name, chId + '.html') : '' });
+    chapters.push({ chId, html: at ? await window.quill.snapshotRead(bookId, at.name, chId + '.html') : '' });
   }
   return { snap: snaps[i], meta, chapters };
 }
@@ -11653,7 +11653,7 @@ async function showSnapshot(name) {
   $('#aux-title').textContent = t('Your book as it was');
   v.hidden = false;
   v.innerHTML = '';
-  if (window.CSS && CSS.highlights) CSS.highlights.delete('neo-snap-gone');
+  if (window.CSS && CSS.highlights) CSS.highlights.delete('quill-snap-gone');
   // which chapters differ from the book today
   const diff = [];
   for (const ch of chapters) {
@@ -11719,7 +11719,7 @@ async function showSnapshot(name) {
       ranges.push(...wordRanges(p, new Set(g)));
     });
   }
-  if (ranges.length && window.CSS && CSS.highlights && window.Highlight) CSS.highlights.set('neo-snap-gone', new Highlight(...ranges));
+  if (ranges.length && window.CSS && CSS.highlights && window.Highlight) CSS.highlights.set('quill-snap-gone', new Highlight(...ranges));
   renderSnapList();
   // to the first chapter that differs
   const first = diff.length && v.querySelector(`.snap-chapter[data-id="${diff[0].chId}"]`);
@@ -11792,7 +11792,7 @@ async function restoreSnapshot(chId) {
   for (const c of chId ? [chId] : book.chapterOrder) await persistChapter(c);
   await saveMeta();
   // chapters added since: out of the book, their words in the snapshot just taken
-  for (const c of gone) { delete chapterHTML[c]; await window.neo.deleteChapter(book.id, c); }
+  for (const c of gone) { delete chapterHTML[c]; await window.quill.deleteChapter(book.id, c); }
   showDarlingsAgain();
   switchTab('manuscript');
   renderChapters();
@@ -11818,8 +11818,8 @@ document.addEventListener('keydown', (e) => {
 
 /* ================================================================== */
 /*  REFRESH — picking up what another device wrote                     */
-/*  A library shared over iCloud or Syncthing changes underneath NEO.  */
-/*  Whenever NEO comes back into view it looks again: a chapter that   */
+/*  A library shared over iCloud or Syncthing changes underneath Quill.  */
+/*  Whenever Quill comes back into view it looks again: a chapter that   */
 /*  changed on disk and not here is simply adopted; one that changed   */
 /*  in both places keeps the local text on the page and lands the      */
 /*  other device's version in a new chapter right after it, so that    */
@@ -11863,7 +11863,7 @@ async function refreshFromDisk() {
     if (!book) {
       if (library && !$('#bookshelf-view').hidden) {
         const gen = libraryGeneration;
-        const lib = applyDeviceLook(await window.neo.readLibrary());
+        const lib = applyDeviceLook(await window.quill.readLibrary());
         // a change made here while that read was out (a new shelf, a rename)
         // is newer than what came back: taking it would undo the change,
         // and the next save would make that stick. Look again next time.
@@ -11879,13 +11879,13 @@ async function refreshFromDisk() {
       return;
     }
     const bookId = book.id;
-    if (window.neo.refreshBook) await window.neo.refreshBook(bookId);
-    const meta = await window.neo.readBookMeta(bookId);
+    if (window.quill.refreshBook) await window.quill.refreshBook(bookId);
+    const meta = await window.quill.readBookMeta(bookId);
     if (!book || book.id !== bookId || !meta) return;
 
     // First read everything that changed; the page is left alone until it is
     // all in. (Deciding chapter by chapter between reads let a keystroke land
-    // on a page that no longer matched what NEO held, and reopening the book
+    // on a page that no longer matched what Quill held, and reopening the book
     // for a new book.json dropped whatever was typed while it loaded.)
     const theirs = metaSig(meta) !== savedMetaSig && Array.isArray(meta.chapterOrder);
     const sigHere = metaSig(book);
@@ -11894,15 +11894,15 @@ async function refreshFromDisk() {
     if (theirs) {
       for (const chId of meta.chapterOrder) {
         if (chapterHTML[chId] !== undefined) continue;
-        incoming[chId] = await window.neo.readChapter(bookId, chId);
+        incoming[chId] = await window.quill.readChapter(bookId, chId);
         if (!book || book.id !== bookId) return;
       }
     }
     // file times first, so only chapters that changed on disk are re-read
     // (a whole novel crossing the bridge every half minute is a hiccup)
     let stamps = null;
-    if (window.neo.chapterStamps) {
-      try { stamps = await window.neo.chapterStamps(bookId); } catch { stamps = null; }
+    if (window.quill.chapterStamps) {
+      try { stamps = await window.quill.chapterStamps(bookId); } catch { stamps = null; }
     }
     const fresh = [];
     for (const chId of [...book.chapterOrder]) {
@@ -11910,7 +11910,7 @@ async function refreshFromDisk() {
       const st = stamps ? stamps[chId] : undefined;
       if (st !== undefined && st === diskStamps[chId]) continue;
       const before = savedHTML[chId];
-      const disk = await window.neo.readChapter(bookId, chId);
+      const disk = await window.quill.readChapter(bookId, chId);
       if (!book || book.id !== bookId) return;
       fresh.push({ chId, st, before, disk });
     }
@@ -11921,7 +11921,7 @@ async function refreshFromDisk() {
     for (const name of ['stickies', 'darlings']) {
       const key = bookId + '/' + name;
       if (sidecarPending[key] || (name === 'stickies' && saveTimers.stickies)) continue; // ours is on its way
-      const remote = await window.neo.readJSON(bookId, name, null);
+      const remote = await window.quill.readJSON(bookId, name, null);
       if (!book || book.id !== bookId) return;
       if (Array.isArray(remote)) sides[name] = remote;
     }
@@ -12081,7 +12081,7 @@ async function refreshFromDisk() {
   }
 }
 window.addEventListener('focus', () => setTimeout(refreshFromDisk, 300));
-// and a quiet look every half minute while NEO is on screen, for the writer
+// and a quiet look every half minute while Quill is on screen, for the writer
 // who left both machines open
 setInterval(() => { if (document.visibilityState === 'visible') refreshFromDisk(); }, 30000);
 document.addEventListener('visibilitychange', () => {
@@ -12090,7 +12090,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 window.addEventListener('beforeunload', flushAllSaves);
-// flush whenever focus leaves NEO, and every 20 seconds
+// flush whenever focus leaves Quill, and every 20 seconds
 window.addEventListener('blur', () => { if (book) flushAllSaves(); });
 setInterval(() => { if (book) flushAllSaves('tick'); }, 20000);
 
@@ -12191,7 +12191,7 @@ function restoreCaret(caret) {
 
 // Back where the writer left off, on this device or the other one: the caret
 // at its letter, a third of the way down the window. A position from an
-// older NEO (the scroll alone) gets the scroll.
+// older Quill (the scroll alone) gets the scroll.
 function resumePosition(pos) {
   if (!book || !pos || !book.chapterOrder.includes(pos.chapterId)) return false;
   const body = document.querySelector(`.chapter[data-id="${pos.chapterId}"] .chapter-body`);
@@ -12227,7 +12227,7 @@ document.addEventListener('pointerdown', (e) => {
   if (e.target && e.target.closest && e.target.closest('#chapters')) lastHereActivity = Date.now();
 }, true);
 
-// The engine's undo history must never replay against a document NEO has
+// The engine's undo history must never replay against a document Quill has
 // rearranged by hand — clear it whenever such a rearrangement happens.
 function resetNativeUndo() {
   const caret = captureCaret();
@@ -12521,7 +12521,7 @@ async function toggleReadAloud() {
       if (!reading || reading.gen !== gen) return;
       const r = readRange(item.p, item.a, item.b);
       if (!r || !window.Highlight || !CSS.highlights) return;
-      CSS.highlights.set('neo-speak', new Highlight(r));
+      CSS.highlights.set('quill-speak', new Highlight(r));
       // keep the sentence on screen
       const sc = $('#paper-scroll');
       const box = r.getBoundingClientRect();
@@ -12543,7 +12543,7 @@ function stopReadAloud(leaveCaret) {
   reading = null;
   readGen++;
   try { window.speechSynthesis.cancel(); } catch { /* nothing speaking */ }
-  if (window.CSS && CSS.highlights) CSS.highlights.delete('neo-speak');
+  if (window.CSS && CSS.highlights) CSS.highlights.delete('quill-speak');
   if (leaveCaret && was && was.item && was.item.p.isConnected) {
     const ed = was.item.p.closest('.chapter-body, #aux-editor');
     const pt = pointAt(was.item.p, was.item.a);
@@ -12611,8 +12611,8 @@ function closeSearch() {
   searchState = { matches: [], idx: -1, query: '' };
   searchFromVim = false;
   if (window.CSS && CSS.highlights) {
-    CSS.highlights.delete('neo-search');
-    CSS.highlights.delete('neo-search-current');
+    CSS.highlights.delete('quill-search');
+    CSS.highlights.delete('quill-search-current');
   }
 }
 
@@ -12644,8 +12644,8 @@ function paintHighlights() {
   searchState.matches.forEach((m, i) => {
     (i === searchState.idx ? cur : all).add(m.range);
   });
-  CSS.highlights.set('neo-search', all);
-  CSS.highlights.set('neo-search-current', cur);
+  CSS.highlights.set('quill-search', all);
+  CSS.highlights.set('quill-search-current', cur);
 }
 
 // Find searches the tab you're in: the whole manuscript, first chapter to
@@ -12729,7 +12729,7 @@ function replaceCurrent() {
   try {
     chapter = m.range.startContainer.parentElement.closest('.chapter');
     snapshotStructure('replace');
-    breakRun++; // the engine never saw this change: ⌘Z goes to NEO's undo
+    breakRun++; // the engine never saw this change: ⌘Z goes to Quill's undo
     m.range.deleteContents();
     if (rep) m.range.insertNode(document.createTextNode(rep));
   } catch {
@@ -12824,7 +12824,7 @@ async function addImportedBooks(results, shelf) {
     }
     // title/byline harvested from the document beat the filename;
     // passing the title in gives the book folder a readable name too
-    const meta = await window.neo.createBook({
+    const meta = await window.quill.createBook({
       author: r.author || displayAuthor(),
       title: r.title || r.name
     });
@@ -12842,7 +12842,7 @@ async function addImportedBooks(results, shelf) {
         // hyphens set as dialogue dashes, the same as typing them
         return `<p>${importedEmphasis(escHtml(dialogueDashes(p.text || '', dashStyle())))}</p>`;
       }).join('') || '<p><br></p>';
-      await window.neo.writeChapter(meta.id, chId, html);
+      await window.quill.writeChapter(meta.id, chId, html);
       if (ch.title) meta.chapterTitles[chId] = ch.title;
       if (ch.role) meta[ch.role] = chId;
       meta.chapterOrder.push(chId);
@@ -12873,7 +12873,7 @@ function importedEmphasis(text) {
 }
 
 async function importBooks() {
-  const results = await window.neo.importPick();
+  const results = await window.quill.importPick();
   if (results.length) await addImportedBooks(results, shelvesFor(currentAuthor().id)[0] || library.shelves[0]);
 }
 
@@ -12883,7 +12883,7 @@ $('#import-btn').onclick = importBooks;
 /*  SPELLCHECK PASS + TYPEWRITER SCROLLING                             */
 /* ================================================================== */
 
-/* NEO's own spellcheck pass: a bundled dictionary (via the main process),
+/* Quill's own spellcheck pass: a bundled dictionary (via the main process),
    squiggles painted with the CSS Highlight API — the same machinery as
    search — and a right-click menu for suggestions. Chapters scan lazily
    as the caret reaches them. */
@@ -12945,7 +12945,7 @@ async function spellScanEl(el, key) {
   }
   const unknown = [...words].filter((w) => !spellCache.has(w));
   if (unknown.length) {
-    const res = await window.neo.spellCheckWords(unknown);
+    const res = await window.quill.spellCheckWords(unknown);
     for (const w of unknown) spellCache.set(w, res[w] !== false);
   }
   if (!spellOn) return; // toggled off while we were checking
@@ -13034,7 +13034,7 @@ function rebuildSpellHighlight() {
   if (!spellOn) return;
   const hl = new Highlight();
   for (const list of spellRanges.values()) for (const r of list) hl.add(r);
-  CSS.highlights.set('neo-spell', hl);
+  CSS.highlights.set('quill-spell', hl);
 }
 
 function scanSpellingIn(el, key) {
@@ -13065,7 +13065,7 @@ function toggleSpellcheck() {
     capsRanges.clear();
     scanSpellingHere();
   } else {
-    CSS.highlights.delete('neo-spell');
+    CSS.highlights.delete('quill-spell');
     spellRanges = new Map();
     capsRanges.clear();
     document.querySelector('.spell-menu')?.remove();
@@ -13081,7 +13081,7 @@ const SPELL_LANGUAGE_NAMES = {
   nl: t('Dutch'), pl: t('Polish'), 'pt-BR': t('Brazilian Portuguese'), ro: t('Romanian'), ru: t('Russian'), hu: t('Hungarian'), sv: t('Swedish')
 };
 async function changeSpellLanguage(code) {
-  const ok = await window.neo.setSpellLanguage(code);
+  const ok = await window.quill.setSpellLanguage(code);
   if (!ok) { toast(t('That dictionary would not load')); return; }
   library.spellLanguage = code;
   await writeLibrary(library);
@@ -13090,7 +13090,7 @@ async function changeSpellLanguage(code) {
     spellScanned = new Set();
     spellRanges = new Map();
     capsRanges.clear();
-    CSS.highlights.delete('neo-spell');
+    CSS.highlights.delete('quill-spell');
     scanSpellingHere();
   }
   toast(t('Spellcheck: {lang}', { lang: SPELL_LANGUAGE_NAMES[code] || code }));
@@ -13149,7 +13149,7 @@ document.addEventListener('contextmenu', async (e) => {
   const key = editor.id === 'aux-editor'
     ? 'aux-' + (editor.dataset.kind || 'notes')
     : (chEl ? chEl.dataset.id : null);
-  const sugg = await window.neo.spellSuggest(word);
+  const sugg = await window.quill.spellSuggest(word);
   showSpellMenu(e.clientX, e.clientY, word, sugg, {
     replace: (s) => {
       const sel = window.getSelection();
@@ -13163,7 +13163,7 @@ document.addEventListener('contextmenu', async (e) => {
       library.customWords = library.customWords || [];
       if (!library.customWords.includes(word)) library.customWords.push(word);
       await writeLibrary(library);
-      await window.neo.spellLearn(word);
+      await window.quill.spellLearn(word);
       // Learning also accepts equivalent Unicode spellings. Recheck cached
       // failures so those variants lose their underlines in every editor.
       spellCache.clear();
@@ -13228,7 +13228,7 @@ function lookUpWord(text) {
 // Safari and Books show (#179). The listener runs in the bubble phase, after the spellcheck menu,
 // and stands down when any other menu already answered the right-click.
 document.addEventListener('contextmenu', (e) => {
-  if (window.neo.platform !== 'darwin' || e.defaultPrevented) return;
+  if (window.quill.platform !== 'darwin' || e.defaultPrevented) return;
   const editor = e.target.closest && e.target.closest('.chapter-body, #aux-editor');
   if (!editor) return;
   const sel = window.getSelection();
@@ -13236,7 +13236,7 @@ document.addEventListener('contextmenu', (e) => {
   if (!word) return;
   e.preventDefault();
   popMenu(e.clientX, e.clientY, [{ label: t('Look Up “{word}”', { word }), value: 'lookup' }]).then((choice) => {
-    if (choice === 'lookup') window.neo.lookUpText();
+    if (choice === 'lookup') window.quill.lookUpText();
   });
 });
 
@@ -13247,7 +13247,7 @@ document.addEventListener('contextmenu', (e) => {
 // needs none, and a fixed 60vh left an empty scroll under it from line one.
 function applyTypewriter() {
   document.body.classList.toggle('typewriter', typewriterEnabled);
-  if (window.neo.typewriterState) window.neo.typewriterState(typewriterEnabled); // the Format menu's tick
+  if (window.quill.typewriterState) window.quill.typewriterState(typewriterEnabled); // the Format menu's tick
   typewriterRoom();
 }
 function typewriterRoom() {
@@ -13351,7 +13351,7 @@ function applyBright() {
   reportViewState();
 }
 function reportViewState() {
-  if (!window.neo.viewState || !library) return;
+  if (!window.quill.viewState || !library) return;
   const payload = {
     focus: focusLevel,
     pageTheme: library.pageTheme || 'night',
@@ -13363,14 +13363,14 @@ function reportViewState() {
   const key = JSON.stringify(payload);
   if (key === viewStateSent) return;
   viewStateSent = key;
-  window.neo.viewState(payload);
+  window.quill.viewState(payload);
 }
 
 function applyFocus() {
   reportViewState();
   document.body.classList.toggle('focus-mode', focusLevel !== 'off');
   if (focusLevel === 'off') {
-    if (window.CSS && CSS.highlights) CSS.highlights.delete('neo-focus');
+    if (window.CSS && CSS.highlights) CSS.highlights.delete('quill-focus');
   } else updateFocus();
 }
 function setFocus(level) {
@@ -13453,8 +13453,8 @@ function updateFocus() {
   if (isBreakPara(p)) r = null;
   else if (focusLevel === 'sentence') r = sentenceRange(p);
   else if (focusLevel === 'paragraph') { r = document.createRange(); r.selectNodeContents(p); }
-  if (r) CSS.highlights.set('neo-focus', new Highlight(r));
-  else CSS.highlights.delete('neo-focus');
+  if (r) CSS.highlights.set('quill-focus', new Highlight(r));
+  else CSS.highlights.delete('quill-focus');
   // highlights can't reach ::first-letter, so the drop cap gets a class
   // on its chapter body (a class on the body itself is never saved)
   document.querySelectorAll('.chapter-body.focus-cap').forEach((b) => b.classList.remove('focus-cap'));
@@ -13601,7 +13601,7 @@ function openCoverArt() {
     bd.querySelector('#ca-imodel').value = (models[id] && models[id].image) || '';
     bd.querySelector('#ca-imodel').placeholder = p.image;
     bd.querySelector('#ca-quality-wrap').style.display = p.quality ? '' : 'none';
-    const has = await window.neo.hasSecret(id);
+    const has = await window.quill.hasSecret(id);
     if (sel.value !== id) return;
     note.textContent = has
       ? t('A {name} key is saved, encrypted, outside your library folder. Paste a new one to replace it, or type “{remove}” to forget it.', { name: p.name, remove: t('remove') })
@@ -13614,9 +13614,9 @@ function openCoverArt() {
   bd.querySelector('.m-ok').onclick = async () => {
     const id = sel.value, p = COVER_PROVIDERS[id];
     const k = key.value.trim();
-    if (k === 'remove' || k === t('remove')) await window.neo.setSecret(id, '');
+    if (k === 'remove' || k === t('remove')) await window.quill.setSecret(id, '');
     else if (k && !looksLikeKey(k)) { toast(t('That doesn’t look like an API key ({name} keys look like {hint}) — not saved', { name: p.name, hint: p.keyHint }), 6000); return; }
-    else if (k) await window.neo.setSecret(id, k);
+    else if (k) await window.quill.setSecret(id, k);
     models[id] = {
       text: bd.querySelector('#ca-tmodel').value.trim() || undefined,
       image: bd.querySelector('#ca-imodel').value.trim() || undefined
@@ -13629,7 +13629,7 @@ function openCoverArt() {
     };
     await writeLibrary(library);
     done();
-    if (!(await window.neo.hasSecret(id))) toast(t('Saved. Add a {name} key to start painting.', { name: p.name }), 5000);
+    if (!(await window.quill.hasSecret(id))) toast(t('Saved. Add a {name} key to start painting.', { name: p.name }), 5000);
   };
   bd.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); done(); } });
   key.focus();
@@ -13639,7 +13639,7 @@ function openCoverArt() {
 // or 13:00 where the language's hour is a bare number
 function hourLabel(h) {
   if (h === 0) return t('midnight');
-  const loc = NeoI18n.getLocale();
+  const loc = QuillI18n.getLocale();
   if (loc.startsWith('en')) {
     if (h === 12) return t('noon');
     return h < 12 ? t('{h} am', { h: String(h) }) : t('{h} pm', { h: String(h - 12) });
@@ -13995,7 +13995,7 @@ function renderProfileSection(host, ctx) {
   for (const b of host.querySelectorAll('.st-choice')) b.onclick = () => {
     current = b.dataset.style;
     library.writingStyle = current;
-    if (window.neo.writingStyleState) window.neo.writingStyleState(current);
+    if (window.quill.writingStyleState) window.quill.writingStyleState(current);
     paint();
     ctx.saveSoon();
   };
@@ -14067,7 +14067,7 @@ function openSettings(section = 'profile', opts = {}) {
   let timer = null;
   const flush = async () => {
     clearTimeout(timer); timer = null;
-    try { await writeLibrary(library); } catch (err) { window.neo.logError('settings: ' + ((err && err.message) || err)); }
+    try { await writeLibrary(library); } catch (err) { window.quill.logError('settings: ' + ((err && err.message) || err)); }
   };
   const ctx = { saveSoon: () => { clearTimeout(timer); timer = setTimeout(flush, 350); }, close: () => close() };
   // Escape works wherever focus has gone (a button that was removed leaves it on the page)
@@ -14111,7 +14111,7 @@ function applyFonts() {
   const uiZoom = [1, 1.25, 1.5, 2, 2.5, 3].includes(library.uiZoom) ? library.uiZoom : 1;
   document.documentElement.style.setProperty('--ui-zoom', uiZoom);
   document.documentElement.classList.toggle('ui-zoomed', uiZoom > 1);
-  if (window.neo.uiZoomState) window.neo.uiZoomState(uiZoom);
+  if (window.quill.uiZoomState) window.quill.uiZoomState(uiZoom);
   const size = Math.min(22, Math.max(14, library.editorFontSize || 17));
   document.documentElement.style.setProperty('--editor-size', size + 'px');
   applyPageZoom();
@@ -14300,7 +14300,7 @@ function applyAlign(value) {
   reportViewState(); // the Format menu's alignment tick
 }
 
-// Menu accelerators and editor shortcuts, plus NEO's distinct writing gestures.
+// Menu accelerators and editor shortcuts, plus Quill's distinct writing gestures.
 // Routine text entry, cursor movement and dialog controls are intentionally omitted.
 function shortcutSections() {
   // with a script open, its keys come first, in place of a book's
@@ -14473,7 +14473,7 @@ function parasFromHtml(html) {
   const holder = document.createElement('div');
   holder.innerHTML = html || '';
   // an unwritten outline section is a ghost paragraph plus the scene break
-  // NEO planted for it; neither belongs in a book
+  // Quill planted for it; neither belongs in a book
   holder.querySelectorAll('p.ghost[data-sec-id]').forEach((g) => {
     const brk = holder.querySelector(`p.scene-break[data-sec-brk="${g.dataset.secId}"]`);
     if (brk) brk.remove();
@@ -14727,12 +14727,12 @@ function buildPrintHtml(d, o) {
 ${o.fonts || ''}
 @page { size: ${W}in ${H}in; margin: 0.7in ${trim.outside}in 0.75in ${trim.outside}in; }
 @page :left {
-  margin-left: ${trim.outside}in; margin-right: __NEO_GUTTER__;
+  margin-left: ${trim.outside}in; margin-right: __Quill_GUTTER__;
   @top-center { content: ${cssString(d.author)}; }
   @bottom-center { content: counter(page); }
 }
 @page :right {
-  margin-left: __NEO_GUTTER__; margin-right: ${trim.outside}in;
+  margin-left: __Quill_GUTTER__; margin-right: ${trim.outside}in;
   @top-center { content: ${cssString(d.title)}; }
   @bottom-center { content: counter(page); }
 }
@@ -14790,7 +14790,7 @@ p.poetry + p.poetry { margin-top: 0; }
 .note .reach-hd { margin-top: 1.4em; text-align: center; letter-spacing: 0.18em; text-transform: uppercase; font-size: 0.85em; }
 .note .reach { text-align: center; margin-top: 0.35em; }
 .note .reach .k { font-variant-caps: all-small-caps; letter-spacing: 0.08em; }
-.neo-pad { page: front; break-before: page; height: 1px; }
+.quill-pad { page: front; break-before: page; height: 1px; }
 </style></head><body>
 ${body}
 </body></html>`;
@@ -14820,7 +14820,7 @@ async function printPaperback() {
     }
   }
   // the Also by list is the writer's own, one title per line: it starts as
-  // this name's other books in NEO, and can hold books written before NEO
+  // this name's other books in Quill, and can hold books written before Quill
   const alsoText = typeof ap.alsoByText === 'string' ? ap.alsoByText
     : Array.isArray(ap.alsoBy) ? others.filter((x) => ap.alsoBy.includes(x.id)).map((x) => x.title).join('\n')
       : others.map((x) => x.title).join('\n');
@@ -14898,7 +14898,7 @@ async function printPaperback() {
   // kept for next time
   book.print = { trim: opts.trim, paper: opts.paper, isbn: opts.isbn, fiction: opts.fiction };
   // The wording is kept with the title as a blank, so it fits the next
-  // book. Left as it came, it stays what it was (NEO's own wording follows
+  // book. Left as it came, it stays what it was (Quill's own wording follows
   // its translations); edited, the book's title where it stands as a whole
   // becomes the blank again.
   let ownWording = ap.reviewText || '';
@@ -14931,7 +14931,7 @@ async function printPaperback() {
   printPaperback.busy = true;
   try {
     const html = buildPrintHtml(d, { ...opts, fonts: await exportFontFaces(d) });
-    const r = await window.neo.printPaperback({
+    const r = await window.quill.printPaperback({
       html, trim: opts.trim, paper: opts.paper, language: d.language,
       pagesGuess: Math.round(words / per) + d.sections.length * 1.5 + 8,
       title: d.title, author: d.author,
@@ -14943,7 +14943,7 @@ async function printPaperback() {
     if (r.tooMany) msg += ' · ' + t('more pages than KDP prints on this paper');
     toast(msg, 9000);
   } catch (err) {
-    window.neo.logError('paperback: ' + (err && err.stack || err));
+    window.quill.logError('paperback: ' + (err && err.stack || err));
     toast(t('Couldn’t export: {error}', { error: plainError(err) }), 8000);
   } finally {
     printPaperback.busy = false;
@@ -15004,7 +15004,7 @@ function buildMd(data) {
   return out;
 }
 
-// The Web Page and PDF read in the page's own typeface. A face NEO ships
+// The Web Page and PDF read in the page's own typeface. A face Quill ships
 // (the @font-face rules in styles.css, the body fonts on Linux) travels
 // inside the file, so the PDF matches the page on any machine; a font the
 // computer has goes by name, with the same fallbacks as the page.
@@ -15063,7 +15063,7 @@ function buildHtml(data, opts = {}) {
   const d = data || bookExportData();
   const total = d.sections.filter((ch) => (ch.kind || 'chapter') === 'chapter')
     .reduce((s, ch) => s + ch.paras.reduce((n, p) => n + countWords(p.text || ''), 0), 0);
-  const stamp = new Date().toLocaleString(NeoI18n.getLocale());
+  const stamp = new Date().toLocaleString(QuillI18n.getLocale());
   // a chapter's text: only its opening paragraph gets the enlarged initial,
   // scene breaks resume ordinary body text
   const prose = (paras, initial) => {
@@ -15233,7 +15233,7 @@ ${opts.cover ? `<div class="coverpage"><img src="data:${opts.cover.mime};base64,
 ${d.subtitle ? `<p class="sub">${escHtml(d.subtitle)}</p>` : ''}
 <p class="auth">${escHtml(d.author)}</p></div>
 ${body}
-${opts.stamp ? `<p class="prov">${t('{n} words · exported from NEO on {date}', { n: total, date: stamp })}</p>` : ''}
+${opts.stamp ? `<p class="prov">${t('{n} words · exported from Quill on {date}', { n: total, date: stamp })}</p>` : ''}
 </body></html>`;
 }
 
@@ -15437,7 +15437,7 @@ function buildDocxEntries(data) {
   if (!placed) contents();
   const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body.join('')}
-<w:sectPr>${(window.neo.paper || 'Letter') === 'A4' ? '<w:pgSz w:w="11906" w:h="16838"/>' : '<w:pgSz w:w="12240" w:h="15840"/>'}<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>
+<w:sectPr>${(window.quill.paper || 'Letter') === 'A4' ? '<w:pgSz w:w="11906" w:h="16838"/>' : '<w:pgSz w:w="12240" w:h="15840"/>'}<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>
 </w:body></w:document>`;
   // the page's own typeface (on Linux, the bundled face it shows)
   const font = escXml(firstFamily(exportBodyFont()) || 'Georgia');
@@ -15487,14 +15487,14 @@ ${chr('StrongEmphasis', 'Strong Emphasis', '<w:b/><w:i/>')}
 
 // The cover that travels with an export: the writer's own image if they
 // gave one, otherwise the shelf's abstract with the title set in type,
-// rendered at KDP size. NEO's paintings never leave the shelf.
+// rendered at KDP size. Quill's paintings never leave the shelf.
 async function exportCover(d) {
   if (d.coverImage) {
-    const c = await window.neo.readCover(d.id, d.coverImage);
+    const c = await window.quill.readCover(d.id, d.coverImage);
     if (c) return { base64: c.base64, mime: c.mime, ext: c.ext };
   }
-  await NeoCovers.ready;
-  const url = NeoCovers.renderFull(d).toDataURL('image/jpeg', 0.9);
+  await QuillCovers.ready;
+  const url = QuillCovers.renderFull(d).toDataURL('image/jpeg', 0.9);
   return { base64: url.split(',')[1], mime: 'image/jpeg', ext: 'jpg' };
 }
 
@@ -15556,7 +15556,7 @@ ${paras}
 </section>`;
   }
   // the language on the page too, so a reader hyphenates in the right one
-  const lang = escXml(d.language || NeoI18n.getLocale());
+  const lang = escXml(d.language || QuillI18n.getLocale());
   return `<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="${lang}" lang="${lang}">
@@ -15582,7 +15582,7 @@ async function buildEpubEntries(data) {
   if (!start) throw new Error(t('There’s nothing in this book to export yet'));
   const chItems = chapters.map((ch) =>
     `<item id="ch${ch.num}" href="ch${ch.num}.xhtml" media-type="application/xhtml+xml"/>`).join('\n');
-  const spineOf = (list) => list.map((ch) => `<itemref idref="ch${ch.num}"/>`).join('\n');
+  const spiquillf = (list) => list.map((ch) => `<itemref idref="ch${ch.num}"/>`).join('\n');
   // one entry per section for a single book; a book of books nests its
   // chapters under their titles and its titles under their parts
   const toc = tocTree(d.toc || chapters.map((ch) => ({ label: ch.heading || d.title, num: ch.num, level: 0 })));
@@ -15610,7 +15610,7 @@ ${navList(n.children)}
 <dc:identifier id="bookid">${uuid}</dc:identifier>
 <dc:title>${escXml(d.title)}</dc:title>
 <dc:creator>${escXml(d.author)}</dc:creator>
-<dc:language>${escXml(d.language || NeoI18n.getLocale())}</dc:language>
+<dc:language>${escXml(d.language || QuillI18n.getLocale())}</dc:language>
 <meta property="dcterms:modified">${modified}</meta>
 <meta name="cover" content="cover-image"/>
 </metadata>
@@ -15626,8 +15626,8 @@ ${chItems}
 <spine toc="ncx">
 <itemref idref="cover" linear="no"/>
 <itemref idref="titlepage"/>
-${front.length ? spineOf(front) + '\n' : ''}<itemref idref="nav"${entryCount(toc) <= 1 ? ' linear="no"' : ''}/>
-${spineOf(rest)}
+${front.length ? spiquillf(front) + '\n' : ''}<itemref idref="nav"${entryCount(toc) <= 1 ? ' linear="no"' : ''}/>
+${spiquillf(rest)}
 </spine>
 <guide>
 <reference type="cover" title="${escXml(t('Cover'))}" href="cover.xhtml"/>
@@ -15729,7 +15729,7 @@ async function shelfBookData(shelf, opts = {}) {
   const through = bound && ((shelf.binding && shelf.binding.numbering) || 'through') !== 'restart';
   const metas = [];
   for (const id of shelf.bookIds) {
-    const m = await window.neo.readBookMeta(id);
+    const m = await window.quill.readBookMeta(id);
     if (m && (bound || !isPageMeta(m))) metas.push(m);
   }
   const cover = metas.find((m) => m.kind === 'cover') || null;
@@ -15737,7 +15737,7 @@ async function shelfBookData(shelf, opts = {}) {
   const titles = metas.filter((m) => !isPageMeta(m));
   const single = titles.length === 1;
   const pageParas = async (m) => parasFromHtml(m.chapterOrder && m.chapterOrder[0]
-    ? await window.neo.readChapter(m.id, m.chapterOrder[0]) : '');
+    ? await window.quill.readChapter(m.id, m.chapterOrder[0]) : '');
   const sections = [];
   const toc = [];
   const push = (s) => { s.num = sections.length + 1; sections.push(s); return s; };
@@ -15773,7 +15773,7 @@ async function shelfBookData(shelf, opts = {}) {
       // chapters the writer gave it run on, a scene break between them)
       const paras = [];
       for (const chId of m.chapterOrder || []) {
-        const p = parasFromHtml(await window.neo.readChapter(m.id, chId));
+        const p = parasFromHtml(await window.quill.readChapter(m.id, chId));
         if (!p.length) continue;
         if (paras.length) paras.push({ sceneBreak: true, poetry: false, text: '', runs: [], align: '', html: '' });
         paras.push(...p);
@@ -15794,7 +15794,7 @@ async function shelfBookData(shelf, opts = {}) {
     for (const chId of m.chapterOrder || []) {
       const kind = chapterKind(chId, m);
       if (!STORY_KINDS.includes(kind) && kind !== 'part') continue;
-      const paras = parasFromHtml(await window.neo.readChapter(m.id, chId));
+      const paras = parasFromHtml(await window.quill.readChapter(m.id, chId));
       if (paras.length || kind === 'part') chapters.push({ chId, kind, paras });
     }
     while (chapters.length && chapters[chapters.length - 1].kind === 'part') chapters.pop();
@@ -15899,10 +15899,10 @@ async function exportShelfAnthology(shelf) {
   try {
     const data = await shelfBookData(shelf, { title: title || shelf.name });
     if (!data.sections.length) { toast(t('No words found on this shelf yet')); return; }
-    const saved = await window.neo.exportSave(await shelfPayload(data, format));
+    const saved = await window.quill.exportSave(await shelfPayload(data, format));
     if (saved) toast(t('Anthology of {n} works exported: {file}', { n: shelf.bookIds.length, file: saved.split('/').pop() }), 6000);
   } catch (err) {
-    window.neo.logError('export anthology: ' + (err && err.stack || err));
+    window.quill.logError('export anthology: ' + (err && err.stack || err));
     toast(t('Couldn’t export the anthology: {error}', { error: plainError(err) }), 8000);
   }
 }
@@ -15915,10 +15915,10 @@ async function exportBoundBook(shelf) {
   try {
     const data = await shelfBookData(shelf, { bound: true });
     if (!data.sections.length) { toast(t('No words found on this shelf yet')); return; }
-    const saved = await window.neo.exportSave(await shelfPayload(data, format));
+    const saved = await window.quill.exportSave(await shelfPayload(data, format));
     if (saved) toast(t('Exported: {file}', { file: saved.split('/').pop() }));
   } catch (err) {
-    window.neo.logError('export bound book: ' + (err && err.stack || err));
+    window.quill.logError('export bound book: ' + (err && err.stack || err));
     toast(t('Couldn’t export: {error}', { error: plainError(err) }), 8000);
   }
 }
@@ -15939,18 +15939,18 @@ async function boundCoverMenu(shelf, meta, el) {
   );
   const choice = await optionModal(escHtml(t('“{name}” · one book', { name: shelf.name })), null, options);
   if (choice === 'cover') {
-    const src = await window.neo.pickCover();
+    const src = await window.quill.pickCover();
     if (!src) return;
-    const fname = await window.neo.setCover(meta.id, src);
+    const fname = await window.quill.setCover(meta.id, src);
     if (!fname) return;
-    const live = (await window.neo.readBookMeta(meta.id)) || meta;
+    const live = (await window.quill.readBookMeta(meta.id)) || meta;
     live.coverImage = fname;
     live.coverMode = 'image';
     await writeBookMeta(meta.id, live);
     renderShelves();
   } else if (choice === 'uncover') {
-    await window.neo.removeCover(meta.id);
-    const live = (await window.neo.readBookMeta(meta.id)) || meta;
+    await window.quill.removeCover(meta.id);
+    const live = (await window.quill.readBookMeta(meta.id)) || meta;
     live.coverImage = null;
     await writeBookMeta(meta.id, live);
     renderShelves();
@@ -15991,10 +15991,10 @@ function plainError(err) {
 // looks at the disk stand aside while shelfExport is set).
 async function exportFromShelf(bookId, format) {
   if (book || shelfExport) return;
-  const meta = await window.neo.readBookMeta(bookId);
+  const meta = await window.quill.readBookMeta(bookId);
   if (!meta || !Array.isArray(meta.chapterOrder)) return;
   const html = {};
-  for (const chId of meta.chapterOrder) html[chId] = await window.neo.readChapter(bookId, chId);
+  for (const chId of meta.chapterOrder) html[chId] = await window.quill.readChapter(bookId, chId);
   if (book) return; // a book was opened meanwhile
   const hadUuid = !!meta.uuid;
   const keep = { chapterHTML, savedHTML };
@@ -16036,12 +16036,12 @@ async function doExport(format, chId = null) {
       const d = data || bookExportData();
       payload = { format, defaultName, content: buildHtml(d, { cover: one ? null : await exportCover(d), fonts: await exportFontFaces(d) }) };
     }
-    const saved = await window.neo.exportSave(payload);
+    const saved = await window.quill.exportSave(payload);
     if (saved) toast(t('Exported: {file}', { file: saved.split('/').pop() }));
   } catch (err) {
     // An export that saves nothing must never be silent: name the failure,
     // and put the stack in the error log for whatever bug report follows.
-    window.neo.logError('export ' + format + ': ' + (err && err.stack || err));
+    window.quill.logError('export ' + format + ': ' + (err && err.stack || err));
     toast(t('Couldn’t export: {error}', { error: plainError(err) }), 8000);
   }
 }
@@ -16101,7 +16101,7 @@ async function doEmailDraft() {
   const subject = t('Quill draft — {title} — {n} words — {date}', { title: shownTitle(book.title), n: total, date: fmtDate(new Date()) });
   const hash = await manuscriptHash();
   const body = t('Draft snapshot of “{title}” — {n} words.', { title: shownTitle(book.title), n: total }) + '\n'
-    + t('Sent from Quill on {date}.', { date: new Date().toLocaleString(NeoI18n.getLocale()) }) + '\n\n'
+    + t('Sent from Quill on {date}.', { date: new Date().toLocaleString(QuillI18n.getLocale()) }) + '\n\n'
     + t('SHA-256 fingerprint of the manuscript text:') + `\n${hash}\n\n`
     + (library.emailMethod === 'gmail'
       ? t('The PDF snapshot is in the Finder window Quill just opened — drag it into this email before sending.')
@@ -16109,7 +16109,7 @@ async function doEmailDraft() {
   toast(t('Preparing your draft…'));
   const script = isScript();
   const snapshot = script ? null : bookExportData();
-  const res = await window.neo.emailDraft({
+  const res = await window.quill.emailDraft({
     to: library.emailAddress,
     subject,
     body,
@@ -16119,7 +16119,7 @@ async function doEmailDraft() {
     defaultName: safeName(book.title),
     method: library.emailMethod
   });
-  if (res.method === 'gmail') toast(t('Gmail compose opened — drag in the PDF NEO revealed, then send'), 8000);
+  if (res.method === 'gmail') toast(t('Gmail compose opened — drag in the PDF Quill revealed, then send'), 8000);
   else if (res.ok) toast(t('Draft handed to Mail — hit send for your timestamp'));
   else toast(t('Mail unavailable — snapshot saved to your Exports folder instead'));
 }
@@ -16175,28 +16175,28 @@ function updateDialogShow(state, info = {}) {
   } else if (state === 'ready') {
     text.textContent = t('Downloaded. Quill will save your work and restart.');
     ok.textContent = t('Restart to update');
-    ok.onclick = () => { flushAllSaves(); setTimeout(() => window.neo.installUpdate(), 300); };
+    ok.onclick = () => { flushAllSaves(); setTimeout(() => window.quill.installUpdate(), 300); };
     ok.focus();
   } else if (state === 'error') {
     text.textContent = t('The update couldn’t be installed from here: {message}', { message: info.message || t('unknown error') })
       + ' ' + t('You can download it from the release page instead.');
     ok.textContent = t('View Release');
-    ok.onclick = () => { window.neo.openRelease(); bd.close(); };
+    ok.onclick = () => { window.quill.openRelease(); bd.close(); };
   } else if (state === 'release') {
     text.textContent = t('You have {version}.', { version: info.currentVersion });
     ok.textContent = t('View Release');
-    ok.onclick = () => { window.neo.openRelease(); bd.close(); };
+    ok.onclick = () => { window.quill.openRelease(); bd.close(); };
   }
 }
 
 async function checkForUpdate() {
   if (updateDialog) { updateDialog.focus(); return; }
-  const res = await window.neo.checkForUpdate();
+  const res = await window.quill.checkForUpdate();
   // the answer comes in a window, like an update does: a line at the foot
   // of the screen was too easy to miss
   if (res.error) { updateNotice(t('Couldn’t check for updates — try again later')); return; }
   if (!res.hasUpdate) { updateNotice(t('Quill is up to date'), t('You have {version}.', { version: res.currentVersion })); return; }
-  // NEO has been fetching it in the background since it was found: show
+  // Quill has been fetching it in the background since it was found: show
   // where that download is — usually done, with "Restart to update"
   updateDialog = updateDialogBox(res);
   if (!res.canInstall) updateDialogShow('release', res);
@@ -16234,9 +16234,9 @@ function updateMessage(msg) {
   updateDialogShow(msg.state, msg);
 }
 
-// Help → About NEO: the version, plainly
+// Help → About Quill: the version, plainly
 async function showAbout() {
-  const v = await window.neo.appVersion();
+  const v = await window.quill.appVersion();
   const bd = document.createElement('div');
   bd.className = 'modal-backdrop';
   bd.innerHTML = `
@@ -16507,7 +16507,7 @@ const swiftKeyName = (provider) => 'swift-key-' + provider;
 async function swiftCloudState() {
   const cfg = swiftSettings();
   if (cfg.mode !== 'cloud' || !SWIFT_PROVIDERS[cfg.provider]) return null;
-  const has = await window.neo.hasSecret(swiftKeyName(cfg.provider));
+  const has = await window.quill.hasSecret(swiftKeyName(cfg.provider));
   if (!has) return null;
   const p = SWIFT_PROVIDERS[cfg.provider];
   return { id: cfg.provider, name: p.name, model: (cfg.models && cfg.models[cfg.provider]) || p.model };
@@ -16568,7 +16568,7 @@ function renderSwiftSection(host, opts = {}) {
     q('#sw-key').placeholder = t('{name} key ({hint})', { name: p.name, hint: p.keyHint });
     q('#sw-model').placeholder = p.model;
     q('#sw-model').value = (cfg.models && cfg.models[id]) || '';
-    const has = await window.neo.hasSecret(swiftKeyName(id));
+    const has = await window.quill.hasSecret(swiftKeyName(id));
     if (provider() !== id) return;
     q('#sw-forget').hidden = !has;
     q('#sw-note').textContent = has
@@ -16578,7 +16578,7 @@ function renderSwiftSection(host, opts = {}) {
   for (const b of host.querySelectorAll('.sw-seg [data-mode]')) b.onclick = () => { mode = b.dataset.mode; paintMode(); if (mode === 'cloud') q('#sw-key').focus(); };
   for (const b of host.querySelectorAll('.sw-prov')) b.onclick = () => { q('#sw-provider').value = b.dataset.provider; paintProvider(); };
   q('#sw-forget').onclick = async () => {
-    await window.neo.setSecret(swiftKeyName(provider()), '');
+    await window.quill.setSecret(swiftKeyName(provider()), '');
     paintProvider();
     msg(t('Key removed.'));
     changed();
@@ -16590,15 +16590,15 @@ function renderSwiftSection(host, opts = {}) {
     if (mode === 'cloud') {
       const k = q('#sw-key').value.trim();
       if (k && !/^\S{20,}$/.test(k)) { msg(t('That doesn’t look like an API key ({name} keys look like {hint}) — not saved', { name: SWIFT_PROVIDERS[id].name, hint: SWIFT_PROVIDERS[id].keyHint }), true); return false; }
-      if (!k && !(await window.neo.hasSecret(swiftKeyName(id)))) { msg(t('Paste your API key to use it.'), true); return false; }
-      if (k) await window.neo.setSecret(swiftKeyName(id), k);
+      if (!k && !(await window.quill.hasSecret(swiftKeyName(id)))) { msg(t('Paste your API key to use it.'), true); return false; }
+      if (k) await window.quill.setSecret(swiftKeyName(id), k);
     }
     const models = { ...(cfg.models || {}) };
     const typed = q('#sw-model').value.trim();
     if (typed) models[id] = typed; else delete models[id];
     library.swift = { mode, provider: id, models };
     // the main process reads this copy: it never trusts the page for the host or the key
-    await window.neo.setSecret('swift-config', JSON.stringify({ mode, provider: id, model: models[id] || '' }));
+    await window.quill.setSecret('swift-config', JSON.stringify({ mode, provider: id, model: models[id] || '' }));
     await writeLibrary(library);
     return true;
   };
@@ -16613,7 +16613,7 @@ function renderSwiftSection(host, opts = {}) {
     msg(t('Testing…'));
     try {
       if (!(await save())) return;
-      await window.neo.ollamaChat([{ role: 'user', content: 'Reply with the single word OK.' }]);
+      await window.quill.ollamaChat([{ role: 'user', content: 'Reply with the single word OK.' }]);
       msg(t('Connected. Swift can use this key.'));
       changed();
     } catch (err) {
@@ -16627,7 +16627,7 @@ function renderSwiftSection(host, opts = {}) {
 function setupOllamaChat() {
   const button = $('#ollama-open');
   const pane = $('#ollama-pane');
-  if (IS_POCKET || typeof window.neo.ollamaChat !== 'function') return;
+  if (IS_POCKET || typeof window.quill.ollamaChat !== 'function') return;
 
   const close = $('#ollama-close');
   const clear = $('#ollama-clear');
@@ -17175,7 +17175,7 @@ function setupOllamaChat() {
     clear.disabled = true;
     setStatus(ctx ? t('Swift is reading your book…') : t('Swift is thinking…'));
     try {
-      const response = await window.neo.ollamaChat(request);
+      const response = await window.quill.ollamaChat(request);
       const reply = response.content;
       messages.push({ role: 'user', content }, { role: 'assistant', content: ctx ? (edit ? swiftStubReply(reply) : swiftStripTags(reply) || reply) : reply });
       // tags are read whatever the mode: a model may write them unasked, and the
@@ -17241,7 +17241,7 @@ function setupOllamaChat() {
 }
 setupOllamaChat();
 
-window.neo.onMenu(async (msg) => {
+window.quill.onMenu(async (msg) => {
   // full screen and focus mode together hide the bottom bar until hovered
   // (styles.css); the window says when it goes in and out, whatever is open
   if (msg.type === 'fullScreen') { document.body.classList.toggle('full-screen', !!msg.value); return; }
@@ -17287,7 +17287,7 @@ window.neo.onMenu(async (msg) => {
   if (msg.type === 'writingStyle') {
     library.writingStyle = msg.value;
     await writeLibrary(library);
-    if (window.neo.writingStyleState) window.neo.writingStyleState(library.writingStyle);
+    if (window.quill.writingStyleState) window.quill.writingStyleState(library.writingStyle);
   }
   if (msg.type === 'settings') openSettings('profile');
   if (msg.type === 'coverArt') openCoverArt();
@@ -17300,8 +17300,8 @@ window.neo.onMenu(async (msg) => {
   if (msg.type === 'uiLanguage') {
     // save every open page, then reload the window in the new language
     flushAllSaves();
-    try { if (book && !$('#editor-view').hidden) sessionStorage.setItem('neo-reopen', book.id); } catch { /* a nicety */ }
-    setTimeout(() => window.neo.reloadForLanguage(), 400);
+    try { if (book && !$('#editor-view').hidden) sessionStorage.setItem('quill-reopen', book.id); } catch { /* a nicety */ }
+    setTimeout(() => window.quill.reloadForLanguage(), 400);
   }
   if (msg.type === 'uiZoom') {
     library.uiZoom = msg.value;
@@ -17352,7 +17352,7 @@ window.neo.onMenu(async (msg) => {
 
 let errorToastShown = false;
 function reportError(msg) {
-  window.neo.logError(msg);
+  window.quill.logError(msg);
   if (!errorToastShown) {
     errorToastShown = true;
     toast(t('Something hiccuped — your words are safe, and the details were logged'));
@@ -17411,7 +17411,7 @@ installLinuxBodyFonts();
 /* ================================================================== */
 /*  ACCESSIBILITY: keyboard, screen readers, system settings           */
 /* ================================================================== */
-// NEO stays quiet by design; these make the quiet parts reachable. The
+// Quill stays quiet by design; these make the quiet parts reachable. The
 // system's own settings decide the rest: "Increase contrast" turns on the
 // Brighter Interface, "Reduce motion" stills the fades and slides.
 
