@@ -22,14 +22,18 @@ jobs:
         with:
           node-version: 24
 
+     
       - name: Install dependencies
         shell: bash
         run: |
+          npm cache clean --force
+
           if [ -f package-lock.json ]; then
-            npm ci
+            npm ci || (npm cache clean --force && npm ci)
           else
-            npm install
+            npm install || (npm cache clean --force && npm install)
           fi
+
 
       - name: Build installer
         shell: bash
