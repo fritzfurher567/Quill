@@ -1,0 +1,403 @@
+@import "tailwindcss";
+
+/* Dark mode is driven by data-theme on <html>, set before first paint by the
+   inline script in layout.tsx. It follows the system until the visitor chooses. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ------------------------------------------------------------------ tokens */
+
+:root {
+  /* Warm paper and ink. The cream surface is #ece6d6. */
+  --bg: #f4f0e6;
+  --surface: #faf7ef;
+  --sunken: #ece6d6;
+  --ink: #1f1c15;
+  --ink-soft: #46423a;
+  --muted: #655f51;
+  --line: #ddd5c1;
+  --line-strong: #c4baa2;
+  --accent: #2b4d3f;
+  --accent-soft: #dfe6d6;
+  --on-accent: #f4f0e6;
+  --focus: #2b4d3f;
+  --shadow: 0 1px 2px rgba(31, 28, 21, 0.05), 0 12px 32px -16px rgba(31, 28, 21, 0.22);
+
+  /* Pigments for the illustrative mockups only. */
+  --mock-1: #2e4a3f;
+  --mock-2: #8a7a58;
+  --mock-3: #b9a98a;
+  --mock-4: #5b6770;
+  --mock-5: #7d3f33;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root[data-theme="dark"] {
+  --bg: #151410;
+  --surface: #1d1b16;
+  --sunken: #26231c;
+  --ink: #efe9d9;
+  --ink-soft: #cfc8b5;
+  --muted: #a39c88;
+  --line: #38342b;
+  --line-strong: #4d4839;
+  --accent: #a9c4a0;
+  --accent-soft: #25301f;
+  --on-accent: #151410;
+  --focus: #a9c4a0;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px -18px rgba(0, 0, 0, 0.7);
+
+  --mock-1: #4b7364;
+  --mock-2: #a8966b;
+  --mock-3: #8c7f64;
+  --mock-4: #7b8a94;
+  --mock-5: #a75f51;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-mock-1: var(--mock-1);
+  --color-mock-2: var(--mock-2);
+  --color-mock-3: var(--mock-3);
+  --color-mock-4: var(--mock-4);
+  --color-mock-5: var(--mock-5);
+
+  --font-serif: var(--font-gelasio), Georgia, "Times New Roman", serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* -------------------------------------------------------------------- base */
+
+html {
+  color-scheme: light;
+  scroll-padding-top: 5.5rem;
+  -webkit-text-size-adjust: 100%;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+/* Smooth cross-fade of colours, only while the visitor flips the theme. */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    fill 0.3s ease,
+    stroke 0.3s ease !important;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -5rem;
+  z-index: 100;
+  background: var(--ink);
+  color: var(--bg);
+  padding: 0.65rem 1rem;
+  border-radius: 0.6rem;
+  font-weight: 500;
+}
+/* Parked off-screen (still focusable, so keyboard users reach it first), then slid into view on focus. */
+.skip-link:focus {
+  top: 0.75rem;
+}
+
+/* ----------------------------------------------------------------- buttons */
+
+/* In the components layer so utilities such as `hidden` and `sm:inline-flex` still win. */
+@layer components {
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid transparent;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.25s var(--ease),
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.25s ease;
+}
+.btn .btn-arrow {
+  transition: transform 0.25s var(--ease);
+}
+.btn:hover .btn-arrow {
+  transform: translateX(3px);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: 0 8px 20px -12px rgba(31, 28, 21, 0.55);
+}
+.btn-primary:hover {
+  background: color-mix(in srgb, var(--ink) 86%, var(--accent));
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -12px rgba(31, 28, 21, 0.5);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.btn-secondary:hover {
+  background: var(--surface);
+  border-color: var(--ink-soft);
+}
+.btn-lg {
+  min-height: 3.25rem;
+  padding: 0 1.6rem;
+  font-size: 1rem;
+}
+.btn[aria-disabled="true"] {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color 0.2s ease, color 0.2s ease;
+}
+.link:hover {
+  text-decoration-color: var(--ink);
+}
+}
+
+/* ------------------------------------------------------------------ motion */
+
+/* Staggered entrance. Pure CSS, so it never depends on scripting. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.enter {
+  animation: rise 0.9s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 80ms);
+}
+
+/* Word-by-word headline. The mask clips each word as it slides up. */
+@keyframes word-in {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: none;
+  }
+}
+.word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.word {
+  display: inline-block;
+  animation: word-in 0.95s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 75ms + 120ms);
+}
+
+/* Scroll reveals. Content is only hidden once the page has hydrated and the
+   observer is running, so a script failure can never leave it invisible. */
+[data-reveal] {
+  transition:
+    opacity 0.8s var(--ease),
+    transform 0.8s var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+html[data-reveal-ready] [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+/* Decorative line drawing itself, then drifting very slowly. */
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes drift {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw 2.8s var(--ease) 0.4s forwards;
+}
+.drift {
+  transform-origin: 50% 50%;
+  animation: drift 120s linear infinite;
+}
+
+@keyframes float {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.float {
+  animation: float 9s ease-in-out infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+.caret {
+  animation: blink 1.15s steps(1) infinite;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.fade-up {
+  animation: fade-up 0.5s var(--ease) both;
+}
+
+/* Reading progress hairline: CSS-only, shown only where scroll timelines exist. */
+.scroll-progress {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes progress {
+      to {
+        transform: scaleX(1);
+      }
+    }
+    .scroll-progress {
+      display: block;
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 2px;
+      z-index: 60;
+      pointer-events: none;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      animation: progress linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+
+/* A soft light that follows the pointer across a card (fine pointers only). */
+.spot {
+  position: relative;
+  isolation: isolate;
+}
+.spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+  background: radial-gradient(
+    340px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--accent) 13%, transparent),
+    transparent 70%
+  );
+}
+@media (hover: hover) {
+  .spot:hover::before {
+    opacity: 1;
+  }
+}
+
+/* Visitors who ask for less motion get none of the above. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
