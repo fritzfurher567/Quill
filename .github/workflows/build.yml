@@ -1,4 +1,4 @@
-
+```yaml
 name: Build installers
 
 on:
@@ -16,24 +16,45 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: npm
 
-     
+      - name: Check npm registry
+        run: npm config set registry https://registry.npmjs.org/
+
       - name: Install dependencies
         shell: bash
         run: |
-          npm cache clean --force
+          set -e
 
-          if [ -f package-lock.json ]; then
-            npm ci || (npm cache clean --force && npm ci)
-          else
-            npm install || (npm cache clean --force && npm install)
-          fi
+          for attempt in 1 2 3; do
+            echo "Dependency installation attempt $attempt of 3"
 
+            if [ -f package-lock.json ]; then
+              if npm ci --prefer-online --no-audit --no-fund; then
+                exit 0
+              fi
+            else
+              if npm install --prefer-online --no-audit --no-fund; then
+                exit 0
+              fi
+            fi
+
+            if [ "$attempt" -lt 3 ]; then
+              echo "Installation failed. Clearing npm cache before retry."
+              npm cache clean --force
+              sleep 5
+            fi
+          done
+
+          echo "Dependency installation failed after 3 attempts."
+          exit 1
 
       - name: Build installer
         shell: bash
@@ -62,3 +83,4 @@ jobs:
             dist/*.AppImage
             dist/*.deb
           if-no-files-found: error
+```
