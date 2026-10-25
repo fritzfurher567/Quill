@@ -10,7 +10,7 @@
  *   so there it stays `null` unless the Client Hints API answers.
  */
 
-import type { Arch, PlatformId } from "@/lib/github/types";
+import type { Arch, PlatformId } from "@/lib/downloads/types";
 
 export interface NavigatorLike {
   userAgent?: string;

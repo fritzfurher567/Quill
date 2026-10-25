@@ -42,7 +42,7 @@ export function SystemRequirements() {
             </table>
           </div>
           <p className="mt-5 max-w-2xl text-sm text-pretty text-muted">
-            {requirementsNote} The files listed on each release are the final word on what is available.
+            {requirementsNote} The files offered on the download page are the final word on what is available.
           </p>
         </Reveal>
       </div>

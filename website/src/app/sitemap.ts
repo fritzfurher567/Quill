@@ -1,7 +1,11 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/config/site";
 
-/** Lists the single page once the production origin is known; empty until then rather than guessing a domain. */
+/** Lists the public pages once the production origin is known; empty until then rather than guessing a domain. */
 export default function sitemap(): MetadataRoute.Sitemap {
-  return siteUrl ? [{ url: new URL("/", siteUrl).href, changeFrequency: "monthly", priority: 1 }] : [];
+  if (!siteUrl) return [];
+  return [
+    { url: new URL("/", siteUrl).href, changeFrequency: "monthly", priority: 1 },
+    { url: new URL("/download", siteUrl).href, changeFrequency: "monthly", priority: 0.8 },
+  ];
 }

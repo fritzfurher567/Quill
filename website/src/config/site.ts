@@ -10,8 +10,8 @@
  * (minimum OS versions, memory, extra app features) stays out until verified.
  */
 
-import { parseRepository, parseSiteUrl } from "@/lib/github/repository";
-import type { PackageFormat, PlatformId } from "@/lib/github/types";
+import { parseRepository, parseSiteUrl } from "@/lib/repository";
+import type { PackageFormat, PlatformId } from "@/lib/downloads/types";
 
 /* ------------------------------ repository ------------------------------ */
 
@@ -54,17 +54,20 @@ export interface NavLink {
 
 /** In-page anchors shown in the navbar. GitHub is added separately when configured. */
 export const navLinks: readonly NavLink[] = [
-  { label: "Features", href: "#features" },
-  { label: "About", href: "#about" },
-  { label: "System requirements", href: "#requirements" },
+  { label: "Features", href: "/#features" },
+  { label: "About", href: "/#about" },
+  { label: "System requirements", href: "/#requirements" },
 ];
 
+/** The page every Download button leads to. */
+export const DOWNLOAD_PATH = "/download";
+
 export const footerLinks: readonly NavLink[] = [
-  { label: "Download", href: "#download" },
-  { label: "Features", href: "#features" },
-  { label: "Getting started", href: "#get-started" },
-  { label: "About", href: "#about" },
-  { label: "System requirements", href: "#requirements" },
+  { label: "Download", href: DOWNLOAD_PATH },
+  { label: "Features", href: "/#features" },
+  { label: "Getting started", href: "/#get-started" },
+  { label: "About", href: "/#about" },
+  { label: "System requirements", href: "/#requirements" },
 ];
 
 /* --------------------------------- platforms ------------------------------- */
@@ -209,7 +212,7 @@ export const previews: readonly Preview[] = [
 export const gettingStarted: readonly { title: string; description: string }[] = [
   {
     title: "Download Quill",
-    description: "Pick your operating system in the download section and get the installer made for it.",
+    description: "Press Download. Quill points you to the file made for your computer, and the page after it walks you through setting it up.",
   },
   {
     title: "Install it",
@@ -220,6 +223,188 @@ export const gettingStarted: readonly { title: string; description: string }[] =
     description: "Launch Quill, find a blank page, and begin.",
   },
 ];
+
+/* -------------------------------- setup guides ------------------------------- */
+
+/** One way of installing: which downloaded files it covers, and the steps. */
+export interface GuideTrack {
+  id: string;
+  /** Short heading, such as "Installer (.exe)". */
+  title: string;
+  /** Which downloaded files this track covers. */
+  format: PackageFormat;
+  /** Set for the portable build; otherwise the track covers the installer. */
+  variant?: "portable";
+  /** Used for `{file}` when the visitor's exact file isn't known. */
+  fileFallback: string;
+  steps: readonly GuideStep[];
+}
+
+export interface GuideStep {
+  title: string;
+  /** Plain text. `{file}` becomes the downloaded file's name. */
+  body: string;
+  /** Optional terminal command, shown in a copyable block. `{file}` works here too. */
+  command?: string;
+}
+
+export interface PlatformGuide {
+  intro: string;
+  tracks: readonly GuideTrack[];
+  /** Shown after the steps. Only things confirmed in the app's own documentation. */
+  afterSetup: readonly GuideStep[];
+}
+
+const openAndWrite: GuideStep = {
+  title: "Open Quill and start writing",
+  body: "Start Quill from your apps, create a book on the shelf, and begin.",
+};
+
+const libraryNote: GuideStep = {
+  title: "Where your writing lives",
+  body: "Quill keeps books as plain files in a folder called Quill Library inside your Documents folder. File \u2192 Library Folder\u2026 lets you choose another place.",
+};
+
+/**
+ * Step-by-step setup, per operating system. The steps describe how each kind of
+ * file is normally opened on that system; nothing here claims anything about how
+ * Quill is signed or notarised. Security prompts are described as "if you see".
+ */
+export const setupGuides: Record<PlatformId, PlatformGuide> = {
+  windows: {
+    intro: "Setting Quill up on Windows takes a couple of minutes.",
+    tracks: [
+      {
+        id: "windows-installer",
+        title: "Installer (.exe)",
+        format: "exe",
+        fileFallback: "the Quill installer",
+        steps: [
+          {
+            title: "Find the file",
+            body: "Open your Downloads folder, or click the download in your browser's download list. The file is {file}.",
+          },
+          {
+            title: "Run the installer",
+            body: "Double-click {file}. If Windows asks whether to allow the app to make changes, choose Yes.",
+          },
+          {
+            title: "If Windows shows a blue warning",
+            body: "If you see \u201cWindows protected your PC\u201d (SmartScreen), you downloaded the file from this site, so choose More info, then Run anyway. If you did not download it from here, close the window and delete the file.",
+          },
+          {
+            title: "Follow the setup",
+            body: "Step through the installer until it finishes.",
+          },
+          openAndWrite,
+        ],
+      },
+      {
+        id: "windows-portable",
+        title: "Portable (.exe)",
+        format: "exe",
+        variant: "portable",
+        fileFallback: "the portable Quill file",
+        steps: [
+          {
+            title: "Put the file somewhere permanent",
+            body: "A portable app doesn't install itself, so move {file} out of Downloads into a folder you'll remember, such as Documents or a USB drive.",
+          },
+          {
+            title: "Open it",
+            body: "Double-click {file}. If Windows shows a \u201cWindows protected your PC\u201d (SmartScreen) message, choose More info, then Run anyway, as long as you downloaded the file from this site.",
+          },
+          openAndWrite,
+        ],
+      },
+    ],
+    afterSetup: [libraryNote],
+  },
+
+  macos: {
+    intro: "Setting Quill up on a Mac takes a minute. You don't need to run a separate installer.",
+    tracks: [
+      {
+        id: "macos-dmg",
+        title: "Disk image (.dmg)",
+        format: "dmg",
+        fileFallback: "the Quill disk image",
+        steps: [
+          {
+            title: "Open the disk image",
+            body: "Open your Downloads folder (or the Downloads stack in the Dock) and double-click {file}. A window opens with the Quill app inside.",
+          },
+          {
+            title: "Drag Quill into Applications",
+            body: "Drag the Quill icon onto the Applications folder shown in that window, or into the Applications folder in a Finder window.",
+          },
+          {
+            title: "Eject the disk image",
+            body: "In Finder's sidebar, click the eject button next to the Quill disk image. You can then delete {file}.",
+          },
+          {
+            title: "Open Quill for the first time",
+            body: "Open Quill from Applications. If macOS says it can't verify the app or that it's from an unidentified developer, you downloaded it from this site, so Control-click (or right-click) the Quill app, choose Open, then choose Open again. If you did not download it from here, don't open it.",
+          },
+          openAndWrite,
+        ],
+      },
+    ],
+    afterSetup: [libraryNote],
+  },
+
+  linux: {
+    intro: "Quill for Linux comes as an AppImage, and sometimes as a .deb package. Use whichever you downloaded.",
+    tracks: [
+      {
+        id: "linux-appimage",
+        title: "AppImage",
+        format: "appimage",
+        fileFallback: "Quill.AppImage",
+        steps: [
+          {
+            title: "Move it somewhere permanent",
+            body: "An AppImage runs where it sits, so move {file} from Downloads to a folder you'll keep, such as ~/Applications.",
+          },
+          {
+            title: "Make it executable",
+            body: "In a terminal, in the folder that holds the file, give it permission to run. In most file managers you can instead right-click the file, open Properties, and allow it to run as a program.",
+            command: "chmod +x {file}",
+          },
+          {
+            title: "Run it",
+            body: "Double-click the file, or start it from the terminal.",
+            command: "./{file}",
+          },
+          {
+            title: "If it doesn't start",
+            body: "AppImages need FUSE 2 on some systems. If you see an error mentioning FUSE or libfuse.so.2, install your distribution's libfuse2 package (on Ubuntu and Debian it can be called libfuse2 or libfuse2t64) and try again.",
+          },
+          openAndWrite,
+        ],
+      },
+      {
+        id: "linux-deb",
+        title: "Debian package (.deb)",
+        format: "deb",
+        fileFallback: "the Quill .deb file",
+        steps: [
+          {
+            title: "Install the package",
+            body: "For Debian, Ubuntu and their relatives, open a terminal in the folder that holds {file} and install it with apt, which also fetches anything it needs.",
+            command: "sudo apt install ./{file}",
+          },
+          {
+            title: "Open Quill",
+            body: "Find Quill in your applications menu and open it.",
+          },
+          openAndWrite,
+        ],
+      },
+    ],
+    afterSetup: [libraryNote],
+  },
+};
 
 /* ------------------------------- requirements ------------------------------- */
 

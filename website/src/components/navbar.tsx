@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CloseIcon, DownloadIcon, ExternalIcon, MenuIcon } from "@/components/icons";
 import { Logo } from "@/components/logo-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { navLinks } from "@/config/site";
+import { DOWNLOAD_PATH, navLinks } from "@/config/site";
 
 /**
  * @param githubUrl The repository URL, or null while none is configured. No
@@ -62,15 +63,15 @@ export function Navbar({ githubUrl }: { githubUrl: string | null }) {
         }`}
       >
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-5 sm:px-8">
-          <a href="#top" aria-label="Quill, back to the top" className="-ml-1 rounded-lg p-1">
+          <Link href="/" aria-label="Quill, home" className="-ml-1 rounded-lg p-1">
             <Logo />
-          </a>
+          </Link>
 
           <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
             {navLinks.map((link) => (
-              <a key={link.href} href={link.href} className={linkClass}>
+              <Link key={link.href} href={link.href} className={linkClass}>
                 {link.label}
-              </a>
+              </Link>
             ))}
             {githubUrl && (
               <a href={githubUrl} target="_blank" rel="noopener noreferrer" className={`${linkClass} inline-flex items-center gap-1.5`}>
@@ -83,10 +84,10 @@ export function Navbar({ githubUrl }: { githubUrl: string | null }) {
 
           <div className="flex items-center gap-1.5">
             <ThemeToggle />
-            <a href="#download" className="btn btn-primary hidden sm:inline-flex">
+            <Link href={DOWNLOAD_PATH} className="btn btn-primary hidden sm:inline-flex">
               <DownloadIcon className="size-4" />
               Download Quill
-            </a>
+            </Link>
             <button
               ref={buttonRef}
               type="button"
@@ -105,14 +106,14 @@ export function Navbar({ githubUrl }: { githubUrl: string | null }) {
           <div ref={panelRef} id="mobile-menu" className="border-t border-line lg:hidden">
             <nav aria-label="Mobile" className="fade-up mx-auto flex max-w-6xl flex-col px-5 pb-5 pt-3 sm:px-8">
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setOpen(false)}
                   className="flex min-h-12 items-center rounded-lg px-2 text-base text-ink hover:bg-surface"
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
               {githubUrl && (
                 <a
@@ -127,10 +128,10 @@ export function Navbar({ githubUrl }: { githubUrl: string | null }) {
                   <span className="sr-only">(opens in a new tab)</span>
                 </a>
               )}
-              <a href="#download" onClick={() => setOpen(false)} className="btn btn-primary mt-3 sm:hidden">
+              <Link href={DOWNLOAD_PATH} onClick={() => setOpen(false)} className="btn btn-primary mt-3 sm:hidden">
                 <DownloadIcon className="size-4" />
                 Download Quill
-              </a>
+              </Link>
             </nav>
           </div>
         )}

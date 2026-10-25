@@ -2,7 +2,7 @@
 
 import { LaptopIcon, TerminalIcon, WindowIcon } from "@/components/icons";
 import { platformOrder, platforms } from "@/config/site";
-import type { PlatformId } from "@/lib/github/types";
+import type { PlatformId } from "@/lib/downloads/types";
 
 const ICONS = { windows: WindowIcon, macos: LaptopIcon, linux: TerminalIcon } as const;
 

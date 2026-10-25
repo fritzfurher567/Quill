@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ExternalIcon } from "@/components/icons";
 import { Logo } from "@/components/logo-mark";
 import { footerLinks, githubLinks, product } from "@/config/site";
@@ -18,9 +19,9 @@ export function Footer() {
             <ul className="mt-4 space-y-1">
               {footerLinks.map((link) => (
                 <li key={link.href}>
-                  <a href={link.href} className="inline-flex min-h-9 items-center text-[0.9375rem] text-ink-soft transition-colors hover:text-ink">
+                  <Link href={link.href} className="inline-flex min-h-9 items-center text-[0.9375rem] text-ink-soft transition-colors hover:text-ink">
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -50,7 +51,7 @@ export function Footer() {
         <section aria-labelledby="privacy-title" className="mt-12 max-w-2xl border-t border-line pt-8">
           <h2 id="privacy-title" className="text-sm font-medium text-muted">Privacy</h2>
           <p className="mt-2 text-sm text-pretty text-ink-soft">
-            This website has no analytics, advertising or tracking, and sets no cookies. It remembers one thing in your browser, your light or dark theme choice, and nothing is sent anywhere. Fonts are served from this site. If you download an installer, the file comes from GitHub, which handles that request under its own privacy policy. This describes the website only, not the Quill app.
+            This website has no analytics, advertising or tracking, and sets no cookies. It remembers one thing in your browser, your light or dark theme choice, and nothing is sent anywhere. Fonts are served from this site. Installers are served from this site or, when a file is hosted elsewhere such as on GitHub, from that host, which handles the request under its own privacy policy. This describes the website only, not the Quill app.
           </p>
         </section>
 
