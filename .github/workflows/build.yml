@@ -1,4 +1,4 @@
-```yaml
+
 name: Build installers
 
 on:
@@ -83,4 +83,4 @@ jobs:
             dist/*.AppImage
             dist/*.deb
           if-no-files-found: error
-```
+
